@@ -74,7 +74,11 @@
             <div class="intro-text">
                 <div class="intro-lead-in">See your Network!</div>
                 <div class="intro-heading">Graph your Twitter activity!</div>
-                <a href="/login"><img src="http://www.portlandbuttonworks.com/image/data/twitter.png" /></a>
+                {% if user is defined %}
+	        <h3 class="section-subheading">Logged in as: {{ user }} </h3>
+                {% else %}
+                <a href="/login?next=http://ec2-52-3-156-104.compute-1.amazonaws.com%23browser"><img src="http://www.portlandbuttonworks.com/image/data/twitter.png" /></a>
+                {% endif %}
             </div>
         </div>
     </header>
@@ -86,7 +90,9 @@
                 <div class="col-lg-12 text-center">
                     <h2 class="section-heading">Neo4j Browser</h2>
                     <h3 class="section-subheading text-muted">Use the Browser to Explore your Graph.</h3>
-                    <h3 class="section-subheading">URL: <a href="http://amazon.com/">http://amazon.com/</a></h3>
+                    {% if url is defined %}
+                      <h3 class="section-subheading">URL: <a href="{{ url }}" target="_blank">{{ url }}</a></h3>
+                    {% endif %}
                     <p class="subsection-heading"><img src="img/neo4j-browser.png" width="500"></p>
                 </div>
             </div>

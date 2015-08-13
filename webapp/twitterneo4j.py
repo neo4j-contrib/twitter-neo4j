@@ -38,9 +38,17 @@ def index():
     else:
       loggedin = False
 
-    if loggedin:
+    if 'neo4j_url' in session:
+      neo4j_url = session['neo4j_url']
+    else:
+      neo4j_url = False
+
+    if loggedin and neo4j_url:
+        return render_template('home.html', url=neo4j_url, user=loggedin)
+    elif loggedin:
         n4j_url = create_task.create_task(loggedin)
-        return render_template('show_link.html', url=n4j_url)
+        session['neo4j_url'] = n4j_url
+        return render_template('home.html', url=n4j_url, user=loggedin)
     else:
         return render_template('home.html')
 
