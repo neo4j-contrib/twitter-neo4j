@@ -31,6 +31,22 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+    <style type="text/css">
+    .metrics {
+        align: center;
+        width: 250px;
+        text-align: left;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 10px;
+        margin-top: 10px;
+        font-size: 16px;
+        text-transform: none;
+        font-weight: 400;
+        font-size: 22px;
+        font-family:"Droid Serif","Helvetica Neue",Helvetica,Arial,sans-serif;
+    }
+    </style>
 </head>
 
 <body id="page-top" class="index">
@@ -90,10 +106,16 @@
                 <div class="col-lg-12 text-center">
                     <h2 class="section-heading">Neo4j Browser</h2>
                     <h3 class="section-subheading text-muted">Use the Browser to Explore your Graph.</h3>
-                    {% if url is defined %}
-                      <h3 class="section-subheading">URL: <a href="{{ url }}" target="_blank">{{ url }}</a></h3>
-                    {% endif %}
-                    <p class="subsection-heading"><img src="img/neo4j-browser.png" width="500"></p>
+                    <span id="node_metrics" style="display:none">
+                    <div class="metrics text-muted">
+                        Users Loaded: <span id="node_metrics_users">0</span><br />
+                        Tweets Loaded: <span id="node_metrics_tweets">0</span>
+                        Hashtags Loaded: <span id="node_metrics_hashtags">0</span>
+                        Links Loaded: <span id="node_metrics_links">0</span>
+                    </div>
+                    </span>
+                    <p class="subsection-heading"><a href="#" id="browser_link" target="_blank"><img src="img/neo4j-browser.png" width="500"></a></p>
+                    <h3 class="section-subheading"><span id="n4j_url"></span></h3>
                 </div>
             </div>
         </div>
@@ -124,11 +146,38 @@
 
     <!-- Contact Form JavaScript -->
     <script src="js/jqBootstrapValidation.js"></script>
-    <script src="js/contact_me.js"></script>
 
     <!-- Custom Theme JavaScript -->
     <script src="js/agency.js"></script>
 
+    {% if check_for_url %}
+      <script>
+        function updateNodeCount() {
+          $.ajax('/neo4j-node-count', {
+            success: function(data) {
+              $('#node_metrics_users').text(data.count_User);
+              $('#node_metrics_tweets').text(data.count_Tweet);
+              $('#node_metrics_hashtags').text(data.count_Hashtag);
+              $('#node_metrics_links').text(data.count_Link);
+            }
+          });
+          setTimeout(updateNodeCount,2000);
+        }
+        $('#n4j_url').html('<i>Creating Neo4j instance...</i>')
+
+        $.ajax('/get_n4j_url', {
+          success: function(data) {
+             $('#n4j_url').html('URL: <a href="' + data.neo4j_url + '" target="_blank">' + data.neo4j_url + '</a>');
+             $('#browser_link').attr('href', data.neo4j_url);
+             $('#node_metrics').show();
+             updateNodeCount();
+          },
+          error: function() {
+             $('#n4j_url').html('error');
+          }
+        });
+      </script>
+    {% endif %}
 </body>
 
 </html>

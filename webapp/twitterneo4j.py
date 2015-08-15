@@ -1,4 +1,5 @@
 from flask import Flask
+from flask import jsonify
 from flask import flash
 from flask import url_for 
 from flask import request
@@ -6,12 +7,15 @@ from flask import render_template
 from flask import redirect
 from flask_oauthlib.client import OAuth
 from flask import session
+
+from py2neo import Graph
+
 import create_task
 
 application = Flask(__name__)
 application.debug = True
 
-application.secret_key = 'super secret key'
+application.secret_key = '32079fgalkjnERER134NBZ><'
 application.config['SESSION_TYPE'] = 'filesystem'
 
 oauth = OAuth()
@@ -43,14 +47,23 @@ def index():
     else:
       neo4j_url = False
 
-    if loggedin and neo4j_url:
-        return render_template('home.html', url=neo4j_url, user=loggedin)
-    elif loggedin:
-        n4j_url = create_task.create_task(loggedin)
-        session['neo4j_url'] = n4j_url
-        return render_template('home.html', url=n4j_url, user=loggedin)
+    if loggedin:
+        return render_template('home.html', check_for_url=True, user=loggedin)
     else:
         return render_template('home.html')
+
+@application.route("/get_n4j_url", methods=['GET'])
+def get_neo4j_url():
+  response_dict = {}
+
+  if 'neo4j_url' in session:
+    response_dict['neo4j_url'] = session['neo4j_url']
+  elif 'twitter_user' in session:
+    n4j_url = create_task.create_task(session['twitter_user'])
+    session['neo4j_url'] = n4j_url
+    response_dict['neo4j_url'] = n4j_url
+
+  return jsonify(**response_dict)
 
 @application.route('/oauth-authorized')
 def oauth_authorized():
@@ -66,8 +79,28 @@ def oauth_authorized():
     )
     session['twitter_user'] = resp['screen_name']
 
-    flash('You were signed in as %s' % resp['screen_name'])
+    #flash('You were signed in as %s' % resp['screen_name'])
     return redirect(next_url)
+
+@application.route("/neo4j-node-count", methods=['GET', 'POST'])
+def exec_neo4j_node_count():
+    response_dict = {}
+    response_dict['query'] = request.args.get('query')
+
+    if not 'neo4j_url' in session:
+      raise Exception('no neo4j url defined in session when exec cypher')
+
+    graph = Graph("%s/db/data/" % session['neo4j_url'])
+    cntCypher = 'MATCH (a) WITH DISTINCT LABELS(a) AS temp, ' + \
+                'COUNT(a) AS tempCnt UNWIND temp AS label ' + \
+                'RETURN label, SUM(tempCnt) AS cnt'
+
+    res = graph.cypher.execute(cntCypher)
+    for record in res:
+      response_dict['count_%s' % record.label] = record.cnt
+ 
+    return jsonify(**response_dict)
+   
 
 if __name__ == "__main__":
     application.run(use_debugger=True, debug=True,
