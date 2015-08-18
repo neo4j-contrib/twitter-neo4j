@@ -12,6 +12,9 @@ from py2neo import Graph
 
 import create_task
 
+TWITTER_CONSUMER_KEY = 'sAHNiOdNdGlJH0tzHmYa2kTKU'
+TWITTER_CONSUMER_SECRET = 'RwQIxMW58VgLJ1LGU6HHRqYCd2hnGVQvSP6Ogr7Zw7HfCSh1Nj'
+
 application = Flask(__name__)
 application.debug = True
 
@@ -54,12 +57,14 @@ def index():
 
 @application.route("/get_n4j_url", methods=['GET'])
 def get_neo4j_url():
+  global TWITTER_CONSUMER_KEY
+  global TWITTER_CONSUMER_SECRET
   response_dict = {}
 
   if 'neo4j_url' in session:
     response_dict['neo4j_url'] = session['neo4j_url']
   elif 'twitter_user' in session:
-    n4j_url = create_task.create_task(session['twitter_user'])
+    n4j_url = create_task.create_task(screen_name=session['twitter_user'], consumer_key=TWITTER_CONSUMER_KEY, consumer_secret=TWITTER_CONSUMER_SECRET, user_key=session['oauth_token'], user_secret=session['oauth_token_secret'])
     session['neo4j_url'] = n4j_url
     response_dict['neo4j_url'] = n4j_url
 
@@ -73,10 +78,9 @@ def oauth_authorized():
         flash(u'You denied the request to sign in.')
         return redirect(next_url)
 
-    session['twitter_token'] = (
-        resp['oauth_token'],
-        resp['oauth_token_secret']
-    )
+    session['oauth_token'] = resp['oauth_token']
+    session['oauth_token_secret'] = resp['oauth_token_secret']
+
     session['twitter_user'] = resp['screen_name']
 
     #flash('You were signed in as %s' % resp['screen_name'])
