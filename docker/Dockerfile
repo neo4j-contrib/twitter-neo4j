@@ -10,5 +10,6 @@ RUN apt-get update
 RUN apt-get install -y python python-pip
 RUN pip install py2neo
 RUN pip install oauth2
+RUN pip install futures
 
 CMD ["/neo4j_and_twitter.sh"]
