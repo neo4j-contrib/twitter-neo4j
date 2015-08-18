@@ -7,6 +7,7 @@ import time
 from py2neo import neo4j
 import oauth2 as oauth
 import concurrent.futures
+from retrying import retry
 
 # Twitter key/secret as a result of registering application
 TWITTER_CONSUMER_KEY = os.environ["TWITTER_CONSUMER_KEY"]
@@ -19,6 +20,9 @@ TWITTER_USER_SECRET = os.environ["TWITTER_USER_SECRET"]
 # Neo4j URL
 NEO4J_URL = os.environ.get('NEO4J_URL',"http://%s:7474/db/data/" % (os.environ.get('HOSTNAME', 'localhost')))
 
+# Number of times to retry connecting to Neo4j upon failure
+CONNECT_NEO4J_RETRIES = 10
+CONNECT_NEO4J_WAIT_SECS = 2
 
 class TwitterRateLimitError(Exception):
     def __init__(self, value):
@@ -37,12 +41,18 @@ def make_api_request(url, method='GET', headers={}):
   client = oauth.Client(consumer, token)
   return client.request(url, method, headers=headers)
 
-
-def create_constraints():
+@retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))
+def get_graph():
     global NEO4J_URL 
 
     # Connect to graph
     graph = neo4j.Graph(NEO4J_URL)
+    graph.cypher.execute('match (t:Tweet) return COUNT(t)')
+    return graph
+
+def create_constraints():
+    # Connect to graph
+    graph = get_graph()
 
     # Add uniqueness constraints.
     graph.cypher.execute("CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
@@ -53,11 +63,6 @@ def create_constraints():
 
 
 def import_friends(screen_name):
-    global NEO4J_URL 
-
-    # Connect to graph
-    graph = neo4j.Graph(NEO4J_URL)
-
     count = 200
     lang = "en"
     cursor = -1
@@ -79,13 +84,18 @@ def import_friends(screen_name):
     
             response, content = make_api_request(url=url, method='GET', headers=headers)
             response_json = json.loads(content)
-     
-            # Keep status objects.
+
             if 'users' in response_json.keys(): 
-              users = response_json["users"]
+              users = response_json['users']
+            elif 'errors' in response_json.keys():
+              errors = response_json['errors']
+              for error in errors:
+                if 'code' in error.keys() and error['code'] == 88:
+                  raise TwitterRateLimitError(response_json)
+              raise Exception('Twitter API error: %s' % response_json)
             else:
               raise Exception('Did not find users in response: %s' % response_json)
-    
+
             if users:
                 users_to_import = True
                 plural = "s." if len(users) > 1 else "."
@@ -113,15 +123,21 @@ def import_friends(screen_name):
                     MERGE (mainUser)-[:FOLLOWS]->(user)
                 """
     
-                # Send Cypher query.
+                graph = get_graph()
                 graph.cypher.execute(query, users=users, screen_name=screen_name)
-                print("Friends added to graph!\n")
-                sys.stdout.flush()
             else:
                 users_to_import = False
                 print("No more friends to import!\n")
                 sys.stdout.flush()
-    
+  
+        except TwitterRateLimitError as e:
+            print(traceback.format_exc())
+            print(e)
+            # Sleep for 15 minutes - twitter API rate limit
+            print 'Sleeping for 15 minutes due to quota'
+            time.sleep(900)
+            continue
+      
         except Exception as e:
             print(traceback.format_exc())
             print(e)
@@ -130,11 +146,6 @@ def import_friends(screen_name):
 
 
 def import_followers(screen_name):
-    global NEO4J_URL 
-
-    # Connect to graph
-    graph = neo4j.Graph(NEO4J_URL)
-
     count = 200
     lang = "en"
     cursor = -1
@@ -173,9 +184,7 @@ def import_followers(screen_name):
                 followers_to_import = True
                 plural = "s." if len(users) > 1 else "."
                 print("Found " + str(len(users)) + " followers" + plural)
-    
-                cursor = response_json["next_cursor"]
-    
+        
                 # Pass dict to Cypher and build query.
                 query = """
                 UNWIND {users} AS u
@@ -197,9 +206,14 @@ def import_followers(screen_name):
                 """
     
                 # Send Cypher query.
+                graph = get_graph()
                 graph.cypher.execute(query, users=users, screen_name=screen_name)
                 print("Followers added to graph!\n")
                 sys.stdout.flush()
+
+                # increment cursor
+                cursor = response_json["next_cursor"]
+
             else:
                 print("No more followers to import\n")
                 sys.stdout.flush()
@@ -222,15 +236,22 @@ def import_followers(screen_name):
 
 
 def import_tweets(screen_name):
-    global NEO4J_URL 
-
-    # Connect to graph
-    graph = neo4j.Graph(NEO4J_URL)
-
     count = 200
     lang = "en"
     tweets_to_import = True
     max_id = 0
+    since_id = 0
+
+    # Connect to graph
+    graph = get_graph()
+
+    max_id_query = 'match (t:Tweet) return max(t.id) AS max_id'
+    res = graph.cypher.execute(max_id_query)
+
+    for record in res:
+      since_id = record.max_id
+
+    print 'Using since_id as %s' % since_id
 
     while tweets_to_import:
         try:
@@ -246,6 +267,9 @@ def import_tweets(screen_name):
             }
             if (max_id != 0):
                 params['max_id'] = max_id
+
+            if (since_id != 0):
+                params['since_id'] = since_id
     
             url = '%s?%s' % (base_url, urllib.urlencode(params))
     
@@ -318,8 +342,9 @@ def import_tweets(screen_name):
                     MERGE (tweet)-[:RETWEETS]->(retweet_tweet)
                 )
                 """
-    
+            
                     # Send Cypher query.
+                graph = get_graph()
                 graph.cypher.execute(query, tweets=tweets)
                 print("Tweets added to graph!\n")
             else:
@@ -342,20 +367,23 @@ def main():
     
     print 'Arguments:', str(sys.argv)
    
-    # TODO improve error handling for connection 
-    time.sleep(5)
     create_constraints()
 
     friends_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     followers_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     tweets_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+    exec_times = 0
+
     while True:
-        friends_executor.submit(import_friends, screen_name)
-        followers_executor.submit(import_followers, screen_name)
+        if (exec_times % 3) == 0:
+            friends_executor.submit(import_friends, screen_name)
+            followers_executor.submit(import_followers, screen_name)
+
         tweets_executor.submit(import_tweets, screen_name)
 
         print 'sleeping'
         time.sleep(1800)
-        print 'maybe import more'
+        print 'done sleeping - maybe import more'
  
 if __name__ == "__main__": main() 
