@@ -16,6 +16,9 @@ TWITTER_CONSUMER_SECRET = os.environ["TWITTER_CONSUMER_SECRET"]
 TWITTER_USER_KEY = os.environ["TWITTER_USER_KEY"]
 TWITTER_USER_SECRET = os.environ["TWITTER_USER_SECRET"]
 
+# Neo4j URL
+NEO4J_URL = os.environ.get('NEO4J_URL',"http://%s:7474/db/data/" % (os.environ.get('HOSTNAME', 'localhost')))
+
 
 class TwitterRateLimitError(Exception):
     def __init__(self, value):
@@ -35,7 +38,12 @@ def make_api_request(url, method='GET', headers={}):
   return client.request(url, method, headers=headers)
 
 
-def create_constraints(graph):
+def create_constraints():
+    global NEO4J_URL 
+
+    # Connect to graph
+    graph = neo4j.Graph(NEO4J_URL)
+
     # Add uniqueness constraints.
     graph.cypher.execute("CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
     graph.cypher.execute("CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
@@ -44,7 +52,12 @@ def create_constraints(graph):
     graph.cypher.execute("CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
 
 
-def import_friends(screen_name, graph):
+def import_friends(screen_name):
+    global NEO4J_URL 
+
+    # Connect to graph
+    graph = neo4j.Graph(NEO4J_URL)
+
     count = 200
     lang = "en"
     cursor = -1
@@ -116,7 +129,12 @@ def import_friends(screen_name, graph):
             continue
 
 
-def import_followers(screen_name, graph):
+def import_followers(screen_name):
+    global NEO4J_URL 
+
+    # Connect to graph
+    graph = neo4j.Graph(NEO4J_URL)
+
     count = 200
     lang = "en"
     cursor = -1
@@ -203,7 +221,12 @@ def import_followers(screen_name, graph):
 
 
 
-def import_tweets(screen_name, graph):
+def import_tweets(screen_name):
+    global NEO4J_URL 
+
+    # Connect to graph
+    graph = neo4j.Graph(NEO4J_URL)
+
     count = 200
     lang = "en"
     tweets_to_import = True
@@ -318,20 +341,18 @@ def main():
         exit(0)
     
     print 'Arguments:', str(sys.argv)
-    
-    # Connect to graph and add constraints.
-    url = os.environ.get('NEO4J_URL',"http://%s:7474/db/data/" % (os.environ.get('HOSTNAME', 'localhost')))
-    graph = neo4j.Graph(url) 
-
-    create_constraints(graph)
+   
+    # TODO improve error handling for connection 
+    time.sleep(5)
+    create_constraints()
 
     friends_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     followers_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     tweets_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     while True:
-        friends_executor.submit(import_friends, screen_name, graph)
-        followers_executor.submit(import_followers, screen_name, graph)
-        tweets_executor.submit(import_tweets, screen_name, graph)
+        friends_executor.submit(import_friends, screen_name)
+        followers_executor.submit(import_followers, screen_name)
+        tweets_executor.submit(import_tweets, screen_name)
 
         print 'sleeping'
         time.sleep(1800)
