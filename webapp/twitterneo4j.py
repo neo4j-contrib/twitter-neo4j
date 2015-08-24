@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import jsonify
+from flask.json import dumps
 from flask import flash
 from flask import url_for 
 from flask import request
@@ -89,7 +90,6 @@ def oauth_authorized():
 @application.route("/neo4j-node-count", methods=['GET', 'POST'])
 def exec_neo4j_node_count():
     response_dict = {}
-    response_dict['query'] = request.args.get('query')
 
     if not 'neo4j_url' in session:
       raise Exception('no neo4j url defined in session when exec cypher')
@@ -104,7 +104,30 @@ def exec_neo4j_node_count():
       response_dict['count_%s' % record.label] = record.cnt
  
     return jsonify(**response_dict)
-   
+
+@application.route("/exec-query", methods=['GET'])
+def exec_neo4j_query():
+    res_list = []
+    response_dict = { 'results': res_list }
+
+    query = request.args.get('query')
+    if query == 'mentions':
+      columns = ('screen_name', 'count')
+      mentionsCypher = 'MATCH (u:User {screen_name:{sn}})-[:POSTS]->(t:Tweet)-[:MENTIONS]->(m:User) ' + \
+                       'RETURN m.screen_name AS screen_name, COUNT(m.screen_name) AS count ORDER BY count DESC LIMIT 10'
+      graph = Graph("%s/db/data/" % session['neo4j_url'])
+      res = graph.cypher.execute(mentionsCypher, {'sn': session['twitter_user'] })
+      for record in res:
+        res_list.append(dict(zip(columns, record)))
+    elif query == 'tags':
+      columns = ('tag', 'count')
+      mentionsCypher = 'MATCH (h:Hashtag)-[:TAGS]->(t:Tweet) WITH h, COUNT(h) AS Hashtags ORDER BY Hashtags DESC LIMIT 10 RETURN h.name AS tag, Hashtags AS count'
+      graph = Graph("%s/db/data/" % session['neo4j_url'])
+      res = graph.cypher.execute(mentionsCypher)
+      for record in res:
+        res_list.append(dict(zip(columns, record)))
+
+    return jsonify(**response_dict)
 
 if __name__ == "__main__":
     application.run(use_debugger=True, debug=True,
