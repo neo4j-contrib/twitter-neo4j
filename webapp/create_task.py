@@ -5,19 +5,18 @@ import socket
 from retrying import retry
 
 
-TWITTER_AUTH = 'AAAAAAAAAAAAAAAAAAAAAAxtggAAAAAAoEFUYVcTYHQC%2BGILe%2FuQhsjuy48%3DcXRTIZvPmqWAWBDM2erDwjAC469eMVFXsvkMQwL85BlBCiSBRr'
 TASK_REVISION = '5'
 RUN_TASK_RETRIES = 3
 RUN_TASK_WAIT_SECS = 2
-TASK_INFO_RETRIES = 3
+TASK_INFO_RETRIES = 7
 TASK_INFO_WAIT_SECS = 1
 DESCRIBE_INSTANCE_WAIT_SECS = 1
 DESCRIBE_INSTANCE_RETRIES = 3
-CONNECT_RETRIES = 7
+CONNECT_RETRIES = 15 
 CONNECT_WAIT_SECS = 1
 
 @retry(stop_max_attempt_number=RUN_TASK_RETRIES, wait_fixed=(RUN_TASK_WAIT_SECS * 1000))
-def run_task(ecs, twitter_user, twitter_auth):
+def run_task(ecs, twitter_user, consumer_key, consumer_secret, user_key, user_secret):
     response =  ecs.run_task(
       cluster='default',
       taskDefinition='neo4j-twitter:%s' % TASK_REVISION,
@@ -31,8 +30,20 @@ def run_task(ecs, twitter_user, twitter_auth):
                         'value': twitter_user
                     },
                     {
-                        'name': 'TWITTER_BEARER',
-                        'value': twitter_auth
+                        'name': 'TWITTER_CONSUMER_KEY',
+                        'value': consumer_key
+                    },
+                    {
+                        'name': 'TWITTER_CONSUMER_SECRET',
+                        'value': consumer_secret
+                    },
+                    {
+                        'name': 'TWITTER_USER_KEY',
+                        'value': user_key
+                    },
+                    {
+                        'name': 'TWITTER_USER_SECRET',
+                        'value': user_secret
                     },
                 ]
             },
@@ -76,7 +87,7 @@ def get_task_info(ecs, task_arn):
     if 'instanceId' in task_info.keys() and 'port' in task_info.keys():
       return task_info
     else:
-      raise Exception('did not find mapped port')
+      raise Exception('did not find mapped port for task %s' % task_arn)
 
 @retry(stop_max_attempt_number=DESCRIBE_INSTANCE_RETRIES, wait_fixed=(DESCRIBE_INSTANCE_WAIT_SECS * 1000))
 def get_connection_ip(ec2, instance_id):
@@ -94,11 +105,11 @@ def try_connecting_neo4j(ip_address, port):
 
     return True
 
-def create_task(twitter_user):
+def create_task(screen_name, consumer_key, consumer_secret, user_key, user_secret):
     ecs = boto3.client('ecs')
     ec2 = boto3.client('ec2')
 
-    task_arn = run_task(ecs, twitter_user, TWITTER_AUTH)
+    task_arn = run_task(ecs, screen_name, consumer_key, consumer_secret, user_key, user_secret)
     task_info = get_task_info(ecs, task_arn)
     ip_address = get_connection_ip(ec2, task_info['instanceId'])
     try_connecting_neo4j(ip_address, task_info['port'])

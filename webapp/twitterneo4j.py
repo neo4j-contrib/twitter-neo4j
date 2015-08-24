@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import jsonify
+from flask.json import dumps
 from flask import flash
 from flask import url_for 
 from flask import request
@@ -11,6 +12,9 @@ from flask import session
 from py2neo import Graph
 
 import create_task
+
+TWITTER_CONSUMER_KEY = 'sAHNiOdNdGlJH0tzHmYa2kTKU'
+TWITTER_CONSUMER_SECRET = 'RwQIxMW58VgLJ1LGU6HHRqYCd2hnGVQvSP6Ogr7Zw7HfCSh1Nj'
 
 application = Flask(__name__)
 application.debug = True
@@ -54,12 +58,14 @@ def index():
 
 @application.route("/get_n4j_url", methods=['GET'])
 def get_neo4j_url():
+  global TWITTER_CONSUMER_KEY
+  global TWITTER_CONSUMER_SECRET
   response_dict = {}
 
   if 'neo4j_url' in session:
     response_dict['neo4j_url'] = session['neo4j_url']
   elif 'twitter_user' in session:
-    n4j_url = create_task.create_task(session['twitter_user'])
+    n4j_url = create_task.create_task(screen_name=session['twitter_user'], consumer_key=TWITTER_CONSUMER_KEY, consumer_secret=TWITTER_CONSUMER_SECRET, user_key=session['oauth_token'], user_secret=session['oauth_token_secret'])
     session['neo4j_url'] = n4j_url
     response_dict['neo4j_url'] = n4j_url
 
@@ -73,10 +79,9 @@ def oauth_authorized():
         flash(u'You denied the request to sign in.')
         return redirect(next_url)
 
-    session['twitter_token'] = (
-        resp['oauth_token'],
-        resp['oauth_token_secret']
-    )
+    session['oauth_token'] = resp['oauth_token']
+    session['oauth_token_secret'] = resp['oauth_token_secret']
+
     session['twitter_user'] = resp['screen_name']
 
     #flash('You were signed in as %s' % resp['screen_name'])
@@ -85,7 +90,6 @@ def oauth_authorized():
 @application.route("/neo4j-node-count", methods=['GET', 'POST'])
 def exec_neo4j_node_count():
     response_dict = {}
-    response_dict['query'] = request.args.get('query')
 
     if not 'neo4j_url' in session:
       raise Exception('no neo4j url defined in session when exec cypher')
@@ -100,7 +104,30 @@ def exec_neo4j_node_count():
       response_dict['count_%s' % record.label] = record.cnt
  
     return jsonify(**response_dict)
-   
+
+@application.route("/exec-query", methods=['GET'])
+def exec_neo4j_query():
+    res_list = []
+    response_dict = { 'results': res_list }
+
+    query = request.args.get('query')
+    if query == 'mentions':
+      columns = ('screen_name', 'count')
+      mentionsCypher = 'MATCH (u:User {screen_name:{sn}})-[:POSTS]->(t:Tweet)-[:MENTIONS]->(m:User) ' + \
+                       'RETURN m.screen_name AS screen_name, COUNT(m.screen_name) AS count ORDER BY count DESC LIMIT 10'
+      graph = Graph("%s/db/data/" % session['neo4j_url'])
+      res = graph.cypher.execute(mentionsCypher, {'sn': session['twitter_user'] })
+      for record in res:
+        res_list.append(dict(zip(columns, record)))
+    elif query == 'tags':
+      columns = ('tag', 'count')
+      mentionsCypher = 'MATCH (h:Hashtag)-[:TAGS]->(t:Tweet) WITH h, COUNT(h) AS Hashtags ORDER BY Hashtags DESC LIMIT 10 RETURN h.name AS tag, Hashtags AS count'
+      graph = Graph("%s/db/data/" % session['neo4j_url'])
+      res = graph.cypher.execute(mentionsCypher)
+      for record in res:
+        res_list.append(dict(zip(columns, record)))
+
+    return jsonify(**response_dict)
 
 if __name__ == "__main__":
     application.run(use_debugger=True, debug=True,

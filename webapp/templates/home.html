@@ -99,7 +99,7 @@
         </div>
     </header>
 
-    <!-- Services Section -->
+    <!-- Browser Section -->
     <section id="browser">
         <div class="container">
             <div class="row">
@@ -121,7 +121,7 @@
         </div>
     </section>
 
-    <!-- Portfolio Grid Section -->
+    <!-- QueriesSection -->
     <section id="queries" class="bg-light-gray">
         <div class="container">
             <div class="row">
@@ -131,6 +131,38 @@
                 </div>
             </div>
         </div>
+        <table width="80%" align="center">
+          <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
+            <td width="50%">Top Mentions</td>
+            <td width="50%">Most Tagged</td>
+          </tr>
+          <tr style="vertical-align: top">
+            <td id="top_mentions_query">
+              <pre>MATCH
+  (u:User {screen_name:'{{ user }}'})-[:POSTS]-&gt;(t:Tweet)-[:MENTIONS]-&gt;(m:User)
+RETURN
+  m.screen_name AS screen_name, COUNT(m.screen_name) AS count 
+ORDER BY 
+  count 
+DESC LIMIT 10</pre>
+            </td>
+            <td id="most_tagged_query">
+              <pre>MATCH
+  (h:Hashtag)-[:TAGS]-gt;(t:Tweet)
+WITH 
+  h, COUNT(h) AS Hashtags
+ORDER BY 
+  Hashtags DESC
+LIMIT 10
+RETURN 
+  h.name, Hashtags</pre>
+            </td>
+          </tr>
+          <tr>
+            <td id="top_mentions_results"></td>
+            <td id="most_tagged_results"></td>
+          </tr>
+        </table>
     </section>
 
     <!-- jQuery -->
@@ -171,11 +203,59 @@
              $('#browser_link').attr('href', data.neo4j_url);
              $('#node_metrics').show();
              updateNodeCount();
+             setTimeout(updateQueries,10000);
           },
           error: function() {
              $('#n4j_url').html('error');
           }
         });
+
+        function updateQueries() {
+            $.ajax('/exec-query?query=mentions', {
+              success: function(data) {
+                 var headers = ['Screen Name', 'Count']
+                 var $table = $('<table width="100%">');
+                 var $headTr = $('<tr>').addClass('header');
+                 $.each(headers, function(i,header){
+                     $headTr.append($('<th>').append($('<span>').text(header)));
+                 });
+                 $headTr.appendTo($table);
+    
+                 $.each(data.results, function(i,dataRow){
+                     var $dataTr = $('<tr>');
+                     $dataTr.append($('<td>').append($('<span>').text(dataRow.screen_name)));
+                     $dataTr.append($('<td>').append($('<span>').text(dataRow.count)));
+                     $dataTr.appendTo($table);
+                 });
+                 $table.appendTo('#top_mentions_results');
+              },
+              error: function() {
+                 //$('#n4j_url').html('error');
+              }
+            });
+            $.ajax('/exec-query?query=tags', {
+              success: function(data) {
+                 var headers = ['Hashtag', 'Count']
+                 var $table = $('<table width="100%">');
+                 var $headTr = $('<tr>').addClass('header');
+                 $.each(headers, function(i,header){
+                     $headTr.append($('<th>').append($('<span>').text(header)));
+                 });
+                 $headTr.appendTo($table);
+    
+                 $.each(data.results, function(i,dataRow){
+                     var $dataTr = $('<tr>');
+                     $dataTr.append($('<td>').append($('<span>').text(dataRow.tag)));
+                     $dataTr.append($('<td>').append($('<span>').text(dataRow.count)));
+                     $dataTr.appendTo($table);
+                 });
+                 $table.appendTo('#most_tagged_results');
+              },
+              error: function() {
+                 //$('#n4j_url').html('error');
+              }
+            });
+        }
       </script>
     {% endif %}
 </body>
