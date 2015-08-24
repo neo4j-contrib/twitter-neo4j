@@ -249,7 +249,8 @@ def import_tweets(screen_name):
     res = graph.cypher.execute(max_id_query)
 
     for record in res:
-      since_id = record.max_id
+      if record.max_id is not None:
+        since_id = record.max_id
 
     print 'Using since_id as %s' % since_id
 
