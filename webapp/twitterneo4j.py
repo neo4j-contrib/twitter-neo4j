@@ -8,8 +8,12 @@ from flask import render_template
 from flask import redirect
 from flask_oauthlib.client import OAuth
 from flask import session
+import logging
 
 from py2neo import Graph
+from py2neo.packages.httpstream import http
+from py2neo.packages.httpstream import SocketError
+
 
 import create_task
 
@@ -33,6 +37,8 @@ twitter = oauth.remote_app('twitter',
     consumer_secret='RwQIxMW58VgLJ1LGU6HHRqYCd2hnGVQvSP6Ogr7Zw7HfCSh1Nj',
     access_token_method='POST'
 )
+
+logging.getLogger("py2neo.cypher").setLevel(logging.CRITICAL)
 
 @application.route("/login", methods=['GET', 'POST'])
 def login():
@@ -90,18 +96,25 @@ def oauth_authorized():
 @application.route("/neo4j-node-count", methods=['GET', 'POST'])
 def exec_neo4j_node_count():
     response_dict = {}
+    log = logging.getLogger("httpstream")
+    log.addHandler(logging.NullHandler())
 
     if not 'neo4j_url' in session:
       raise Exception('no neo4j url defined in session when exec cypher')
 
-    graph = Graph("%s/db/data/" % session['neo4j_url'])
-    cntCypher = 'MATCH (a) WITH DISTINCT LABELS(a) AS temp, ' + \
-                'COUNT(a) AS tempCnt UNWIND temp AS label ' + \
-                'RETURN label, SUM(tempCnt) AS cnt'
+    http.socket_timeout = 5
 
-    res = graph.cypher.execute(cntCypher)
-    for record in res:
-      response_dict['count_%s' % record.label] = record.cnt
+    try:
+      graph = Graph("%s/db/data/" % session['neo4j_url'])
+      cntCypher = 'MATCH (a) WITH DISTINCT LABELS(a) AS temp, ' + \
+                  'COUNT(a) AS tempCnt UNWIND temp AS label ' + \
+                  'RETURN label, SUM(tempCnt) AS cnt'
+
+      res = graph.cypher.execute(cntCypher)
+      for record in res:
+        response_dict['count_%s' % record.label] = record.cnt
+    except SocketError:
+      raise Exception("none")
  
     return jsonify(**response_dict)
 
@@ -109,6 +122,8 @@ def exec_neo4j_node_count():
 def exec_neo4j_query():
     res_list = []
     response_dict = { 'results': res_list }
+
+    http.socket_timeout = 5
 
     query = request.args.get('query')
     if query == 'mentions':
