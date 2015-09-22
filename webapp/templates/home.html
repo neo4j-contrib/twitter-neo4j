@@ -62,7 +62,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand page-scroll" href="#page-top">Neo4j Twitter!</a>
+                <a class="navbar-brand page-scroll" href="#page-top">Graph your Network!</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
@@ -206,7 +206,7 @@ RETURN
              $('#n4j_url').html('URL: <a href="' + data.neo4j_url + '" target="_blank">' + data.neo4j_url + '</a>');
              $('#browser_link').attr('href', data.neo4j_url);
              $('#node_metrics').show();
-             setTimeout(updateNodeCount,3000);
+             setTimeout(updateNodeCount,4000);
              setTimeout(updateQueries,10000);
           },
           error: function() {

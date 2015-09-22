@@ -8,7 +8,9 @@ from flask import render_template
 from flask import redirect
 from flask_oauthlib.client import OAuth
 from flask import session
+from urlparse import urlparse
 import logging
+import memcache
 
 from py2neo import Graph
 from py2neo.packages.httpstream import http
@@ -39,6 +41,7 @@ twitter = oauth.remote_app('twitter',
 )
 
 logging.getLogger("py2neo.cypher").setLevel(logging.CRITICAL)
+tn_logger = logging.getLogger('neo4j.twitter')
 
 @application.route("/login", methods=['GET', 'POST'])
 def login():
@@ -54,8 +57,11 @@ def index():
 
     if 'neo4j_url' in session:
       neo4j_url = session['neo4j_url']
+      if 'neo4j_password' in session:
+        neo4j_password = session['neo4j_password']
     else:
       neo4j_url = False
+      neo4j_password = False
 
     if loggedin:
         return render_template('home.html', check_for_url=True, user=loggedin)
@@ -67,13 +73,50 @@ def get_neo4j_url():
   global TWITTER_CONSUMER_KEY
   global TWITTER_CONSUMER_SECRET
   response_dict = {}
+  need_create_task = True 
 
   if 'neo4j_url' in session:
-    response_dict['neo4j_url'] = session['neo4j_url']
-  elif 'twitter_user' in session:
-    n4j_url = create_task.create_task(screen_name=session['twitter_user'], consumer_key=TWITTER_CONSUMER_KEY, consumer_secret=TWITTER_CONSUMER_SECRET, user_key=session['oauth_token'], user_secret=session['oauth_token_secret'])
-    session['neo4j_url'] = n4j_url
-    response_dict['neo4j_url'] = n4j_url
+    u = urlparse(session['neo4j_url'])
+    tn_logger.info('Found URL, trying to connect')
+
+    try:
+      if create_task.try_connecting_neo4j(u.hostname, u.port):
+        tn_logger.info('Connected')
+        response_dict['neo4j_url'] = session['neo4j_url']
+        need_create_task = False
+    except:
+      tn_logger.info('Exception in connecting')
+      need_create_task = True
+
+  if need_create_task and 'twitter_user' in session:
+    tn_logger.info('Need to create task: %s' % session['twitter_user'])
+
+    mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+    tl = mc.get('task_list')
+    user = session['twitter_user']
+
+
+    if tl and user in tl: 
+      u = urlparse(tl[user]['conn_string'])
+      try:
+        if create_task.try_connecting_neo4j(u.hostname, u.port):
+          n4j_url = tl[user]['conn_string']
+          n4j_password = tl[user]['n4j_password']
+          session['neo4j_url'] = n4j_url
+          session['neo4j_password'] = n4j_password
+          response_dict['neo4j_url'] = n4j_url
+          response_dict['neo4j_password'] = n4j_password
+          need_create_task = False
+          tn_logger.info('Instance from memcache for tw:%s at %s:%s' % (user, u.hostname, u.port))
+      except:
+        need_create_task = True 
+    if need_create_task:        
+      ct_response = create_task.create_task(screen_name=session['twitter_user'], consumer_key=TWITTER_CONSUMER_KEY, consumer_secret=TWITTER_CONSUMER_SECRET, user_key=session['oauth_token'], user_secret=session['oauth_token_secret'])
+      n4j_url = ct_response['url']
+      n4j_password = ct_response['password']
+      session['neo4j_url'] = n4j_url
+      session['neo4j_password'] = n4j_password
+      response_dict['neo4j_password'] = n4j_password
 
   return jsonify(**response_dict)
 
@@ -114,7 +157,7 @@ def exec_neo4j_node_count():
       for record in res:
         response_dict['count_%s' % record.label] = record.cnt
     except SocketError:
-      raise Exception("none")
+      raise Exception("SocketError trying to connect")
  
     return jsonify(**response_dict)
 
