@@ -8,14 +8,14 @@ import logging
 from logging.handlers import SysLogHandler
 from random_words import RandomWords
 
-TASK_REVISION = '5'
+TASK_REVISION = '6'
 RUN_TASK_RETRIES = 5 
 RUN_TASK_WAIT_SECS = 2
 TASK_INFO_RETRIES = 10 
 TASK_INFO_WAIT_SECS = 1
 DESCRIBE_INSTANCE_WAIT_SECS = 1
 DESCRIBE_INSTANCE_RETRIES = 8
-CONNECT_RETRIES = 5
+CONNECT_RETRIES = 10 
 CONNECT_WAIT_SECS = 1
 
 class ContextFilter(logging.Filter):

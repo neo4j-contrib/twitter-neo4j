@@ -203,7 +203,12 @@ RETURN
 
         $.ajax('/get_n4j_url', {
           success: function(data) {
-             $('#n4j_url').html('URL: <a href="' + data.neo4j_url + '" target="_blank">' + data.neo4j_url + '</a>');
+             $('#n4j_url').html(
+               'URL: <a href="' + data.neo4j_url + '" target="_blank">' + data.neo4j_url + '</a>' +
+               '<br />' +
+               'Username: neo4j' +
+               '<br />' +
+               'Password: ' + data.neo4j_password );
              $('#browser_link').attr('href', data.neo4j_url);
              $('#node_metrics').show();
              setTimeout(updateNodeCount,4000);

@@ -67,5 +67,5 @@ def try_connecting_neo4j(ip_address, port):
 def get_all_ti(ecs,ec2,task_arn):
     task_info = get_task_info(ecs, task_arn)
     ip_address = get_connection_ip(ec2, task_info['instanceId'])
-    try_connecting_neo4j(ip_address, task_info['port'])
+    #try_connecting_neo4j(ip_address, task_info['port'])
     return 'http://%s:%s' % (ip_address, task_info['port'])

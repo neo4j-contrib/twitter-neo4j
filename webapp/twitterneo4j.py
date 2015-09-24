@@ -13,6 +13,7 @@ import logging
 import memcache
 
 from py2neo import Graph
+from py2neo import neo4j
 from py2neo.packages.httpstream import http
 from py2neo.packages.httpstream import SocketError
 
@@ -68,6 +69,14 @@ def index():
     else:
         return render_template('home.html')
 
+def get_graph():
+    # Connect to graph
+    u = urlparse(session['neo4j_url'])
+    neo4j.authenticate('%s:%s' % (u.hostname, u.port), 'neo4j', session['neo4j_password'])
+    graph = neo4j.Graph("%s/db/data/" % session['neo4j_url'])
+    graph.cypher.execute('match (t:Tweet) return COUNT(t)')
+    return graph
+
 @application.route("/get_n4j_url", methods=['GET'])
 def get_neo4j_url():
   global TWITTER_CONSUMER_KEY
@@ -83,6 +92,7 @@ def get_neo4j_url():
       if create_task.try_connecting_neo4j(u.hostname, u.port):
         tn_logger.info('Connected')
         response_dict['neo4j_url'] = session['neo4j_url']
+        response_dict['neo4j_password'] = session['neo4j_password']
         need_create_task = False
     except:
       tn_logger.info('Exception in connecting')
@@ -116,6 +126,7 @@ def get_neo4j_url():
       n4j_password = ct_response['password']
       session['neo4j_url'] = n4j_url
       session['neo4j_password'] = n4j_password
+      response_dict['neo4j_url'] = n4j_url
       response_dict['neo4j_password'] = n4j_password
 
   return jsonify(**response_dict)
@@ -148,7 +159,7 @@ def exec_neo4j_node_count():
     http.socket_timeout = 5
 
     try:
-      graph = Graph("%s/db/data/" % session['neo4j_url'])
+      graph = get_graph()
       cntCypher = 'MATCH (a) WITH DISTINCT LABELS(a) AS temp, ' + \
                   'COUNT(a) AS tempCnt UNWIND temp AS label ' + \
                   'RETURN label, SUM(tempCnt) AS cnt'
@@ -173,14 +184,14 @@ def exec_neo4j_query():
       columns = ('screen_name', 'count')
       mentionsCypher = 'MATCH (u:User {screen_name:{sn}})-[:POSTS]->(t:Tweet)-[:MENTIONS]->(m:User) ' + \
                        'RETURN m.screen_name AS screen_name, COUNT(m.screen_name) AS count ORDER BY count DESC LIMIT 10'
-      graph = Graph("%s/db/data/" % session['neo4j_url'])
+      graph = get_graph()
       res = graph.cypher.execute(mentionsCypher, {'sn': session['twitter_user'] })
       for record in res:
         res_list.append(dict(zip(columns, record)))
     elif query == 'tags':
       columns = ('tag', 'count')
       mentionsCypher = 'MATCH (h:Hashtag)-[:TAGS]->(t:Tweet) WITH h, COUNT(h) AS Hashtags ORDER BY Hashtags DESC LIMIT 10 RETURN h.name AS tag, Hashtags AS count'
-      graph = Graph("%s/db/data/" % session['neo4j_url'])
+      graph = get_graph()
       res = graph.cypher.execute(mentionsCypher)
       for record in res:
         res_list.append(dict(zip(columns, record)))
