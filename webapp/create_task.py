@@ -2,21 +2,49 @@ import boto3
 import time
 import pprint
 import socket
+import traceback
 from retrying import retry
+import logging
+from logging.handlers import SysLogHandler
+from random_words import RandomWords
 
-
-TASK_REVISION = '5'
-RUN_TASK_RETRIES = 3
+TASK_REVISION = '6'
+RUN_TASK_RETRIES = 5 
 RUN_TASK_WAIT_SECS = 2
-TASK_INFO_RETRIES = 7
+TASK_INFO_RETRIES = 10 
 TASK_INFO_WAIT_SECS = 1
 DESCRIBE_INSTANCE_WAIT_SECS = 1
-DESCRIBE_INSTANCE_RETRIES = 3
-CONNECT_RETRIES = 15 
+DESCRIBE_INSTANCE_RETRIES = 8
+CONNECT_RETRIES = 10 
 CONNECT_WAIT_SECS = 1
 
+class ContextFilter(logging.Filter):
+  hostname = socket.gethostname()
+
+  def filter(self, record):
+    record.hostname = ContextFilter.hostname
+    return True
+
+f = ContextFilter()
+
+syslog = SysLogHandler(address=('logs3.papertrailapp.com', 16315))
+formatter = logging.Formatter('%(asctime)s twitter.dockerexec: %(message).60s', datefmt='%b %d %H:%M:%S')
+
+syslog.setFormatter(formatter)
+
+tn_logger = logging.getLogger('neo4j.twitter')
+tn_logger.setLevel(logging.INFO)
+
+tn_logger.addFilter(f)
+syslog.setFormatter(formatter)
+
+if not tn_logger.handlers:
+  tn_logger.addHandler(syslog)
+
+
+
 @retry(stop_max_attempt_number=RUN_TASK_RETRIES, wait_fixed=(RUN_TASK_WAIT_SECS * 1000))
-def run_task(ecs, twitter_user, consumer_key, consumer_secret, user_key, user_secret):
+def run_task(ecs, twitter_user, consumer_key, consumer_secret, user_key, user_secret, password):
     response =  ecs.run_task(
       cluster='default',
       taskDefinition='neo4j-twitter:%s' % TASK_REVISION,
@@ -44,6 +72,14 @@ def run_task(ecs, twitter_user, consumer_key, consumer_secret, user_key, user_se
                     {
                         'name': 'TWITTER_USER_SECRET',
                         'value': user_secret
+                    },
+                    {
+                        'name': 'NEO4J_PASSWORD',
+                        'value': password
+                    },
+                    {
+                        'name': 'TIME_STARTED',
+                        'value': str(time.time())
                     },
                 ]
             },
@@ -99,6 +135,7 @@ def get_connection_ip(ec2, instance_id):
 def try_connecting_neo4j(ip_address, port):
     try:
       s = socket.socket()
+      s.settimeout(2)
       s.connect((ip_address, port))
     except:
       raise Exception('could not connect to Neo4j browser on %s:%s' % (ip_address, port))
@@ -109,10 +146,28 @@ def create_task(screen_name, consumer_key, consumer_secret, user_key, user_secre
     ecs = boto3.client('ecs')
     ec2 = boto3.client('ec2')
 
-    task_arn = run_task(ecs, screen_name, consumer_key, consumer_secret, user_key, user_secret)
-    task_info = get_task_info(ecs, task_arn)
-    ip_address = get_connection_ip(ec2, task_info['instanceId'])
-    try_connecting_neo4j(ip_address, task_info['port'])
+    try:
+      rw = RandomWords()
+      word = rw.random_words(count=3)
+      password = '%s-%s-%s' % (word[0], word[1], word[2])
 
-    return 'http://%s:%s' % (ip_address, task_info['port'])
+      tn_logger.info('Calling run_task')
+      task_arn = run_task(ecs, screen_name, consumer_key, consumer_secret, user_key, user_secret, password)
+      tn_logger.info('Done calling run_task')
+      task_info = get_task_info(ecs, task_arn)
+      ip_address = get_connection_ip(ec2, task_info['instanceId'])
+      try_connecting_neo4j(ip_address, task_info['port'])
+      tn_logger.info('Created instance for tw:%s at %s:%s' % (screen_name,ip_address,task_info['port']))
+    except Exception as e:
+      tn_logger.exception(e)
+      tn_logger.error('Error creating docker image for: tu:%s' % screen_name)
+      print(traceback.format_exc())
+      print(e)
+      raise e
+
+    response_dict = { 
+      'url': 'http://%s:%s' % (ip_address, task_info['port']),
+      'password': password }
+ 
+    return response_dict
      

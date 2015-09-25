@@ -62,7 +62,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand page-scroll" href="#page-top">Neo4j Twitter!</a>
+                <a class="navbar-brand page-scroll" href="#page-top">Graph your Network!</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
@@ -187,22 +187,31 @@ RETURN
         function updateNodeCount() {
           $.ajax('/neo4j-node-count', {
             success: function(data) {
+              setTimeout(updateNodeCount,5000);
               $('#node_metrics_users').text(data.count_User);
               $('#node_metrics_tweets').text(data.count_Tweet);
               $('#node_metrics_hashtags').text(data.count_Hashtag);
               $('#node_metrics_links').text(data.count_Link);
+            },
+            error: function() {
+             $('#browser_link').attr('href', '#');
+             $('#n4j_url').html('Neo4j instance may be expired.  Try refreshing your browser.');
             }
           });
-          setTimeout(updateNodeCount,2000);
         }
         $('#n4j_url').html('<i>Creating Neo4j instance...</i>')
 
         $.ajax('/get_n4j_url', {
           success: function(data) {
-             $('#n4j_url').html('URL: <a href="' + data.neo4j_url + '" target="_blank">' + data.neo4j_url + '</a>');
+             $('#n4j_url').html(
+               'URL: <a href="' + data.neo4j_url + '" target="_blank">' + data.neo4j_url + '</a>' +
+               '<br />' +
+               'Username: neo4j' +
+               '<br />' +
+               'Password: ' + data.neo4j_password );
              $('#browser_link').attr('href', data.neo4j_url);
              $('#node_metrics').show();
-             updateNodeCount();
+             setTimeout(updateNodeCount,4000);
              setTimeout(updateQueries,10000);
           },
           error: function() {
