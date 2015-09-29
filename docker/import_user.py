@@ -91,7 +91,7 @@ def try_connecting_neo4j():
 
     return True
 
-@retry(stop_max_attempt_number=3, wait_fixed=(1 * 1000))
+@retry(stop_max_attempt_number=3, wait_fixed=(2 * 1000))
 def change_password():
     global NEO4J_URL,NEO4J_HOST_PORT,NEO4J_USER,NEO4J_PASSWORD,NEO4J_DEFAULT_PASSWORD
 
@@ -724,13 +724,10 @@ def main():
     syslog.setFormatter(formatter)
     logger.addHandler(syslog)
 
-
-    import_mentions(screen_name)
-    exit(100)    
-
     search_terms = ['nosql','neo4j','graphs','python']
 
     try_connecting_neo4j()    
+    time.sleep(2)
     change_password()
     time.sleep(2)
     create_constraints()
@@ -749,6 +746,7 @@ def main():
             followers_executor.submit(import_followers, screen_name)
 
         if exec_times == 0:
+          tweets_executor.submit(import_mentions(screen_name))
           for search_term in search_terms:
             tweets_executor.submit(import_tweets_search, search_term)
 
