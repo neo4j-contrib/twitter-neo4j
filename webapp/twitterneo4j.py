@@ -188,6 +188,28 @@ def exec_neo4j_query():
       res = graph.cypher.execute(mentionsCypher, {'sn': session['twitter_user'] })
       for record in res:
         res_list.append(dict(zip(columns, record)))
+    elif query == 'followback_rate':
+      columns = ('rate','rate')
+      followbackCypher = 'MATCH (me:User {screen_name: {sn}})-[r:FOLLOWS]->(f:User) ' + \
+                       'OPTIONAL MATCH (f)-[r2:FOLLOWS]->(me) WITH count(r) AS follows, count(r2) AS followBack ' + \
+                       'RETURN 1.0 * followBack / follows AS followBackRate'
+      graph = get_graph()
+      res = graph.cypher.execute(followbackCypher, {'sn': session['twitter_user'] })
+      for record in res:
+        res_list.append(dict(zip(columns, record)))
+
+    elif query == 'mentioning_users_follow':
+      columns = ('user','user')
+      mentioningUsersCypher = 'MATCH (ou:User)-[:POSTS]->(t:Tweet)-[mt:MENTIONS]->(me:User {screen_name: {sn}}) ' + \
+                         'MATCH (ou)-[f:FOLLOWS]->(me) ' + \
+                         'WHERE NOT (me)-[:FOLLOWS]->(ou) ' + \
+                         'RETURN DISTINCT(ou.screen_name)'
+
+      graph = get_graph()
+      res = graph.cypher.execute(mentioningUsersCypher, {'sn': session['twitter_user'] })
+      for record in res:
+        res_list.append(dict(zip(columns, record)))
+
     elif query == 'tags':
       columns = ('tag', 'count')
       mentionsCypher = 'MATCH (h:Hashtag)-[:TAGS]->(t:Tweet) WITH h, COUNT(h) AS Hashtags ORDER BY Hashtags DESC LIMIT 10 RETURN h.name AS tag, Hashtags AS count'

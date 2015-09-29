@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Graph YOUR Network</title>
+    <title>Graph your Twitter Network in Neo4j</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -89,11 +89,12 @@
         <div class="container">
             <div class="intro-text">
                 <div class="intro-lead-in">See your Network!</div>
-                <div class="intro-heading">Graph your Twitter activity!</div>
+                <div class="intro-heading">Graph your Twitter activity in Neo4j!</div>
                 {% if user is defined %}
 	        <h3 class="section-subheading">Logged in as: {{ user }} </h3>
                 {% else %}
                 <a href="/login?next=http://ec2-52-3-156-104.compute-1.amazonaws.com%23browser"><img src="http://www.portlandbuttonworks.com/image/data/twitter.png" /></a>
+                <br>by logging in, you agree to the <a href="http://neo4j.com/terms/">terms</a> and <a href="http://neo4j.com/privacy-policy/">privacy policy</a>
                 {% endif %}
             </div>
         </div>
@@ -148,7 +149,7 @@ DESC LIMIT 10</pre>
             </td>
             <td id="most_tagged_query">
               <pre>MATCH
-  (h:Hashtag)-[:TAGS]-gt;(t:Tweet)
+  (h:Hashtag)-[:TAGS]-&gt;(t:Tweet)
 WITH 
   h, COUNT(h) AS Hashtags
 ORDER BY 
@@ -162,11 +163,38 @@ RETURN
             <td id="top_mentions_results"></td>
             <td id="most_tagged_results"></td>
           </tr>
+          <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
+            <td width="50%">Followback Rate</td>
+            <td width="50%">Users tweeting about You, but you Don't Follow</td>
+          </tr>
+          <tr>
+            <td id="followback_rate_query">
+              <pre>MATCH (me:User {screen_name: '{{ user }}'})-[r:FOLLOWS]-&gt;(f:User)
+OPTIONAL MATCH (f)-[r2:FOLLOWS]-&gt;(me)
+WITH count(r) AS follows, count(r2) AS followBack
+RETURN 1.0 * followBack / follows AS followBackRate</pre>
+            </td>
+            <td id="mentioning_users_query">
+              <pre>MATCH (ou:User)-[:POSTS]-&gt;(t:Tweet)-[mt:MENTIONS]-&gt;(me:User {screen_name: 'ryguyrg'})
+MATCH (ou)-[f:FOLLOWS]-&gt;(me)
+WHERE NOT (me)-[:FOLLOWS]-&gt;(ou)
+RETURN DISTINCT(ou.screen_name)</pre>
+            </td>
+          </tr>
+          <tr>
+            <td id="followback_rate_results" style="vertical-align: top"></td>
+            <td id="mentioning_users_results"></td>
+          </tr>
         </table>
     </section>
 
+    <p><center><a href="http://neo4j.com/"><img src="img/neo4j_logo_sm.png" height="50"></a></center></p>
     <!-- jQuery -->
     <script src="js/jquery.js"></script>
+
+    <script src="js/ZeroClipboard.js"></script>
+
+    <script src="main.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="js/bootstrap.min.js"></script>
@@ -259,6 +287,48 @@ RETURN
                      $dataTr.appendTo($table);
                  });
                  $table.appendTo('#most_tagged_results');
+              },
+              error: function() {
+                 //$('#n4j_url').html('error');
+              }
+            });
+            $.ajax('/exec-query?query=followback_rate', {
+              success: function(data) {
+                 var headers = ['Followback Rate']
+                 var $table = $('<table width="100%">');
+                 var $headTr = $('<tr>').addClass('header');
+                 $.each(headers, function(i,header){
+                     $headTr.append($('<th>').append($('<span>').text(header)));
+                 });
+                 $headTr.appendTo($table);
+    
+                 $.each(data.results, function(i,dataRow){
+                     var $dataTr = $('<tr>');
+                     $dataTr.append($('<td>').append($('<span>').text(dataRow.rate)));
+                     $dataTr.appendTo($table);
+                 });
+                 $table.appendTo('#followback_rate_results');
+              },
+              error: function() {
+                 //$('#n4j_url').html('error');
+              }
+            });
+            $.ajax('/exec-query?query=mentioning_users_follow', {
+              success: function(data) {
+                 var headers = ['User']
+                 var $table = $('<table width="100%">');
+                 var $headTr = $('<tr>').addClass('header');
+                 $.each(headers, function(i,header){
+                     $headTr.append($('<th>').append($('<span>').text(header)));
+                 });
+                 $headTr.appendTo($table);
+    
+                 $.each(data.results, function(i,dataRow){
+                     var $dataTr = $('<tr>');
+                     $dataTr.append($('<td>').append($('<span>').text(dataRow.user)));
+                     $dataTr.appendTo($table);
+                 });
+                 $table.appendTo('#mentioning_users_results');
               },
               error: function() {
                  //$('#n4j_url').html('error');
