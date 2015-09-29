@@ -5,6 +5,9 @@ import traceback
 import sys
 import time
 from py2neo import neo4j
+from py2neo import ServiceRoot
+from py2neo.password import UserManager
+
 import oauth2 as oauth
 import concurrent.futures
 from retrying import retry
@@ -22,7 +25,14 @@ TWITTER_USER_KEY = os.environ["TWITTER_USER_KEY"]
 TWITTER_USER_SECRET = os.environ["TWITTER_USER_SECRET"]
 
 # Neo4j URL
-NEO4J_URL = os.environ.get('NEO4J_URL',"http://%s:7474/db/data/" % (os.environ.get('HOSTNAME', 'localhost')))
+NEO4J_HOST = (os.environ.get('HOSTNAME', 'localhost'))
+NEO4J_PORT = 7474
+NEO4J_URL = "http://%s:%s/db/data/" % (NEO4J_HOST,NEO4J_PORT)
+NEO4J_HOST_PORT = '%s:%s' % (NEO4J_HOST,NEO4J_PORT)
+
+NEO4J_USER = 'neo4j'
+NEO4J_DEFAULT_PASSWORD = 'neo4j'
+NEO4J_PASSWORD = os.environ["NEO4J_PASSWORD"]
 
 # Number of times to retry connecting to Neo4j upon failure
 CONNECT_NEO4J_RETRIES = 10
@@ -58,12 +68,40 @@ def make_api_request(url, method='GET', headers={}):
 
 @retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))
 def get_graph():
-    global NEO4J_URL 
+    global NEO4J_URL,NEO4J_HOST_PORT,NEO4J_USER,NEO4J_PASSWORD
 
     # Connect to graph
+    neo4j.authenticate(NEO4J_HOST_PORT, NEO4J_USER, NEO4J_PASSWORD)
     graph = neo4j.Graph(NEO4J_URL)
     graph.cypher.execute('match (t:Tweet) return COUNT(t)')
     return graph
+
+@retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))
+def try_connecting_neo4j():
+    global NEO4J_HOST,NEO4J_PORT
+
+    ip_address = NEO4J_HOST
+    port = NEO4J_PORT
+
+    try:
+      s = socket.socket()
+      s.connect((ip_address, port))
+    except:
+      raise Exception('could not connect to Neo4j browser on %s:%s' % (ip_address, port))
+
+    return True
+
+@retry(stop_max_attempt_number=3, wait_fixed=(1 * 1000))
+def change_password():
+    global NEO4J_URL,NEO4J_HOST_PORT,NEO4J_USER,NEO4J_PASSWORD,NEO4J_DEFAULT_PASSWORD
+
+    service_root = ServiceRoot(NEO4J_URL)
+    user_name = NEO4J_USER
+    password = NEO4J_DEFAULT_PASSWORD
+    user_manager = UserManager.for_user(service_root, user_name, password)
+    password_manager = user_manager.password_manager
+    new_password = NEO4J_PASSWORD
+    password_manager.change(new_password)
 
 def create_constraints():
     # Connect to graph
@@ -394,6 +432,147 @@ def import_tweets(screen_name):
             time.sleep(30)
             continue
 
+def import_mentions(screen_name):
+    count = 200
+    lang = "en"
+    tweets_to_import = True
+    max_id = 0
+    since_id = 0
+
+    # Connect to graph
+    graph = get_graph()
+
+    max_id_query = 'match (u:User {screen_name:{screen_name}})<-[m:MENTIONS]-(t:Tweet) WHERE m.method="mention_search" return max(t.id) AS max_id'
+    res = graph.cypher.execute(max_id_query, screen_name=screen_name)
+
+    for record in res:
+      if record.max_id is not None:
+        since_id = record.max_id
+
+    print 'Using since_id as %s' % since_id
+
+    while tweets_to_import:
+        try:
+            base_url = 'https://api.twitter.com/1.1/statuses/mentions_timeline.json'
+            headers = {'accept': 'application/json'}
+
+            params = {
+              'exclude_replies': 'false',
+              'contributor_details': 'true',
+              'screen_name': screen_name,
+              'count': count,
+              'lang': lang,
+            }
+            if (max_id != 0):
+                params['max_id'] = max_id
+
+            if (since_id != 0):
+                params['since_id'] = since_id
+
+            url = '%s?%s' % (base_url, urllib.urlencode(params))
+
+            response, content = make_api_request(url=url, method='GET', headers=headers)
+            response_json = json.loads(content)
+
+            if isinstance(response_json, dict) and 'errors' in response_json.keys():
+              errors = response_json['errors']
+              for error in errors:
+                if 'code' in error.keys() and error['code'] == 88:
+                  raise TwitterRateLimitError(response_json)
+              raise Exception('Twitter API error: %s' % response_json)
+
+            # Keep status objects.
+            tweets = response_json
+
+            if tweets:
+                tweets_to_import = True
+                plural = "s." if len(tweets) > 1 else "."
+                print("Found " + str(len(tweets)) + " tweet" + plural)
+
+                max_id = tweets[len(tweets) - 1].get('id') - 1
+
+                # Pass dict to Cypher and build query.
+                query = """
+                UNWIND {tweets} AS t
+
+                WITH t
+                ORDER BY t.id
+
+                WITH t,
+                     t.entities AS e,
+                     t.user AS u,
+                     t.retweeted_status AS retweet
+
+                MERGE (tweet:Tweet {id:t.id})
+                SET tweet.text = t.text,
+                    tweet.created_at = t.created_at,
+                    tweet.favorites = t.favorite_count
+
+                MERGE (user:User {screen_name:u.screen_name})
+                SET user.name = u.name,
+                    user.location = u.location,
+                    user.followers = u.followers_count,
+                    user.following = u.friends_count,
+                    user.statuses = u.statusus_count,
+                    user.profile_image_url = u.profile_image_url
+
+                MERGE (user)-[:POSTS]->(tweet)
+
+                MERGE (source:Source {name:t.source})
+                MERGE (tweet)-[:USING]->(source)
+
+                FOREACH (h IN e.hashtags |
+                  MERGE (tag:Hashtag {name:LOWER(h.text)})
+                  MERGE (tag)-[:TAGS]->(tweet)
+                )
+
+                FOREACH (u IN e.urls |
+                  MERGE (url:Link {url:u.expanded_url})
+                  MERGE (tweet)-[:CONTAINS]->(url)
+                )
+
+                FOREACH (m IN e.user_mentions |
+                  MERGE (mentioned:User {screen_name:m.screen_name})
+                  ON CREATE SET mentioned.name = m.name
+                  MERGE (tweet)-[mts:MENTIONS]->(mentioned)
+                  SET mts.method = 'mention_search'
+                )
+
+                FOREACH (r IN [r IN [t.in_reply_to_status_id] WHERE r IS NOT NULL] |
+                  MERGE (reply_tweet:Tweet {id:r})
+                  MERGE (tweet)-[:REPLY_TO]->(reply_tweet)
+                )
+
+                FOREACH (retweet_id IN [x IN [retweet.id] WHERE x IS NOT NULL] |
+                    MERGE (retweet_tweet:Tweet {id:retweet_id})
+                    MERGE (tweet)-[:RETWEETS]->(retweet_tweet)
+                )
+                """
+
+                    # Send Cypher query.
+                graph = get_graph()
+                graph.cypher.execute(query, tweets=tweets)
+                print("Tweets added to graph!\n")
+            else:
+                print("No tweets found.\n")
+                tweets_to_import = False
+
+        except TwitterRateLimitError as e:
+            logger.exception(e)
+            print(traceback.format_exc())
+            print(e)
+            # Sleep for 15 minutes - twitter API rate limit
+            print 'Sleeping for 15 minutes due to quota'
+            time.sleep(900)
+            continue
+
+        except Exception as e:
+            logger.exception(e)
+            print(traceback.format_exc())
+            print(e)
+            time.sleep(30)
+            continue
+
 def import_tweets_search(search_term):
     count = 200
     lang = "en"
@@ -525,6 +704,7 @@ def import_tweets_search(search_term):
 def main():
     global logger
 
+
     if len(sys.argv) == 2:
         print "Operating for Twitter user: %s" % sys.argv[1]
         logger.warning("running twitter app for user: %s" % sys.argv[1])
@@ -545,8 +725,14 @@ def main():
     logger.addHandler(syslog)
 
 
+    import_mentions(screen_name)
+    exit(100)    
+
     search_terms = ['nosql','neo4j','graphs','python']
 
+    try_connecting_neo4j()    
+    change_password()
+    time.sleep(2)
     create_constraints()
 
     friends_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
