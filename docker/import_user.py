@@ -38,6 +38,10 @@ NEO4J_PASSWORD = os.environ["NEO4J_PASSWORD"]
 CONNECT_NEO4J_RETRIES = 10
 CONNECT_NEO4J_WAIT_SECS = 2
 
+# Number of times to retry executing Neo4j queries
+EXEC_NEO4J_RETRIES = 2
+EXEC_NEO4J_WAIT_SECS = 1
+
 logger = logging.getLogger()
 logger.setLevel(logging.ERROR)
 
@@ -75,6 +79,11 @@ def get_graph():
     graph = neo4j.Graph(NEO4J_URL)
     graph.cypher.execute('match (t:Tweet) return COUNT(t)')
     return graph
+
+@retry(stop_max_attempt_number=EXEC_NEO4J_RETRIES, wait_fixed=(EXEC_NEO4J_WAIT_SECS * 1000))
+def execute_query(query, **kwargs):
+    graph = get_graph()
+    graph.cypher.execute(query, **kwargs)
 
 @retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))
 def try_connecting_neo4j():
@@ -176,12 +185,12 @@ def import_friends(screen_name):
                     MERGE (mainUser)-[:FOLLOWS]->(user)
                 """
 
-                graph = get_graph()
-                graph.cypher.execute(query, users=users, screen_name=screen_name)
+                # Send Cypher query.
+                execute_query(query, users=users, screen_name=screen_name)
+                print("Friends added to graph!")
             else:
                 users_to_import = False
-                print("No more friends to import!\n")
-                sys.stdout.flush()
+                print("No more friends to import!")
 
         except TwitterRateLimitError as e:
             logger.exception(e)
@@ -261,17 +270,14 @@ def import_followers(screen_name):
                 """
 
                 # Send Cypher query.
-                graph = get_graph()
-                graph.cypher.execute(query, users=users, screen_name=screen_name)
-                print("Followers added to graph!\n")
-                sys.stdout.flush()
+                execute_query(query, users=users, screen_name=screen_name)
+                print("Followers added to graph!")
 
                 # increment cursor
                 cursor = response_json["next_cursor"]
 
             else:
-                print("No more followers to import\n")
-                sys.stdout.flush()
+                print("No more followers to import")
                 followers_to_import = False
 
         except TwitterRateLimitError as e:
@@ -408,12 +414,11 @@ def import_tweets(screen_name):
                 )
                 """
 
-                    # Send Cypher query.
-                graph = get_graph()
-                graph.cypher.execute(query, tweets=tweets)
-                print("Tweets added to graph!\n")
+                # Send Cypher query.
+                execute_query(query, tweets=tweets)
+                print("Tweets added to graph!")
             else:
-                print("No tweets found.\n")
+                print("No tweets found.")
                 tweets_to_import = False
 
         except TwitterRateLimitError as e:
@@ -432,6 +437,13 @@ def import_tweets(screen_name):
             time.sleep(30)
             continue
 
+def import_tweets_tagged(screen_name):
+    graph = get_graph()
+    tagged_query = 'MATCH (h:Hashtag)-[:TAGS]->(t:Tweet)<-[:POSTS]-(u:User {screen_name:{screen_name}}) WITH h, COUNT(h) AS Hashtags ORDER BY Hashtags DESC LIMIT 5 RETURN h.name AS tag_name, Hashtags'
+    res = graph.cypher.execute(tagged_query, screen_name=screen_name)
+    for record in res:
+      import_tweets_search('#' + record.tag_name)
+
 def import_mentions(screen_name):
     count = 200
     lang = "en"
@@ -439,9 +451,8 @@ def import_mentions(screen_name):
     max_id = 0
     since_id = 0
 
-    # Connect to graph
+    # Find max tweet previously processed
     graph = get_graph()
-
     max_id_query = 'match (u:User {screen_name:{screen_name}})<-[m:MENTIONS]-(t:Tweet) WHERE m.method="mention_search" return max(t.id) AS max_id'
     res = graph.cypher.execute(max_id_query, screen_name=screen_name)
 
@@ -549,12 +560,11 @@ def import_mentions(screen_name):
                 )
                 """
 
-                    # Send Cypher query.
-                graph = get_graph()
-                graph.cypher.execute(query, tweets=tweets)
-                print("Tweets added to graph!\n")
+                # Send Cypher query.
+                execute_query(query, tweets=tweets)
+                print("Tweets added to graph!")
             else:
-                print("No tweets found.\n")
+                print("No tweets found.")
                 tweets_to_import = False
 
         except TwitterRateLimitError as e:
@@ -677,12 +687,11 @@ def import_tweets_search(search_term):
                 )
                 """
 
-                    # Send Cypher query.
-                graph = get_graph()
-                graph.cypher.execute(query, tweets=tweets)
-                print("Search tweets added to graph for %s !\n" % (search_term))
+                # Send Cypher query.
+                execute_query(query, tweets=tweets)
+                print("Search tweets added to graph for %s !" % (search_term))
             else:
-                print("No search tweets found for %s.\n" % (search_term))
+                print("No search tweets found for %s." % (search_term))
                 tweets_to_import = False
 
         except TwitterRateLimitError as e:
@@ -724,7 +733,7 @@ def main():
     syslog.setFormatter(formatter)
     logger.addHandler(syslog)
 
-    search_terms = ['nosql','neo4j','graphs','python']
+    search_terms = ['nosql','neo4j','graphs']
 
     try_connecting_neo4j()    
     time.sleep(2)
@@ -740,6 +749,7 @@ def main():
 
     while True:
         tweets_executor.submit(import_tweets, screen_name)
+        tweets_executor.submit(import_tweets_tagged, screen_name)
 
         if (exec_times % 3) == 0:
             friends_executor.submit(import_friends, screen_name)
