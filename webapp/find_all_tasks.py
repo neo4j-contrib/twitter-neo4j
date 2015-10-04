@@ -28,10 +28,12 @@ FIND_TASK_WAIT_SECS = 1
 KILL_TASK_RETRIES = 5
 KILL_TASK_WAIT_SECS = 1
 
-MEMORY_PER_TASK = 512
+MEMORY_PER_TASK = 640
 TASKS_AVAILABLE = 10 
 
 MAX_TASK_AGE = 259200
+ECS_CLUSTER_NAME = 'neo4j-twitter'
+ECS_AUTO_SCALING_GROUP_NAME = 'ecs-neo4j-twitter'
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -61,7 +63,7 @@ tn_logger.addHandler(syslog)
 def kill_task(ecs, arn, user):
   tn_logger.info('Kill: tw:%s %s' % (user, arn))
   ecs.stop_task(
-    cluster='default',
+    cluster=ECS_CLUSTER_NAME,
     task=arn)
 
 
@@ -72,20 +74,22 @@ def find_task_set(ecs, next_token=None):
 
   if next_token:
     response = ecs.list_tasks(
-      cluster='default',
+      cluster=ECS_CLUSTER_NAME,
       maxResults=10,
       nextToken=next_token)
   else:
     response = ecs.list_tasks(
-      cluster='default',
+      cluster=ECS_CLUSTER_NAME,
       maxResults=10)
- 
+
   if 'taskArns' in response:
     for arn in response['taskArns']:
       task_ids.append(arn)
 
     if len(task_ids) > 0:
-      td = ecs.describe_tasks(tasks=task_ids)
+      td = ecs.describe_tasks(
+        cluster=ECS_CLUSTER_NAME,
+        tasks=task_ids)
       task_descs.extend(td['tasks'])
  
   if 'nextToken' in response:
@@ -107,9 +111,8 @@ def update_task_list():
   current_time = time.time()
 
   #tasksd['ryguyrg'] = { 'time_started': 1442867975 }
- 
+
   for task in task_descs:
-      #pp.pprint(task)
       cos = task['overrides']['containerOverrides']
       env_vars = {}
       for co in cos:
@@ -145,11 +148,11 @@ def check_utilization():
   autos = boto3.client('autoscaling')
 
   response = ecs.list_container_instances(
-    cluster='default',
+    cluster=ECS_CLUSTER_NAME,
     maxResults=100)
   container_instances = response['containerInstanceArns']
   response = ecs.describe_container_instances(
-    cluster='default',
+    cluster=ECS_CLUSTER_NAME,
     containerInstances=container_instances)
   for instance in response['containerInstances']:
     remaining_memory = 0
@@ -180,17 +183,17 @@ def check_utilization():
     print 'NEED MORE INSTANCES'
 
     asg = autos.describe_auto_scaling_groups(
-      AutoScalingGroupNames=['EC2ContainerService-default-028f6848-dfe1-4f03-ac9a-8673a62a9d75-EcsInstanceAsg-1XI52SPJSDV8V']
+      AutoScalingGroupNames=[ECS_AUTO_SCALING_GROUP_NAME]
     )
     capacity = asg['AutoScalingGroups'][0]['DesiredCapacity']
     pp.pprint(capacity)
     autos.set_desired_capacity(
-      AutoScalingGroupName='EC2ContainerService-default-028f6848-dfe1-4f03-ac9a-8673a62a9d75-EcsInstanceAsg-1XI52SPJSDV8V',
+      AutoScalingGroupName=ECS_AUTO_SCALING_GROUP_NAME,
       DesiredCapacity = capacity + 1,
       HonorCooldown = True
     )
     asg = autos.describe_auto_scaling_groups(
-      AutoScalingGroupNames=['EC2ContainerService-default-028f6848-dfe1-4f03-ac9a-8673a62a9d75-EcsInstanceAsg-1XI52SPJSDV8V']
+      AutoScalingGroupNames=[ECS_AUTO_SCALING_GROUP_NAME]
     )
     capacity = asg['AutoScalingGroups'][0]['DesiredCapacity']
     pp.pprint(capacity)

@@ -77,6 +77,9 @@
                     <li>
                         <a class="page-scroll" href="#queries">Queries</a>
                     </li>
+                    <li>
+                        <a class="page-scroll" href="#faq">FAQ</a>
+                    </li>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
@@ -107,6 +110,7 @@
                 <div class="col-lg-12 text-center">
                     <h2 class="section-heading">Neo4j Browser</h2>
                     <h3 class="section-subheading text-muted">Use the Browser to Explore your Graph.</h3>
+                    <p class="text-muted">We're now loading your Tweets from the Twitter API as well as a mixture of other tweets which may be popular to Graph Database enthusiasts.  <br />Note that the Twitter API has quotas which mean your Tweets have to be loaded over time, depending on how much Twitter activity you have.<br /></p>
                     <span id="node_metrics" style="display:none">
                     <div class="metrics text-muted">
                         Users Loaded: <span id="node_metrics_users">0</span><br />
@@ -117,6 +121,7 @@
                     </span>
                     <p class="subsection-heading"><a href="#" id="browser_link" target="_blank"><img src="img/neo4j-browser.png" width="500"></a></p>
                     <h3 class="section-subheading"><span id="n4j_url"></span></h3>
+                    <p class="text-muted">Access your personal instance of Neo4j using the URL, username, and password above. We'll keep your instance around for a few days, but you can always come back and get a new instance.</p>
                 </div>
             </div>
         </div>
@@ -128,14 +133,15 @@
             <div class="row">
                 <div class="col-lg-12 text-center">
                     <h2 class="section-heading">Example Queries</h2>
-                    <h3 class="section-subheading text-muted">Try these queries to explore your data.</h3>
+                    <h3 class="section-subheading text-muted">Try these queries in the <a href="#browser">Browser</a> yourself to explore your data.</h3>
+                    <h3 class="section-subheading text-muted">Until all your data is fully loaded, results may not be accurate.</h3>
                 </div>
             </div>
         </div>
         <table width="80%" align="center">
           <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
-            <td width="50%">Top Mentions</td>
-            <td width="50%">Most Tagged</td>
+            <td width="50%">Top Mentions of You</td>
+            <td width="50%">Most Tagged by You</td>
           </tr>
           <tr style="vertical-align: top">
             <td id="top_mentions_query">
@@ -149,7 +155,7 @@ DESC LIMIT 10</pre>
             </td>
             <td id="most_tagged_query">
               <pre>MATCH
-  (h:Hashtag)-[:TAGS]-&gt;(t:Tweet)
+  (h:Hashtag)-[:TAGS]-&gt;(t:Tweet)&lt;-[:POSTS]-(u:User {screen_name:'{{ user }}'})
 WITH 
   h, COUNT(h) AS Hashtags
 ORDER BY 
@@ -169,16 +175,16 @@ RETURN
           </tr>
           <tr>
             <td id="followback_rate_query">
-              <pre>MATCH (me:User {screen_name: '{{ user }}'})-[r:FOLLOWS]-&gt;(f:User)
-OPTIONAL MATCH (f)-[r2:FOLLOWS]-&gt;(me)
-WITH count(r) AS follows, count(r2) AS followBack
-RETURN 1.0 * followBack / follows AS followBackRate</pre>
+              <pre>MATCH (me:User {screen_name: '{{ user }}'})-[:FOLLOWS]-&gt;(f)
+WITH me, f, size((f)-[:FOLLOWS]-&gt;(me)) as doesFollowBack
+RETURN sum(doesFollowBack) / toFloat(count(f))  AS followBackRate</pre>
             </td>
             <td id="mentioning_users_query">
-              <pre>MATCH (ou:User)-[:POSTS]-&gt;(t:Tweet)-[mt:MENTIONS]-&gt;(me:User {screen_name: 'ryguyrg'})
-MATCH (ou)-[f:FOLLOWS]-&gt;(me)
-WHERE NOT (me)-[:FOLLOWS]-&gt;(ou)
-RETURN DISTINCT(ou.screen_name)</pre>
+              <pre>MATCH (ou:User)-[:POSTS]-&gt;(t:Tweet)-[mt:MENTIONS]-&gt;(me:User {screen_name: '{{ user }}'})
+WITH DISTINCT ou, me
+WHERE (ou)-[f:FOLLOWS]-&gt;(me)
+AND NOT (me)-[:FOLLOWS]-&gt;(ou)
+RETURN ou.screen_name</pre>
             </td>
           </tr>
           <tr>
@@ -188,13 +194,21 @@ RETURN DISTINCT(ou.screen_name)</pre>
         </table>
     </section>
 
+    <section id="faq">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="section-heading">FAQ</h2>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <p><center><a href="http://neo4j.com/"><img src="img/neo4j_logo_sm.png" height="50"></a></center></p>
     <!-- jQuery -->
     <script src="js/jquery.js"></script>
 
     <script src="js/ZeroClipboard.js"></script>
-
-    <script src="main.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="js/bootstrap.min.js"></script>
@@ -240,7 +254,7 @@ RETURN DISTINCT(ou.screen_name)</pre>
              $('#browser_link').attr('href', data.neo4j_url);
              $('#node_metrics').show();
              setTimeout(updateNodeCount,4000);
-             setTimeout(updateQueries,10000);
+             setTimeout(updateQueries,15000);
           },
           error: function() {
              $('#n4j_url').html('error');
@@ -264,7 +278,11 @@ RETURN DISTINCT(ou.screen_name)</pre>
                      $dataTr.append($('<td>').append($('<span>').text(dataRow.count)));
                      $dataTr.appendTo($table);
                  });
-                 $table.appendTo('#top_mentions_results');
+                 $('#top_mentions_results').empty().append($table);
+                 //$table.appendTo('#top_mentions_results');
+            
+                 // refresh every 2 minutes
+                 setTimeout(updateQueries,120000);
               },
               error: function() {
                  //$('#n4j_url').html('error');
@@ -286,7 +304,8 @@ RETURN DISTINCT(ou.screen_name)</pre>
                      $dataTr.append($('<td>').append($('<span>').text(dataRow.count)));
                      $dataTr.appendTo($table);
                  });
-                 $table.appendTo('#most_tagged_results');
+                 //$table.appendTo('#most_tagged_results');
+                 $('#most_tagged_results').empty().append($table);
               },
               error: function() {
                  //$('#n4j_url').html('error');
@@ -307,7 +326,8 @@ RETURN DISTINCT(ou.screen_name)</pre>
                      $dataTr.append($('<td>').append($('<span>').text(dataRow.rate)));
                      $dataTr.appendTo($table);
                  });
-                 $table.appendTo('#followback_rate_results');
+                 //$table.appendTo('#followback_rate_results');
+                 $('#followback_rate_results').empty().append($table);
               },
               error: function() {
                  //$('#n4j_url').html('error');
@@ -328,7 +348,8 @@ RETURN DISTINCT(ou.screen_name)</pre>
                      $dataTr.append($('<td>').append($('<span>').text(dataRow.user)));
                      $dataTr.appendTo($table);
                  });
-                 $table.appendTo('#mentioning_users_results');
+                 //$table.appendTo('#mentioning_users_results');
+                 $('#mentioning_users_results').empty().append($table);
               },
               error: function() {
                  //$('#n4j_url').html('error');
