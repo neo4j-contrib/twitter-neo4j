@@ -28,7 +28,7 @@ FIND_TASK_WAIT_SECS = 1
 KILL_TASK_RETRIES = 5
 KILL_TASK_WAIT_SECS = 1
 
-MEMORY_PER_TASK = 640
+MEMORY_PER_TASK = 768
 TASKS_AVAILABLE = 10 
 
 MAX_TASK_AGE = 259200
@@ -110,8 +110,6 @@ def update_task_list():
 
   current_time = time.time()
 
-  #tasksd['ryguyrg'] = { 'time_started': 1442867975 }
-
   for task in task_descs:
       cos = task['overrides']['containerOverrides']
       env_vars = {}
@@ -138,7 +136,6 @@ def update_task_list():
                   kill_task(ecs, task['taskArn'], env_vars['TWITTER_USER'])
             else: 
               tasksd[ env_vars['TWITTER_USER'] ] = task_info
-          #tasksd[ task['taskArn'] ] = env_vars    
   mc.set("task_list", tasksd)
 
 def check_utilization():
