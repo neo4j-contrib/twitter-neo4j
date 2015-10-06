@@ -209,9 +209,20 @@ def exec_neo4j_query():
       for record in res:
         res_list.append(dict(zip(columns, record)))
 
+    elif query == 'interesting_links':
+      columns = ('tweet','url','favorites')
+      mentioningUsersCypher = 'MATCH (:User {screen_name: {sn}})-[:POSTS]->(t:Tweet)-[:RETWEETS]->(rt)-[:CONTAINS]->(link:Link) ' + \
+                              'RETURN t.id_str AS tweet, link.url AS url, rt.favorites  AS favorites ' + \
+                              'ORDER BY favorites DESC LIMIT 10' 
+
+      graph = get_graph()
+      res = graph.cypher.execute(mentioningUsersCypher, {'sn': session['twitter_user'] })
+      for record in res:
+        res_list.append(dict(zip(columns, record)))
+
     elif query == 'tags':
       columns = ('tag', 'count')
-      mentionsCypher = 'MATCH (h:Hashtag)-[:TAGS]->(t:Tweet)<-[:POSTS]-(u:User {screen_name: {sn}}) WITH h, COUNT(h) AS Hashtags ORDER BY Hashtags DESC LIMIT 10 RETURN h.name AS tag, Hashtags AS count'
+      mentionsCypher = 'MATCH (h:Hashtag)<-[:TAGS]-(t:Tweet)<-[:POSTS]-(u:User {screen_name: {sn}}) WITH h, COUNT(h) AS Hashtags ORDER BY Hashtags DESC LIMIT 10 RETURN h.name AS tag, Hashtags AS count'
       graph = get_graph()
       res = graph.cypher.execute(mentionsCypher, {'sn': session['twitter_user'] })
       for record in res:
