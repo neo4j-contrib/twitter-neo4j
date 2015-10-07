@@ -184,7 +184,7 @@ RETURN
             </table>
           </div>
         </div>
-        <div class="row" style="padding-left: 10px">
+        <div class="row" style="padding-left: 10px; padding-bottom: 10px;">
           <div class="col-sm-8 col-lg-6 col-sm-offset-2 col-lg-offset-0">
             <table>
               <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
@@ -238,6 +238,28 @@ ORDER BY favorites DESC LIMIT 10</pre>
               </tr>
               <tr>
                 <td id="interesting_links_results"></td>
+              </tr>
+            </table>
+          </div>
+          <div class="col-sm-8 col-lg-6 col-sm-offset-2 col-lg-offset-0">
+            <table>
+              <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
+                <td>Users tweeting with common tags as you</td>
+              </tr>
+              <tr style="vertical-align: top">
+                <td id="common_tags_query">
+                  <pre>MATCH (me:User {screen_name:'{{ user }}'})-[:POSTS]-&gt;(tweet:Tweet)-[:TAGS]-&gt;(ht)
+MATCH (ht)&lt;-[:TAGS]-(tweet2:Tweet)&lt;-[:POSTS]-(sugg:User)
+WHERE sugg &lt;&gt; me
+AND NOT (tweet2)-[:RETWEETS]-&gt;(tweet)
+WITH sugg, collect(distinct(ht)) as tags
+RETURN sugg.screen_name as friend, size(tags) as common
+ORDER BY common DESC
+LIMIT 20</pre>
+                </td>
+              </tr>
+              <tr>
+                <td id="common_tags_results"></td>
               </tr>
             </table>
           </div>
@@ -373,8 +395,10 @@ ORDER BY favorites DESC LIMIT 10</pre>
     
                  $.each(data.results, function(i,dataRow){
                      var $dataTr = $('<tr>');
-                     $dataTr.append($('<td>').append($('<span>').text('tweet')));
-                     $dataTr.append($('<td>').append($('<span>').text(dataRow.url)));
+                     var $tweetLink = $('<a>').attr('href', 'http://twitter.com/{{ user }}/status/' + dataRow.tweet);
+                     var $urlLink = $('<a>').attr('href', dataRow.url);
+                     $dataTr.append($('<td>').append($('<span>').append($tweetLink.text('tweet'))));
+                     $dataTr.append($('<td>').append($('<span>').append($urlLink.text(dataRow.url))));
                      $dataTr.append($('<td>').append($('<span>').text(dataRow.favorites)));
                      $dataTr.appendTo($table);
                  });
@@ -423,6 +447,28 @@ ORDER BY favorites DESC LIMIT 10</pre>
                  });
                  //$table.appendTo('#mentioning_users_results');
                  $('#mentioning_users_results').empty().append($table);
+              },
+              error: function() {
+                 //$('#n4j_url').html('error');
+              }
+            });
+            $.ajax('/exec-query?query=common_tags', {
+              success: function(data) {
+                 var headers = ['User', 'Common Tags']
+                 var $table = $('<table width="100%">');
+                 var $headTr = $('<tr>').addClass('header');
+                 $.each(headers, function(i,header){
+                     $headTr.append($('<th>').append($('<span>').text(header)));
+                 });
+                 $headTr.appendTo($table);
+    
+                 $.each(data.results, function(i,dataRow){
+                     var $dataTr = $('<tr>');
+                     $dataTr.append($('<td>').append($('<span>').text(dataRow.user)));
+                     $dataTr.append($('<td>').append($('<span>').text(dataRow.common)));
+                     $dataTr.appendTo($table);
+                 });
+                 $('#common_tags_results').empty().append($table);
               },
               error: function() {
                  //$('#n4j_url').html('error');
