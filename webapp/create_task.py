@@ -8,15 +8,16 @@ import logging
 from logging.handlers import SysLogHandler
 from random_words import RandomWords
 
-TASK_REVISION = '6'
+TASK_REVISION = '7'
 RUN_TASK_RETRIES = 5 
 RUN_TASK_WAIT_SECS = 2
-TASK_INFO_RETRIES = 10 
-TASK_INFO_WAIT_SECS = 1
+TASK_INFO_RETRIES = 20
+TASK_INFO_WAIT_SECS = 2
 DESCRIBE_INSTANCE_WAIT_SECS = 1
 DESCRIBE_INSTANCE_RETRIES = 8
 CONNECT_RETRIES = 10 
 CONNECT_WAIT_SECS = 1
+ECS_CLUSTER_NAME = 'neo4j-twitter'
 
 class ContextFilter(logging.Filter):
   hostname = socket.gethostname()
@@ -46,7 +47,7 @@ if not tn_logger.handlers:
 @retry(stop_max_attempt_number=RUN_TASK_RETRIES, wait_fixed=(RUN_TASK_WAIT_SECS * 1000))
 def run_task(ecs, twitter_user, consumer_key, consumer_secret, user_key, user_secret, password):
     response =  ecs.run_task(
-      cluster='default',
+      cluster=ECS_CLUSTER_NAME,
       taskDefinition='neo4j-twitter:%s' % TASK_REVISION,
       overrides={
         'containerOverrides': [
@@ -100,7 +101,9 @@ def run_task(ecs, twitter_user, consumer_key, consumer_secret, user_key, user_se
 def get_task_info(ecs, task_arn):
     task_info = {}
 
-    desc = ecs.describe_tasks(tasks=[task_arn])
+    desc = ecs.describe_tasks(
+      cluster=ECS_CLUSTER_NAME,
+      tasks=[task_arn])
 
     try:
       networkBindings = desc['tasks'][0]['containers'][0]['networkBindings']
@@ -109,7 +112,9 @@ def get_task_info(ecs, task_arn):
       raise Exception('did not find network and container info for task: %s' % (desc))
 
     try:
-      containerDesc = ecs.describe_container_instances(containerInstances=[containerInstanceArn])
+      containerDesc = ecs.describe_container_instances(
+        cluster=ECS_CLUSTER_NAME,
+        containerInstances=[containerInstanceArn])
       ec2InstanceId = containerDesc['containerInstances'][0]['ec2InstanceId']
     except:
       raise Exception('did not find ec2 instance ID from container: %s' % (desc))
@@ -151,9 +156,9 @@ def create_task(screen_name, consumer_key, consumer_secret, user_key, user_secre
       word = rw.random_words(count=3)
       password = '%s-%s-%s' % (word[0], word[1], word[2])
 
-      tn_logger.info('Calling run_task')
+      tn_logger.debug('Calling run_task')
       task_arn = run_task(ecs, screen_name, consumer_key, consumer_secret, user_key, user_secret, password)
-      tn_logger.info('Done calling run_task')
+      tn_logger.debug('Done calling run_task')
       task_info = get_task_info(ecs, task_arn)
       ip_address = get_connection_ip(ec2, task_info['instanceId'])
       try_connecting_neo4j(ip_address, task_info['port'])

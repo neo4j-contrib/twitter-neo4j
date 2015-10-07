@@ -77,6 +77,9 @@
                     <li>
                         <a class="page-scroll" href="#queries">Queries</a>
                     </li>
+                    <li>
+                        <a class="page-scroll" href="#faq">FAQ</a>
+                    </li>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
@@ -107,16 +110,18 @@
                 <div class="col-lg-12 text-center">
                     <h2 class="section-heading">Neo4j Browser</h2>
                     <h3 class="section-subheading text-muted">Use the Browser to Explore your Graph.</h3>
+                    <p class="text-muted">We're now loading your Tweets from the Twitter API as well as a mixture of other tweets which may be popular to Graph Database enthusiasts.  <br />Note that the Twitter API has quotas which mean your Tweets have to be loaded over time, depending on how much Twitter activity you have.<br /></p>
                     <span id="node_metrics" style="display:none">
                     <div class="metrics text-muted">
-                        Users Loaded: <span id="node_metrics_users">0</span><br />
-                        Tweets Loaded: <span id="node_metrics_tweets">0</span>
-                        Hashtags Loaded: <span id="node_metrics_hashtags">0</span>
-                        Links Loaded: <span id="node_metrics_links">0</span>
+                        Users Loaded: <span id="node_metrics_users"></span><br />
+                        Tweets Loaded: <span id="node_metrics_tweets"></span>
+                        Hashtags Loaded: <span id="node_metrics_hashtags"></span>
+                        Links Loaded: <span id="node_metrics_links"></span>
                     </div>
                     </span>
                     <p class="subsection-heading"><a href="#" id="browser_link" target="_blank"><img src="img/neo4j-browser.png" width="500"></a></p>
                     <h3 class="section-subheading"><span id="n4j_url"></span></h3>
+                    <p class="text-muted">Access your personal instance of Neo4j using the URL, username, and password above. We'll keep your instance around for a few days, but you can always come back and get a new instance.</p>
                 </div>
             </div>
         </div>
@@ -128,28 +133,42 @@
             <div class="row">
                 <div class="col-lg-12 text-center">
                     <h2 class="section-heading">Example Queries</h2>
-                    <h3 class="section-subheading text-muted">Try these queries to explore your data.</h3>
+                    <h3 class="section-subheading text-muted">Try these queries in the <a href="#browser">Browser</a> yourself to explore your data.</h3>
+                    <h3 class="section-subheading text-muted">Until all your data is fully loaded, results may not be accurate.</h3>
                 </div>
             </div>
         </div>
-        <table width="80%" align="center">
-          <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
-            <td width="50%">Top Mentions</td>
-            <td width="50%">Most Tagged</td>
-          </tr>
-          <tr style="vertical-align: top">
-            <td id="top_mentions_query">
-              <pre>MATCH
+        <div class="row" style="padding-left: 10px; padding-bottom: 10px;">
+          <div class="col-sm-8 col-lg-6 col-sm-offset-2 col-lg-offset-0">
+            <table>
+              <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
+                <td>Top Mentions of You</td>
+              </tr>
+              <tr style="vertical-align: top">
+                <td id="top_mentions_query">
+                  <pre>MATCH
   (u:User {screen_name:'{{ user }}'})-[:POSTS]-&gt;(t:Tweet)-[:MENTIONS]-&gt;(m:User)
 RETURN
   m.screen_name AS screen_name, COUNT(m.screen_name) AS count 
 ORDER BY 
   count 
 DESC LIMIT 10</pre>
-            </td>
-            <td id="most_tagged_query">
-              <pre>MATCH
-  (h:Hashtag)-[:TAGS]-&gt;(t:Tweet)
+                </td>
+              </tr>
+              <tr>
+                <td id="top_mentions_results"></td>
+              </tr>
+            </table>
+          </div>
+          <div class="col-sm-8 col-lg-6 col-sm-offset-2 col-lg-offset-0">
+            <table>
+              <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
+                <td>Most Tagged by You</td>
+              </tr>
+              <tr style="vertical-align: top">
+                <td id="most_tagged_query">
+                  <pre>MATCH
+  (h:Hashtag)&lt;-[:TAGS]-(t:Tweet)&lt;-[:POSTS]-(u:User {screen_name:'{{ user }}'})
 WITH 
   h, COUNT(h) AS Hashtags
 ORDER BY 
@@ -157,35 +176,104 @@ ORDER BY
 LIMIT 10
 RETURN 
   h.name, Hashtags</pre>
-            </td>
-          </tr>
-          <tr>
-            <td id="top_mentions_results"></td>
-            <td id="most_tagged_results"></td>
-          </tr>
-          <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
-            <td width="50%">Followback Rate</td>
-            <td width="50%">Users tweeting about You, but you Don't Follow</td>
-          </tr>
-          <tr>
-            <td id="followback_rate_query">
-              <pre>MATCH (me:User {screen_name: '{{ user }}'})-[r:FOLLOWS]-&gt;(f:User)
-OPTIONAL MATCH (f)-[r2:FOLLOWS]-&gt;(me)
-WITH count(r) AS follows, count(r2) AS followBack
-RETURN 1.0 * followBack / follows AS followBackRate</pre>
-            </td>
-            <td id="mentioning_users_query">
-              <pre>MATCH (ou:User)-[:POSTS]-&gt;(t:Tweet)-[mt:MENTIONS]-&gt;(me:User {screen_name: 'ryguyrg'})
-MATCH (ou)-[f:FOLLOWS]-&gt;(me)
-WHERE NOT (me)-[:FOLLOWS]-&gt;(ou)
-RETURN DISTINCT(ou.screen_name)</pre>
-            </td>
-          </tr>
-          <tr>
-            <td id="followback_rate_results" style="vertical-align: top"></td>
-            <td id="mentioning_users_results"></td>
-          </tr>
-        </table>
+                </td>
+              </tr>
+              <tr>
+                <td id="most_tagged_results"></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="row" style="padding-left: 10px; padding-bottom: 10px;">
+          <div class="col-sm-8 col-lg-6 col-sm-offset-2 col-lg-offset-0">
+            <table>
+              <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
+                <td>Followback Rate</td>
+              </tr>
+              <tr style="vertical-align: top">
+                <td id="followback_rate_query">
+                  <pre>MATCH (me:User {screen_name: '{{ user }}'})-[:FOLLOWS]-&gt;(f)
+WITH me, f, size((f)-[:FOLLOWS]-&gt;(me)) as doesFollowBack
+RETURN sum(doesFollowBack) / toFloat(count(f))  AS followBackRate</pre>
+                </td>
+              </tr>
+              <tr>
+                <td id="followback_rate_results"></td>
+              </tr>
+            </table>
+          </div>
+          <div class="col-sm-8 col-lg-6 col-sm-offset-2 col-lg-offset-0">
+            <table>
+              <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
+                <td>Users tweeting about You, but you Don't Follow</td>
+              </tr>
+              <tr style="vertical-align: top">
+                <td id="mentioning_users_query">
+                  <pre>MATCH (ou:User)-[:POSTS]-&gt;(t:Tweet)-[mt:MENTIONS]-&gt;(me:User {screen_name: '{{ user }}'})
+WITH DISTINCT ou, me
+WHERE (ou)-[:FOLLOWS]-&gt;(me)
+AND NOT (me)-[:FOLLOWS]-&gt;(ou)
+RETURN ou.screen_name</pre>
+                </td>
+              </tr>
+              <tr>
+                <td id="mentioning_users_results"></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="row" style="padding-left: 10px">
+          <div class="col-sm-8 col-lg-6 col-sm-offset-2 col-lg-offset-0">
+            <table>
+              <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
+                <td>Links from Interesting Retweets</td>
+              </tr>
+              <tr style="vertical-align: top">
+                <td id="interesting_links_query">
+                  <pre>MATCH (:User {screen_name: '{{ user }}'})-[:POSTS]-&gt;
+  (t:Tweet)-[:RETWEETS]-&gt;(rt)-[:CONTAINS]-&gt;(link:Link)
+RETURN t.id_str AS tweet, link.url AS url, rt.favorites AS favorites
+ORDER BY favorites DESC LIMIT 10</pre>
+                </td>
+              </tr>
+              <tr>
+                <td id="interesting_links_results"></td>
+              </tr>
+            </table>
+          </div>
+          <div class="col-sm-8 col-lg-6 col-sm-offset-2 col-lg-offset-0">
+            <table>
+              <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
+                <td>Users tweeting with common tags as you</td>
+              </tr>
+              <tr style="vertical-align: top">
+                <td id="common_tags_query">
+                  <pre>MATCH (me:User {screen_name:'{{ user }}'})-[:POSTS]-&gt;(tweet:Tweet)-[:TAGS]-&gt;(ht)
+MATCH (ht)&lt;-[:TAGS]-(tweet2:Tweet)&lt;-[:POSTS]-(sugg:User)
+WHERE sugg &lt;&gt; me
+AND NOT (tweet2)-[:RETWEETS]-&gt;(tweet)
+WITH sugg, collect(distinct(ht)) as tags
+RETURN sugg.screen_name as friend, size(tags) as common
+ORDER BY common DESC
+LIMIT 20</pre>
+                </td>
+              </tr>
+              <tr>
+                <td id="common_tags_results"></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+    </section>
+
+    <section id="faq">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="section-heading">FAQ</h2>
+                </div>
+            </div>
+        </div>
     </section>
 
     <p><center><a href="http://neo4j.com/"><img src="img/neo4j_logo_sm.png" height="50"></a></center></p>
@@ -193,8 +281,6 @@ RETURN DISTINCT(ou.screen_name)</pre>
     <script src="js/jquery.js"></script>
 
     <script src="js/ZeroClipboard.js"></script>
-
-    <script src="main.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="js/bootstrap.min.js"></script>
@@ -240,10 +326,10 @@ RETURN DISTINCT(ou.screen_name)</pre>
              $('#browser_link').attr('href', data.neo4j_url);
              $('#node_metrics').show();
              setTimeout(updateNodeCount,4000);
-             setTimeout(updateQueries,10000);
+             setTimeout(updateQueries,15000);
           },
           error: function() {
-             $('#n4j_url').html('error');
+             $('#n4j_url').html('Error creating Neo4j instance. Try refreshing the browser.');
           }
         });
 
@@ -264,7 +350,11 @@ RETURN DISTINCT(ou.screen_name)</pre>
                      $dataTr.append($('<td>').append($('<span>').text(dataRow.count)));
                      $dataTr.appendTo($table);
                  });
-                 $table.appendTo('#top_mentions_results');
+                 $('#top_mentions_results').empty().append($table);
+                 //$table.appendTo('#top_mentions_results');
+            
+                 // refresh every 2 minutes
+                 setTimeout(updateQueries,120000);
               },
               error: function() {
                  //$('#n4j_url').html('error');
@@ -286,7 +376,33 @@ RETURN DISTINCT(ou.screen_name)</pre>
                      $dataTr.append($('<td>').append($('<span>').text(dataRow.count)));
                      $dataTr.appendTo($table);
                  });
-                 $table.appendTo('#most_tagged_results');
+                 //$table.appendTo('#most_tagged_results');
+                 $('#most_tagged_results').empty().append($table);
+              },
+              error: function() {
+                 //$('#n4j_url').html('error');
+              }
+            });
+            $.ajax('/exec-query?query=interesting_links', {
+              success: function(data) {
+                 var headers = ['Tweet', 'Link', 'Favorites']
+                 var $table = $('<table width="100%">');
+                 var $headTr = $('<tr>').addClass('header');
+                 $.each(headers, function(i,header){
+                     $headTr.append($('<th>').append($('<span>').text(header)));
+                 });
+                 $headTr.appendTo($table);
+    
+                 $.each(data.results, function(i,dataRow){
+                     var $dataTr = $('<tr>');
+                     var $tweetLink = $('<a>').attr('href', 'http://twitter.com/{{ user }}/status/' + dataRow.tweet);
+                     var $urlLink = $('<a>').attr('href', dataRow.url);
+                     $dataTr.append($('<td>').append($('<span>').append($tweetLink.text('tweet'))));
+                     $dataTr.append($('<td>').append($('<span>').append($urlLink.text(dataRow.url))));
+                     $dataTr.append($('<td>').append($('<span>').text(dataRow.favorites)));
+                     $dataTr.appendTo($table);
+                 });
+                 $('#interesting_links_results').empty().append($table);
               },
               error: function() {
                  //$('#n4j_url').html('error');
@@ -307,7 +423,8 @@ RETURN DISTINCT(ou.screen_name)</pre>
                      $dataTr.append($('<td>').append($('<span>').text(dataRow.rate)));
                      $dataTr.appendTo($table);
                  });
-                 $table.appendTo('#followback_rate_results');
+                 //$table.appendTo('#followback_rate_results');
+                 $('#followback_rate_results').empty().append($table);
               },
               error: function() {
                  //$('#n4j_url').html('error');
@@ -328,7 +445,30 @@ RETURN DISTINCT(ou.screen_name)</pre>
                      $dataTr.append($('<td>').append($('<span>').text(dataRow.user)));
                      $dataTr.appendTo($table);
                  });
-                 $table.appendTo('#mentioning_users_results');
+                 //$table.appendTo('#mentioning_users_results');
+                 $('#mentioning_users_results').empty().append($table);
+              },
+              error: function() {
+                 //$('#n4j_url').html('error');
+              }
+            });
+            $.ajax('/exec-query?query=common_tags', {
+              success: function(data) {
+                 var headers = ['User', 'Common Tags']
+                 var $table = $('<table width="100%">');
+                 var $headTr = $('<tr>').addClass('header');
+                 $.each(headers, function(i,header){
+                     $headTr.append($('<th>').append($('<span>').text(header)));
+                 });
+                 $headTr.appendTo($table);
+    
+                 $.each(data.results, function(i,dataRow){
+                     var $dataTr = $('<tr>');
+                     $dataTr.append($('<td>').append($('<span>').text(dataRow.user)));
+                     $dataTr.append($('<td>').append($('<span>').text(dataRow.common)));
+                     $dataTr.appendTo($table);
+                 });
+                 $('#common_tags_results').empty().append($table);
               },
               error: function() {
                  //$('#n4j_url').html('error');

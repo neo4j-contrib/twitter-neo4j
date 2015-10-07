@@ -17,13 +17,16 @@ DESCRIBE_INSTANCE_WAIT_SECS = 1
 DESCRIBE_INSTANCE_RETRIES = 3
 CONNECT_RETRIES = 15
 CONNECT_WAIT_SECS = 1
+ECS_CLUSTER_NAME = 'neo4j-twitter'
 
 
 @retry(stop_max_attempt_number=TASK_INFO_RETRIES, wait_fixed=(TASK_INFO_WAIT_SECS * 1000))
 def get_task_info(ecs, task_arn):
     task_info = {}
 
-    desc = ecs.describe_tasks(tasks=[task_arn])
+    desc = ecs.describe_tasks(
+      cluster=ECS_CLUSTER_NAME,
+      tasks=[task_arn])
 
     try:
       networkBindings = desc['tasks'][0]['containers'][0]['networkBindings']
@@ -32,7 +35,9 @@ def get_task_info(ecs, task_arn):
       raise Exception('did not find network and container info for task: %s' % (desc))
 
     try:
-      containerDesc = ecs.describe_container_instances(containerInstances=[containerInstanceArn])
+      containerDesc = ecs.describe_container_instances(
+        cluster=ECS_CLUSTER_NAME,
+        containerInstances=[containerInstanceArn])
       ec2InstanceId = containerDesc['containerInstances'][0]['ec2InstanceId']
     except:
       raise Exception('did not find ec2 instance ID from container: %s' % (desc))
