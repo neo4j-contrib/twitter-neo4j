@@ -35,7 +35,7 @@ NEO4J_DEFAULT_PASSWORD = 'neo4j'
 NEO4J_PASSWORD = os.environ["NEO4J_PASSWORD"]
 
 # Number of times to retry connecting to Neo4j upon failure
-CONNECT_NEO4J_RETRIES = 10
+CONNECT_NEO4J_RETRIES = 15
 CONNECT_NEO4J_WAIT_SECS = 2
 
 # Number of times to retry executing Neo4j queries
@@ -62,10 +62,6 @@ class TwitterRateLimitError(Exception):
 def make_api_request(url, method='GET', headers={}):
   token = oauth.Token(key=TWITTER_USER_KEY, secret=TWITTER_USER_SECRET)
   consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY, secret=TWITTER_CONSUMER_SECRET)
-
-  #req = oauth.Request(method=method, url=url, parameters=params)
-  #signature_method = oauth.SignatureMethod_HMAC_SHA1()
-  #req.sign_request(signature_method, consumer, token)
 
   client = oauth.Client(consumer, token)
   return client.request(url, method, headers=headers)
@@ -370,7 +366,8 @@ def import_tweets(screen_name):
                      t.retweeted_status AS retweet
 
                 MERGE (tweet:Tweet {id:t.id})
-                SET tweet.text = t.text,
+                SET tweet.id_str = t.id_str, 
+                    tweet.text = t.text,
                     tweet.created_at = t.created_at,
                     tweet.favorites = t.favorite_count
 
@@ -389,7 +386,7 @@ def import_tweets(screen_name):
 
                 FOREACH (h IN e.hashtags |
                   MERGE (tag:Hashtag {name:LOWER(h.text)})
-                  MERGE (tag)-[:TAGS]->(tweet)
+                  MERGE (tag)<-[:TAGS]-(tweet)
                 )
 
                 FOREACH (u IN e.urls |
@@ -439,7 +436,7 @@ def import_tweets(screen_name):
 
 def import_tweets_tagged(screen_name):
     graph = get_graph()
-    tagged_query = 'MATCH (h:Hashtag)-[:TAGS]->(t:Tweet)<-[:POSTS]-(u:User {screen_name:{screen_name}}) WITH h, COUNT(h) AS Hashtags ORDER BY Hashtags DESC LIMIT 5 RETURN h.name AS tag_name, Hashtags'
+    tagged_query = 'MATCH (h:Hashtag)<-[:TAGS]-(t:Tweet)<-[:POSTS]-(u:User {screen_name:{screen_name}}) WITH h, COUNT(h) AS Hashtags ORDER BY Hashtags DESC LIMIT 5 RETURN h.name AS tag_name, Hashtags'
     res = graph.cypher.execute(tagged_query, screen_name=screen_name)
     for record in res:
       import_tweets_search('#' + record.tag_name)
@@ -515,7 +512,8 @@ def import_mentions(screen_name):
                      t.retweeted_status AS retweet
 
                 MERGE (tweet:Tweet {id:t.id})
-                SET tweet.text = t.text,
+                SET tweet.id_str = t.id_str, 
+                    tweet.text = t.text,
                     tweet.created_at = t.created_at,
                     tweet.favorites = t.favorite_count
 
@@ -534,7 +532,7 @@ def import_mentions(screen_name):
 
                 FOREACH (h IN e.hashtags |
                   MERGE (tag:Hashtag {name:LOWER(h.text)})
-                  MERGE (tag)-[:TAGS]->(tweet)
+                  MERGE (tag)<-[:TAGS]-(tweet)
                 )
 
                 FOREACH (u IN e.urls |
@@ -643,7 +641,8 @@ def import_tweets_search(search_term):
                      t.retweeted_status AS retweet
 
                 MERGE (tweet:Tweet {id:t.id})
-                SET tweet.text = t.text,
+                SET tweet.id_str = t.id_str, 
+                    tweet.text = t.text,
                     tweet.created_at = t.created_at,
                     tweet.favorites = t.favorite_count
 
@@ -662,7 +661,7 @@ def import_tweets_search(search_term):
 
                 FOREACH (h IN e.hashtags |
                   MERGE (tag:Hashtag {name:LOWER(h.text)})
-                  MERGE (tag)-[:TAGS]->(tweet)
+                  MERGE (tag)<-[:TAGS]-(tweet)
                 )
 
                 FOREACH (u IN e.urls |
@@ -733,7 +732,7 @@ def main():
     syslog.setFormatter(formatter)
     logger.addHandler(syslog)
 
-    search_terms = ['nosql','neo4j','graphs']
+    search_terms = ['neo4j']
 
     try_connecting_neo4j()    
     time.sleep(2)
