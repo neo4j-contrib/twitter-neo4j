@@ -49,6 +49,12 @@ def login():
     return twitter.authorize(callback=url_for('oauth_authorized',
         next=request.args.get('next') or request.referrer or None))
 
+@application.route("/logout", methods=['GET', 'POST'])
+def logout():
+    session.pop('twitter_user', None)
+    session.pop('neo4j_url', None)
+    return render_template('home.html')
+
 @application.route("/", methods=['GET', 'POST'])
 def index():
     if 'twitter_user' in session:
@@ -202,7 +208,8 @@ def exec_neo4j_query():
                          'WITH DISTINCT ou,me ' + \
                          'WHERE (ou)-[:FOLLOWS]->(me) ' + \
                          'AND NOT (me)-[:FOLLOWS]->(ou) ' + \
-                         'RETURN DISTINCT(ou.screen_name)'
+                         'RETURN DISTINCT(ou.screen_name) ' + \
+                         'LIMIT 20'
 
       graph = get_graph()
       res = graph.cypher.execute(mentioningUsersCypher, {'sn': session['twitter_user'] })

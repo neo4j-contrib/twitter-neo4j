@@ -72,6 +72,9 @@
                         <a href="#page-top"></a>
                     </li>
                     <li>
+                        <a class="page-scroll" href="#datamodel">Data Model</a>
+                    </li>
+                    <li>
                         <a class="page-scroll" href="#browser">Browser</a>
                     </li>
                     <li>
@@ -95,6 +98,7 @@
                 <div class="intro-heading">Graph your Twitter activity in Neo4j!</div>
                 {% if user is defined %}
 	        <h3 class="section-subheading">Logged in as: {{ user }} </h3>
+                <p><center><a href="/logout">Logout</a></center></p>
                 {% else %}
                 <a href="/login?next=http://ec2-52-3-156-104.compute-1.amazonaws.com%23browser"><img src="http://www.portlandbuttonworks.com/image/data/twitter.png" /></a>
                 <br>by logging in, you agree to the <a href="http://neo4j.com/terms/">terms</a> and <a href="http://neo4j.com/privacy-policy/">privacy policy</a>
@@ -102,6 +106,18 @@
             </div>
         </div>
     </header>
+
+    <section id="datamodel" class="bg-light-gray">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="section-heading">Data Model</h2>
+                    <h3 class="section-subheading text-muted">The Graph model we use to load your data.</h3>
+                    <p><img src="/img/data-model.svg" width="600"></p>
+                </div>
+             </div>
+         </div>
+    </section>
 
     <!-- Browser Section -->
     <section id="browser">
@@ -213,7 +229,8 @@ RETURN sum(doesFollowBack) / toFloat(count(f))  AS followBackRate</pre>
 WITH DISTINCT ou, me
 WHERE (ou)-[:FOLLOWS]-&gt;(me)
 AND NOT (me)-[:FOLLOWS]-&gt;(ou)
-RETURN ou.screen_name</pre>
+RETURN ou.screen_name
+LIMIT 20</pre>
                 </td>
               </tr>
               <tr>
@@ -272,6 +289,16 @@ LIMIT 20</pre>
                 <div class="col-lg-12 text-center">
                     <h2 class="section-heading">FAQ</h2>
                 </div>
+            </div>
+            <div class="row">
+<ul class="list-group">
+  <li class="list-group-item"><b>How long does my Neo4j instance last?</b><br />
+    We keep your instance alive for about 3 days.  After that, you'll get a new instance when you login.
+  </li>
+  <li class="list-group-item"><b>What are the terms of use?</b><br />
+    By logging in, you agree to the <a href="http://neo4j.com/terms/">terms</a> and <a href="http://neo4j.com/privacy-policy/">privacy policy</a>.  The software is <a href="https://github.com/neo4j-contrib/twitter-neo4j">available on GitHub</a/> and licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache 2 license</a>.
+  </li>
+</ul>
             </div>
         </div>
     </section>
