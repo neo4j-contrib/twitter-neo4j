@@ -83,6 +83,9 @@
                     <li>
                         <a class="page-scroll" href="#faq">FAQ</a>
                     </li>
+                    <li style="padding-top: 10px">
+                      <a class="twitter-share-button" href="https://twitter.com/intent/tweet" data-size="large" data-count="none" data-url="http://twitter.graphdemos.com/"></a>
+                    </li>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
@@ -157,15 +160,17 @@
         <div class="row" style="padding-left: 10px; padding-bottom: 10px;">
           <div class="col-sm-8 col-lg-6 col-sm-offset-2 col-lg-offset-0">
             <table>
-              <tr style="text-align: center;font-family:Montserrat,Helvetica Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
+              <tr style="text-align: center;font-family:Montserrat,Helveti}ca Neue,Helvetica,Arial,sans-serif;text-transform:uppercase;font-weight:700">
                 <td>Top Mentions of You</td>
               </tr>
               <tr style="vertical-align: top">
                 <td id="top_mentions_query">
                   <pre>MATCH
-  (u:User {screen_name:'{{ user }}'})-[:POSTS]-&gt;(t:Tweet)-[:MENTIONS]-&gt;(m:User)
+  (u:User)-[:POSTS]-&gt;(t:Tweet)-[:MENTIONS]-&gt;(m:User {screen_name:'{{ user }}'})
+WHERE 
+  u.screen_name &lt;&gt; '{{ user }}'
 RETURN
-  m.screen_name AS screen_name, COUNT(m.screen_name) AS count 
+  u.screen_name AS screen_name, COUNT(u.screen_name) AS count 
 ORDER BY 
   count 
 DESC LIMIT 10</pre>
@@ -303,7 +308,25 @@ LIMIT 20</pre>
         </div>
     </section>
 
-    <p><center><a href="http://neo4j.com/"><img src="img/neo4j_logo_sm.png" height="50"></a></center></p>
+    <footer>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4">
+            <a href="http://neo4j.com/terms/">terms</a> <a href="http://neo4j.com/privacy-policy/">privacy policy</a>
+          </div>
+          <div class="col-md-4">
+            <a href="http://neo4j.com/"><img src="img/neo4j_logo_sm.png" height="50"></a>
+          </div>
+          <div class="col-md-4">
+            <ul class="list-inline social-buttons">
+              <li><a href="http://twitter.com/neo4j/"><i class="fa fa-twitter"></i></a></li>
+              <li><a href="https://www.facebook.com/neo4j.graph.database"><i class="fa fa-facebook"></i></a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+
     <!-- jQuery -->
     <script src="js/jquery.js"></script>
 
@@ -322,6 +345,24 @@ LIMIT 20</pre>
 
     <!-- Custom Theme JavaScript -->
     <script src="js/agency.js"></script>
+
+    <!-- Twitter tweet button code -->
+    <script>window.twttr = (function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0],
+        t = window.twttr || {};
+      if (d.getElementById(id)) return t;
+      js = d.createElement(s);
+      js.id = id;
+      js.src = "https://platform.twitter.com/widgets.js";
+      fjs.parentNode.insertBefore(js, fjs);
+     
+      t._e = [];
+      t.ready = function(f) {
+        t._e.push(f);
+      };
+     
+      return t;
+    }(document, "script", "twitter-wjs"));</script>
 
     {% if check_for_url %}
       <script>
@@ -369,16 +410,30 @@ LIMIT 20</pre>
                  $.each(headers, function(i,header){
                      $headTr.append($('<th>').append($('<span>').text(header)));
                  });
+                 $headTr.append($('<th><span id="tweet_button_mentions"></span></th>'));
                  $headTr.appendTo($table);
-    
+   
+                 var topTweeter = ''; 
+                 var topTweetCount = ''; 
                  $.each(data.results, function(i,dataRow){
+                     if (i == 0) {
+                       topTweeter = dataRow.screen_name;
+                       topTweetCount  = dataRow.count;
+                     }
                      var $dataTr = $('<tr>');
                      $dataTr.append($('<td>').append($('<span>').text(dataRow.screen_name)));
                      $dataTr.append($('<td>').append($('<span>').text(dataRow.count)));
                      $dataTr.appendTo($table);
                  });
                  $('#top_mentions_results').empty().append($table);
-                 //$table.appendTo('#top_mentions_results');
+                 twttr.widgets.createShareButton(
+                   'http://twitter.graphdemos.com/',
+                    document.getElementById('tweet_button_mentions'),
+                    {
+                      text: '.@' + topTweeter + ' mentioned me ' + topTweetCount + 'x. Discovered via @Neo4j Graph Your Network: ',
+                      count: 'none'
+                    }
+                 ); 
             
                  // refresh every 2 minutes
                  setTimeout(updateQueries,120000);
@@ -395,16 +450,29 @@ LIMIT 20</pre>
                  $.each(headers, function(i,header){
                      $headTr.append($('<th>').append($('<span>').text(header)));
                  });
+                 $headTr.append($('<th><span id="tweet_button_tags"></span></th>'));
                  $headTr.appendTo($table);
-    
+   
+                 var topHashtags = '';
+ 
                  $.each(data.results, function(i,dataRow){
+                     if (i <= 2) {
+                         topHashtags += '#' + dataRow.tag + ' '
+                     }
                      var $dataTr = $('<tr>');
                      $dataTr.append($('<td>').append($('<span>').text(dataRow.tag)));
                      $dataTr.append($('<td>').append($('<span>').text(dataRow.count)));
                      $dataTr.appendTo($table);
                  });
-                 //$table.appendTo('#most_tagged_results');
                  $('#most_tagged_results').empty().append($table);
+                 twttr.widgets.createShareButton(
+                   'http://twitter.graphdemos.com/',
+                    document.getElementById('tweet_button_tags'),
+                    {
+                      text: 'The top #hashtags I\'ve used are: ' + topHashtags + '. Discovered via @Neo4j Graph Your Network: ',
+                      count: 'none'
+                    }
+                 ); 
               },
               error: function() {
                  //$('#n4j_url').html('error');
