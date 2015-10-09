@@ -186,8 +186,9 @@ def exec_neo4j_query():
     query = request.args.get('query')
     if query == 'mentions':
       columns = ('screen_name', 'count')
-      mentionsCypher = 'MATCH (u:User {screen_name:{sn}})-[:POSTS]->(t:Tweet)-[:MENTIONS]->(m:User) ' + \
-                       'RETURN m.screen_name AS screen_name, COUNT(m.screen_name) AS count ORDER BY count DESC LIMIT 10'
+      mentionsCypher = 'MATCH (u:User)-[:POSTS]->(t:Tweet)-[:MENTIONS]->(m:User {screen_name:{sn}}) ' + \
+                       'WHERE u.screen_name <> {sn} ' + \
+                       'RETURN u.screen_name AS screen_name, COUNT(u.screen_name) AS count ORDER BY count DESC LIMIT 10'
       graph = get_graph()
       res = graph.cypher.execute(mentionsCypher, {'sn': session['twitter_user'] })
       for record in res:
