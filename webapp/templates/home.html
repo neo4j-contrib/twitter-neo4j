@@ -83,7 +83,7 @@
                     <li>
                         <a class="page-scroll" href="#faq">FAQ</a>
                     </li>
-                    <li style="padding-top: 10px">
+                    <li style="padding-top: 10px; padding-left: 10px;">
                       <a class="twitter-share-button" href="https://twitter.com/intent/tweet" data-size="large" data-count="none" data-url="http://twitter.graphdemos.com/"></a>
                     </li>
                 </ul>
@@ -101,10 +101,10 @@
                 <div class="intro-heading">Graph your Twitter activity in Neo4j!</div>
                 {% if user is defined %}
 	        <h3 class="section-subheading">Logged in as: {{ user }} </h3>
-                <p><center><a href="/logout">Logout</a></center></p>
+                <p><center><a href="/logout" style="color: #fed136">Logout</a></center></p>
                 {% else %}
                 <a href="/login?next=http://ec2-52-3-156-104.compute-1.amazonaws.com%23browser"><img src="http://www.portlandbuttonworks.com/image/data/twitter.png" /></a>
-                <br>by logging in, you agree to the <a href="http://neo4j.com/terms/">terms</a> and <a href="http://neo4j.com/privacy-policy/">privacy policy</a>
+                <br>by logging in, you agree to the <a href="http://neo4j.com/terms/">terms</a> and <a href="/privacy">privacy policy</a>
                 {% endif %}
             </div>
         </div>
@@ -301,7 +301,7 @@ LIMIT 20</pre>
     We keep your instance alive for about 3 days.  After that, you'll get a new instance when you login.
   </li>
   <li class="list-group-item"><b>What are the terms of use?</b><br />
-    By logging in, you agree to the <a href="http://neo4j.com/terms/">terms</a> and <a href="http://neo4j.com/privacy-policy/">privacy policy</a>.  The software is <a href="https://github.com/neo4j-contrib/twitter-neo4j">available on GitHub</a/> and licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache 2 license</a>.
+    By logging in, you agree to the <a href="http://neo4j.com/terms/">terms</a> and <a href="/privacy">privacy policy</a>.  The software is <a href="https://github.com/neo4j-contrib/twitter-neo4j">available on GitHub</a/> and licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache 2 license</a>.
   </li>
 </ul>
             </div>
@@ -312,7 +312,7 @@ LIMIT 20</pre>
       <div class="container">
         <div class="row">
           <div class="col-md-4">
-            <a href="http://neo4j.com/terms/">terms</a> <a href="http://neo4j.com/privacy-policy/">privacy policy</a>
+            (<a href="http://neo4j.com/terms/">terms</a>) (<a href="/privacy">privacy policy</a>)
           </div>
           <div class="col-md-4">
             <a href="http://neo4j.com/"><img src="img/neo4j_logo_sm.png" height="50"></a>
@@ -405,7 +405,7 @@ LIMIT 20</pre>
             $.ajax('/exec-query?query=mentions', {
               success: function(data) {
                  var headers = ['Screen Name', 'Count']
-                 var $table = $('<table width="100%">');
+                 var $table = $('<table width="100%" class="table table-striped table-hover">');
                  var $headTr = $('<tr>').addClass('header');
                  $.each(headers, function(i,header){
                      $headTr.append($('<th>').append($('<span>').text(header)));
@@ -445,7 +445,7 @@ LIMIT 20</pre>
             $.ajax('/exec-query?query=tags', {
               success: function(data) {
                  var headers = ['Hashtag', 'Count']
-                 var $table = $('<table width="100%">');
+                 var $table = $('<table width="100%" class="table table-striped table-hover">');
                  var $headTr = $('<tr>').addClass('header');
                  $.each(headers, function(i,header){
                      $headTr.append($('<th>').append($('<span>').text(header)));
@@ -481,7 +481,7 @@ LIMIT 20</pre>
             $.ajax('/exec-query?query=interesting_links', {
               success: function(data) {
                  var headers = ['Tweet', 'Link', 'Favorites']
-                 var $table = $('<table width="100%">');
+                 var $table = $('<table width="100%" class="table table-striped table-hover">');
                  var $headTr = $('<tr>').addClass('header');
                  $.each(headers, function(i,header){
                      $headTr.append($('<th>').append($('<span>').text(header)));
@@ -506,7 +506,7 @@ LIMIT 20</pre>
             $.ajax('/exec-query?query=followback_rate', {
               success: function(data) {
                  var headers = ['Followback Rate']
-                 var $table = $('<table width="100%">');
+                 var $table = $('<table width="100%" class="table table-striped table-hover">');
                  var $headTr = $('<tr>').addClass('header');
                  $.each(headers, function(i,header){
                      $headTr.append($('<th>').append($('<span>').text(header)));
@@ -528,7 +528,7 @@ LIMIT 20</pre>
             $.ajax('/exec-query?query=mentioning_users_follow', {
               success: function(data) {
                  var headers = ['User']
-                 var $table = $('<table width="100%">');
+                 var $table = $('<table width="100%" class="table table-striped table-hover">');
                  var $headTr = $('<tr>').addClass('header');
                  $.each(headers, function(i,header){
                      $headTr.append($('<th>').append($('<span>').text(header)));
@@ -550,7 +550,7 @@ LIMIT 20</pre>
             $.ajax('/exec-query?query=common_tags', {
               success: function(data) {
                  var headers = ['User', 'Common Tags']
-                 var $table = $('<table width="100%">');
+                 var $table = $('<table width="100%" class="table table-striped table-hover">');
                  var $headTr = $('<tr>').addClass('header');
                  $.each(headers, function(i,header){
                      $headTr.append($('<th>').append($('<span>').text(header)));

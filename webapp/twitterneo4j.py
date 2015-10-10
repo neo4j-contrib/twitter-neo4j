@@ -55,6 +55,14 @@ def logout():
     session.pop('neo4j_url', None)
     return render_template('home.html')
 
+@application.route("/privacy", methods=['GET'])
+def privacy():
+    return render_template('privacy.html')
+
+@application.route("/cookies", methods=['GET'])
+def cookies():
+    return render_template('cookies.html')
+
 @application.route("/", methods=['GET', 'POST'])
 def index():
     if 'twitter_user' in session:
