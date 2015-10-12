@@ -11,23 +11,30 @@ from flask import session
 from urlparse import urlparse
 import logging
 import memcache
+import json
 
 from py2neo import Graph
 from py2neo import neo4j
 from py2neo.packages.httpstream import http
 from py2neo.packages.httpstream import SocketError
 
-
 import create_task
 
 TWITTER_CONSUMER_KEY = 'sAHNiOdNdGlJH0tzHmYa2kTKU'
 TWITTER_CONSUMER_SECRET = 'RwQIxMW58VgLJ1LGU6HHRqYCd2hnGVQvSP6Ogr7Zw7HfCSh1Nj'
 
+
+with open('config.json') as json_data_file:
+    CONFIG = json.load(json_data_file)
+
+print CONFIG
+
 application = Flask(__name__)
 application.debug = True
 
-application.secret_key = '32079fgalkjnERER134NBZ><'
+application.secret_key = get_config('session_key_secret')
 application.config['SESSION_TYPE'] = 'filesystem'
+
 
 oauth = OAuth()
 
@@ -36,13 +43,16 @@ twitter = oauth.remote_app('twitter',
     request_token_url='https://api.twitter.com/oauth/request_token',
     access_token_url='https://api.twitter.com/oauth/access_token',
     authorize_url='https://api.twitter.com/oauth/authenticate',
-    consumer_key='sAHNiOdNdGlJH0tzHmYa2kTKU',
-    consumer_secret='RwQIxMW58VgLJ1LGU6HHRqYCd2hnGVQvSP6Ogr7Zw7HfCSh1Nj',
+    consumer_key=get_config('twitter_consumer_key'),
+    consumer_secret=get_config('twitter_consumer_secret'),
     access_token_method='POST'
 )
 
 logging.getLogger("py2neo.cypher").setLevel(logging.CRITICAL)
 tn_logger = logging.getLogger('neo4j.twitter')
+
+def get_config(variable):
+  return CONFIG[variable]
 
 @application.route("/login", methods=['GET', 'POST'])
 def login():
@@ -93,8 +103,6 @@ def get_graph():
 
 @application.route("/get_n4j_url", methods=['GET'])
 def get_neo4j_url():
-  global TWITTER_CONSUMER_KEY
-  global TWITTER_CONSUMER_SECRET
   response_dict = {}
   need_create_task = True 
 
@@ -133,7 +141,7 @@ def get_neo4j_url():
       except:
         need_create_task = True 
     if need_create_task:        
-      ct_response = create_task.create_task(screen_name=session['twitter_user'], consumer_key=TWITTER_CONSUMER_KEY, consumer_secret=TWITTER_CONSUMER_SECRET, user_key=session['oauth_token'], user_secret=session['oauth_token_secret'])
+      ct_response = create_task.create_task(screen_name=session['twitter_user'], consumer_key=get_config('twitter_consumer_key'), consumer_secret=get_config('twitter_consumer_secret'), user_key=session['oauth_token'], user_secret=session['oauth_token_secret'])
       n4j_url = ct_response['url']
       n4j_password = ct_response['password']
       session['neo4j_url'] = n4j_url
