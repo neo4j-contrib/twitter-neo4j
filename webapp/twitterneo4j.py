@@ -20,14 +20,11 @@ from py2neo.packages.httpstream import SocketError
 
 import create_task
 
-TWITTER_CONSUMER_KEY = 'sAHNiOdNdGlJH0tzHmYa2kTKU'
-TWITTER_CONSUMER_SECRET = 'RwQIxMW58VgLJ1LGU6HHRqYCd2hnGVQvSP6Ogr7Zw7HfCSh1Nj'
-
-
 with open('config.json') as json_data_file:
     CONFIG = json.load(json_data_file)
 
-print CONFIG
+def get_config(variable):
+  return CONFIG[variable]
 
 application = Flask(__name__)
 application.debug = True
@@ -51,8 +48,6 @@ twitter = oauth.remote_app('twitter',
 logging.getLogger("py2neo.cypher").setLevel(logging.CRITICAL)
 tn_logger = logging.getLogger('neo4j.twitter')
 
-def get_config(variable):
-  return CONFIG[variable]
 
 @application.route("/login", methods=['GET', 'POST'])
 def login():
