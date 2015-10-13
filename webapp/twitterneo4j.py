@@ -41,6 +41,9 @@ twitter = oauth.remote_app('twitter',
 logging.getLogger("py2neo.cypher").setLevel(logging.CRITICAL)
 tn_logger = logging.getLogger('neo4j.twitter')
 
+@application.route("/index.html", methods=['GET'])
+def indexhtml():
+    return render_template('home.html')
 
 @application.route("/login", methods=['GET', 'POST'])
 def login():
