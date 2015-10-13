@@ -6,6 +6,7 @@ import traceback
 from retrying import retry
 import logging
 from logging.handlers import SysLogHandler
+import config
 
 
 TASK_REVISION = '5'

@@ -8,10 +8,9 @@ import logging
 from logging.handlers import SysLogHandler
 import memcache
 import task_fns as tf
+import config as conf
 
-
-
-TASK_REVISION = '5'
+TASK_REVISION = conf.get_config('ECS_TASK_REVISION')
 
 RUN_TASK_RETRIES = 3
 RUN_TASK_WAIT_SECS = 2
@@ -32,8 +31,8 @@ MEMORY_PER_TASK = 768
 TASKS_AVAILABLE = 10 
 
 MAX_TASK_AGE = 259200
-ECS_CLUSTER_NAME = 'neo4j-twitter'
-ECS_AUTO_SCALING_GROUP_NAME = 'ecs-neo4j-twitter'
+ECS_CLUSTER_NAME = conf.get_config('ECS_CLUSTER_NAME')
+ECS_AUTO_SCALING_GROUP_NAME = conf.get_config('ECS_AUTO_SCALING_GROUP_NAME')
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -47,7 +46,7 @@ class ContextFilter(logging.Filter):
 
 f = ContextFilter()
 
-syslog = SysLogHandler(address=('logs3.papertrailapp.com', 16315))
+syslog = SysLogHandler(address=(conf.get_config('SYSLOG_HOST'), conf.get_config('SYSLOG_PORT')))
 formatter = logging.Formatter('%(asctime)s twitter.dockerexec: %(message).60s', datefmt='%b %d %H:%M:%S')
 
 syslog.setFormatter(formatter)
@@ -99,10 +98,10 @@ def find_task_set(ecs, next_token=None):
 
 
 def update_task_list():
-  ecs = boto3.client('ecs')
-  ec2 = boto3.client('ec2')
+  ecs = boto3.client('ecs', region_name=conf.get_config('AWS_REGION_NAME'))
+  ec2 = boto3.client('ec2', region_name=conf.get_config('AWS_REGION_NAME'))
   
-  mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+  mc = memcache.Client([ conf.get_config('MEMCACHE_HOST_PORT') ], debug=0)
   
   task_descs = find_task_set(ecs)
   
@@ -141,8 +140,8 @@ def update_task_list():
 def check_utilization():
   instances = []
 
-  ecs = boto3.client('ecs')
-  autos = boto3.client('autoscaling')
+  ecs = boto3.client('ecs', region_name=conf.get_config('AWS_REGION_NAME'))
+  autos = boto3.client('autoscaling', region_name=conf.get_config('AWS_REGION_NAME'))
 
   response = ecs.list_container_instances(
     cluster=ECS_CLUSTER_NAME,

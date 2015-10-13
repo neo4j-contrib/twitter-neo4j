@@ -7,6 +7,7 @@ from retrying import retry
 import logging
 from logging.handlers import SysLogHandler
 from random_words import RandomWords
+import config as conf
 
 TASK_REVISION = '7'
 RUN_TASK_RETRIES = 5 
@@ -27,21 +28,16 @@ class ContextFilter(logging.Filter):
     return True
 
 f = ContextFilter()
-
-syslog = SysLogHandler(address=('logs3.papertrailapp.com', 16315))
+syslog = SysLogHandler(address=(conf.get_config('SYSLOG_HOST'), conf.get_config('SYSLOG_PORT')))
 formatter = logging.Formatter('%(asctime)s twitter.dockerexec: %(message).60s', datefmt='%b %d %H:%M:%S')
-
 syslog.setFormatter(formatter)
-
 tn_logger = logging.getLogger('neo4j.twitter')
 tn_logger.setLevel(logging.INFO)
-
 tn_logger.addFilter(f)
 syslog.setFormatter(formatter)
 
 if not tn_logger.handlers:
   tn_logger.addHandler(syslog)
-
 
 
 @retry(stop_max_attempt_number=RUN_TASK_RETRIES, wait_fixed=(RUN_TASK_WAIT_SECS * 1000))
@@ -148,8 +144,8 @@ def try_connecting_neo4j(ip_address, port):
     return True
 
 def create_task(screen_name, consumer_key, consumer_secret, user_key, user_secret):
-    ecs = boto3.client('ecs')
-    ec2 = boto3.client('ec2')
+    ecs = boto3.client('ecs', region_name=conf.get_config('AWS_REGION_NAME'))
+    ec2 = boto3.client('ec2', region_name=conf.get_config('AWS_REGION_NAME'))
 
     try:
       rw = RandomWords()

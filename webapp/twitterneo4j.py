@@ -11,7 +11,7 @@ from flask import session
 from urlparse import urlparse
 import logging
 import memcache
-import json
+import config as conf
 
 from py2neo import Graph
 from py2neo import neo4j
@@ -20,18 +20,11 @@ from py2neo.packages.httpstream import SocketError
 
 import create_task
 
-with open('config.json') as json_data_file:
-    CONFIG = json.load(json_data_file)
-
-def get_config(variable):
-  return CONFIG[variable]
-
 application = Flask(__name__)
 application.debug = True
 
-application.secret_key = get_config('session_key_secret')
+application.secret_key = conf.get_config('SESSION_KEY_SECRET')
 application.config['SESSION_TYPE'] = 'filesystem'
-
 
 oauth = OAuth()
 
@@ -40,8 +33,8 @@ twitter = oauth.remote_app('twitter',
     request_token_url='https://api.twitter.com/oauth/request_token',
     access_token_url='https://api.twitter.com/oauth/access_token',
     authorize_url='https://api.twitter.com/oauth/authenticate',
-    consumer_key=get_config('twitter_consumer_key'),
-    consumer_secret=get_config('twitter_consumer_secret'),
+    consumer_key=conf.get_config('TWITTER_CONSUMER_KEY'),
+    consumer_secret=conf.get_config('TWITTER_CONSUMER_SECRET'),
     access_token_method='POST'
 )
 
@@ -116,7 +109,7 @@ def get_neo4j_url():
   if need_create_task and 'twitter_user' in session:
     tn_logger.info('Need to create task: %s' % session['twitter_user'])
 
-    mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+    mc = memcache.Client([ conf.get_config('MEMCACHE_HOST_PORT') ], debug=0)
     tl = mc.get('task_list')
     user = session['twitter_user']
 
@@ -136,7 +129,7 @@ def get_neo4j_url():
       except:
         need_create_task = True 
     if need_create_task:        
-      ct_response = create_task.create_task(screen_name=session['twitter_user'], consumer_key=get_config('twitter_consumer_key'), consumer_secret=get_config('twitter_consumer_secret'), user_key=session['oauth_token'], user_secret=session['oauth_token_secret'])
+      ct_response = create_task.create_task(screen_name=session['twitter_user'], consumer_key=conf.get_config('TWITTER_CONSUMER_KEY'), consumer_secret=conf.get_config('TWITTER_CONSUMER_SECRET'), user_key=session['oauth_token'], user_secret=session['oauth_token_secret'])
       n4j_url = ct_response['url']
       n4j_password = ct_response['password']
       session['neo4j_url'] = n4j_url
