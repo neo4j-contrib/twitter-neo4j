@@ -10,8 +10,6 @@ import memcache
 import task_fns as tf
 import config as conf
 
-TASK_REVISION = conf.get_config('ECS_TASK_REVISION')
-
 RUN_TASK_RETRIES = 3
 RUN_TASK_WAIT_SECS = 2
 TASK_INFO_RETRIES = 7

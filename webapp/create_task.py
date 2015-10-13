@@ -9,7 +9,7 @@ from logging.handlers import SysLogHandler
 from random_words import RandomWords
 import config as conf
 
-TASK_REVISION = '7'
+TASK_REVISION = conf.get_config('ECS_TASK_REVISION')
 RUN_TASK_RETRIES = 5 
 RUN_TASK_WAIT_SECS = 2
 TASK_INFO_RETRIES = 20
