@@ -2,6 +2,8 @@ import json
 import os
 import logging
 
+CONFIG = {}
+
 try:
   with open('config.json') as json_data_file:
     CONFIG = json.load(json_data_file)
