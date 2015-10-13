@@ -1,1 +1,1 @@
-*/3 * * * * python /app/webapp/maintain_tasks.py
+*/3 * * * * cd /app/webapp/; /usr/local/bin/python maintain_tasks.py > /var/log/cron_mt 2>&1
