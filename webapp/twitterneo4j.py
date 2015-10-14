@@ -238,13 +238,14 @@ def exec_neo4j_query():
     elif query == 'common_tags':
       columns = ('user','common')
       tagsCypher = 'MATCH (me:User {screen_name: {sn}})-[:POSTS]->(tweet:Tweet)-[:TAGS]->(ht) ' + \
-                              'MATCH (ht)<-[:TAGS]-(tweet2:Tweet)<-[:POSTS]-(sugg:User) ' + \
-                              'WHERE sugg <> me ' + \
-                              'AND NOT (tweet2)-[:RETWEETS]->(tweet) ' + \
-                              'WITH sugg, collect(distinct(ht)) as tags ' + \
-                              'RETURN sugg.screen_name as friend, size(tags) as common ' + \
-                              'ORDER BY common DESC ' + \
-                              'LIMIT 20'
+                   'OPTIONAL MATCH (tweet)<-[:RETWEETS]-(retweet) ' + \
+                   'WITH me,ht, collect(distinct retweet) as retweets ' + \
+                   'MATCH (ht)<-[:TAGS]-(tweet2:Tweet)<-[:POSTS]-(sugg:User) ' + \
+                   'WHERE sugg <> me and not(tweet2 IN retweets) ' + \
+                   'WITH sugg, count(distinct(ht)) as common ' + \
+                   'RETURN sugg.screen_name as friend, common ' + \
+                   'ORDER BY common DESC ' + \
+                   'LIMIT 20'
 
       graph = get_graph()
       res = graph.cypher.execute(tagsCypher, {'sn': session['twitter_user'] })
