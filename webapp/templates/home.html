@@ -271,11 +271,12 @@ ORDER BY favorites DESC LIMIT 10</pre>
               <tr style="vertical-align: top">
                 <td id="common_tags_query">
                   <pre>MATCH (me:User {screen_name:'{{ user }}'})-[:POSTS]-&gt;(tweet:Tweet)-[:TAGS]-&gt;(ht)
+OPTIONAL MATCH (tweet)&lt;-[:RETWEETS]-(retweet)
+WITH me,ht, collect(distinct retweet) as retweets
 MATCH (ht)&lt;-[:TAGS]-(tweet2:Tweet)&lt;-[:POSTS]-(sugg:User)
-WHERE sugg &lt;&gt; me
-AND NOT (tweet2)-[:RETWEETS]-&gt;(tweet)
-WITH sugg, collect(distinct(ht)) as tags
-RETURN sugg.screen_name as friend, size(tags) as common
+WHERE sugg &lt;&gt; me and NOT(tweet2 IN retweets)
+WITH sugg, count(distinct(ht)) as common
+RETURN sugg.screen_name as friend, common
 ORDER BY common DESC
 LIMIT 20</pre>
                 </td>
