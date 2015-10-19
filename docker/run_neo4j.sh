@@ -1,6 +1,6 @@
 #!/bin/sh
 while true
 do
- /neo4j.sh
+ /docker-entrypoint.sh neo4j
  sleep 30
 done
