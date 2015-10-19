@@ -748,11 +748,12 @@ def main():
 
     while True:
         tweets_executor.submit(import_tweets, screen_name)
-        tweets_executor.submit(import_tweets_tagged, screen_name)
+        tweets_executor.submit(import_tweets_search, '#graphconnect')
 
         if (exec_times % 3) == 0:
             friends_executor.submit(import_friends, screen_name)
             followers_executor.submit(import_followers, screen_name)
+            tweets_executor.submit(import_tweets_tagged, screen_name)
 
         if exec_times == 0:
           tweets_executor.submit(import_mentions(screen_name))
