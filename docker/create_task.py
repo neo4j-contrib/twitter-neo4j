@@ -5,9 +5,6 @@ import pprint
 # Let's use Amazon S3
 ecs = boto3.client('ecs')
 
-twitter_user = 'doubleocherry'
-twitter_auth = 'AAAAAAAAAAAAAAAAAAAAAAxtggAAAAAAoEFUYVcTYHQC%2BGILe%2FuQhsjuy48%3DcXRTIZvPmqWAWBDM2erDwjAC469eMVFXsvkMQwL85BlBCiSBRr'
-
 response =  ecs.run_task(
     cluster='default',
     taskDefinition='neo4j-twitter:4',
