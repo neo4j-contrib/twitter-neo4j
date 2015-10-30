@@ -381,7 +381,7 @@ def import_tweets(screen_name):
 
                 MERGE (user)-[:POSTS]->(tweet)
 
-                MERGE (source:Source {name:t.source})
+                MERGE (source:Source {name:REPLACE(SPLIT(t.source, ">")[1], "</a", "")})
                 MERGE (tweet)-[:USING]->(source)
 
                 FOREACH (h IN e.hashtags |
