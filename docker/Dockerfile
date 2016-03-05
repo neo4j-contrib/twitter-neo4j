@@ -8,8 +8,8 @@ ADD neo4j-browser-2.2.5.jar /var/lib/neo4j/system/lib/neo4j-browser-2.2.5.jar
 RUN chmod +x /neo4j_and_twitter.sh
 RUN chmod +x /import_user.py
 
-ENV NEO4J_CACHE_MEMORY 128M
-ENV NEO4J_HEAP_MEMORY 256
+ENV NEO4J_CACHE_MEMORY 512M
+ENV NEO4J_HEAP_MEMORY 1024
 
 RUN apt-get update
 RUN apt-get install -y python python-pip

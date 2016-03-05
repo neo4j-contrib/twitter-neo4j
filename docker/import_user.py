@@ -304,7 +304,7 @@ def import_tweets(screen_name):
     # Connect to graph
     graph = get_graph()
 
-    max_id_query = 'match (u:User {screen_name:{screen_name}})-[:POSTS]->(t:Tweet) return max(t.id) AS max_id'
+    max_id_query = 'match (u:User {screen_name:{screen_name}})-[:POSTS]->(t:Tweet {import_method:"user"}) return max(t.id) AS max_id'
     res = graph.cypher.execute(max_id_query, screen_name=screen_name)
 
     for record in res:
@@ -369,7 +369,8 @@ def import_tweets(screen_name):
                 SET tweet.id_str = t.id_str, 
                     tweet.text = t.text,
                     tweet.created_at = t.created_at,
-                    tweet.favorites = t.favorite_count
+                    tweet.favorites = t.favorite_count,
+                    tweet.import_method = 'user'
 
                 MERGE (user:User {screen_name:u.screen_name})
                 SET user.name = u.name,
@@ -644,7 +645,8 @@ def import_tweets_search(search_term):
                 SET tweet.id_str = t.id_str, 
                     tweet.text = t.text,
                     tweet.created_at = t.created_at,
-                    tweet.favorites = t.favorite_count
+                    tweet.favorites = t.favorite_count,
+                    tweet.import_method = 'search'
 
                 MERGE (user:User {screen_name:u.screen_name})
                 SET user.name = u.name,
@@ -732,33 +734,31 @@ def main():
     syslog.setFormatter(formatter)
     logger.addHandler(syslog)
 
-    search_terms = ['neo4j']
-
     try_connecting_neo4j()    
     time.sleep(2)
-    change_password()
+    try: 
+      change_password()
+    except Exception:
+      pass
     time.sleep(2)
     create_constraints()
 
-    friends_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-    followers_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-    tweets_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    hillary_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    trump_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    bernie_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    indy_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
     exec_times = 0
 
     while True:
-        tweets_executor.submit(import_tweets, screen_name)
-        tweets_executor.submit(import_tweets_search, '#graphconnect')
-
-        if (exec_times % 3) == 0:
-            friends_executor.submit(import_friends, screen_name)
-            followers_executor.submit(import_followers, screen_name)
-            tweets_executor.submit(import_tweets_tagged, screen_name)
-
-        if exec_times == 0:
-          tweets_executor.submit(import_mentions(screen_name))
-          for search_term in search_terms:
-            tweets_executor.submit(import_tweets_search, search_term)
+        hillary_executor.submit(import_tweets, 'HillaryClinton')
+        hillary_executor.submit(import_tweets_search, 'hillaryclinton')
+        trump_executor.submit(import_tweets, 'realDonaldTrump')
+        trump_executor.submit(import_tweets_search, 'realDonaldtrump')
+        bernie_executor.submit(import_tweets, 'BernieSanders')
+        bernie_executor.submit(import_tweets_search, 'berniesanders')
+        indy_executor.submit(import_tweets_search, '#SuperTuesday')
+        indy_executor.submit(import_tweets_search, '#Election2016')
 
         print 'sleeping'
         time.sleep(1800)
