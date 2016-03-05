@@ -7,6 +7,7 @@ import time
 from py2neo import neo4j
 from py2neo import ServiceRoot
 from py2neo.password import UserManager
+from py2neo.packages.httpstream import http
 
 import oauth2 as oauth
 import concurrent.futures
@@ -15,6 +16,7 @@ import logging
 import socket
 from logging.handlers import SysLogHandler
 
+http.socket_timeout = 9999
 
 # Twitter key/secret as a result of registering application
 TWITTER_CONSUMER_KEY = os.environ["TWITTER_CONSUMER_KEY"]
@@ -38,9 +40,13 @@ NEO4J_PASSWORD = os.environ["NEO4J_PASSWORD"]
 CONNECT_NEO4J_RETRIES = 15
 CONNECT_NEO4J_WAIT_SECS = 2
 
+# Number of times to retry dding constraints to Neo4j upon failure
+CONSTRAINT_NEO4J_RETRIES = 3
+CONSTRAINT_NEO4J_WAIT_SECS = 2
+
 # Number of times to retry executing Neo4j queries
-EXEC_NEO4J_RETRIES = 2
-EXEC_NEO4J_WAIT_SECS = 1
+EXEC_NEO4J_RETRIES = 5
+EXEC_NEO4J_WAIT_SECS = 2
 
 logger = logging.getLogger()
 logger.setLevel(logging.ERROR)
@@ -108,6 +114,7 @@ def change_password():
     new_password = NEO4J_PASSWORD
     password_manager.change(new_password)
 
+@retry(stop_max_attempt_number=CONSTRAINT_NEO4J_RETRIES, wait_fixed=(CONSTRAINT_NEO4J_WAIT_SECS * 1000))
 def create_constraints():
     # Connect to graph
     graph = get_graph()
