@@ -13,7 +13,7 @@ ENV NEO4J_HEAP_MEMORY 1024
 
 RUN apt-get update
 RUN apt-get install -y python python-pip
-RUN pip install py2neo
+RUN pip install py2neo==2.0.8
 RUN pip install oauth2
 RUN pip install futures
 RUN pip install retrying

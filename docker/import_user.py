@@ -37,8 +37,8 @@ NEO4J_DEFAULT_PASSWORD = 'neo4j'
 NEO4J_PASSWORD = os.environ["NEO4J_PASSWORD"]
 
 # Number of times to retry connecting to Neo4j upon failure
-CONNECT_NEO4J_RETRIES = 15
-CONNECT_NEO4J_WAIT_SECS = 2
+CONNECT_NEO4J_RETRIES = 100
+CONNECT_NEO4J_WAIT_SECS = 5
 
 # Number of times to retry dding constraints to Neo4j upon failure
 CONSTRAINT_NEO4J_RETRIES = 3
@@ -747,8 +747,12 @@ def main():
       change_password()
     except Exception:
       pass
-    time.sleep(2)
-    create_constraints()
+
+    try:
+      time.sleep(2)
+      create_constraints()
+    except Exception:
+      time.sleep(300);
 
     hillary_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     trump_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
