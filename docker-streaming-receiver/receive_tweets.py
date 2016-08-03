@@ -46,6 +46,13 @@ RABBITMQ_PASSWORD = os.environ["RABBITMQ_PASSWORD"]
 logger = logging.getLogger()
 logger.setLevel(logging.ERROR)
 
+neo4j_graph = None
+
+jsonlist = []
+
+channel = None
+
+
 class ContextFilter(logging.Filter):
   hostname = socket.gethostname()
 
@@ -55,11 +62,14 @@ class ContextFilter(logging.Filter):
 
 
 def get_graph():
-    global NEO4J_HOST,NEO4J_USER,NEO4J_PASSWORD
+    global NEO4J_HOST,NEO4J_USER,NEO4J_PASSWORD,neo4j_graph
 
     # Connect to graph
-    graph = Graph(host=NEO4J_HOST, password=NEO4J_PASSWORD, user=NEO4J_USER, bolt=True)
-    return graph
+    if not neo4j_graph:
+      graph = Graph(host=NEO4J_HOST, password=NEO4J_PASSWORD, user=NEO4J_USER, bolt=True)
+      neo4j_graph = graph
+
+    return neo4j_graph
 
 def execute_query(query, **kwargs):
     graph = get_graph()
@@ -73,29 +83,44 @@ def create_constraints():
     graph.run("CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
     graph.run("CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
     graph.run("CREATE CONSTRAINT ON (h:Hashtag) ASSERT h.name IS UNIQUE;")
-    graph.run("CREATE CONSTRAINT ON (l:Link) ASSERT l.url IS UNIQUE;")
+    graph.run("CREATE CONSTRAINT ON (l:Link) ASSERT l.expanded_url IS UNIQUE;")
     graph.run("CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
 
 
 def import_tweets(json_obj):
+    print "Importing tweets for %i tweets" % len(json_obj)
+
     # Connect to graph
     graph = get_graph()
 
     # Keep status objects.
     tweets = json_obj
 
+    for i in range(len(tweets)):
+      if not 'user' in tweets[i]:
+        pop(tweets[i])
+
+    users = []
+
     if tweets:
 	tweets_to_import = True
-        if 'retweeted_status' in json_obj:
-          retweet = json_obj['retweeted_status']
-          retweet['retweeted_by_id'] = json_obj["id"]
-          import_tweet(retweet) 
-          import_user(retweet['user'])
-        import_tweet(json_obj)
-        import_user(json_obj['user'])
+        for i in range(len(tweets)):
+          tweet = tweets[i]
+          if 'retweeted_status' in tweet:
+            retweet = tweet['retweeted_status']
+            retweet['retweeted_by_id'] = tweet["id"]
+            tweets.append(retweet)
+            users.append(retweet['user'])
+          if 'quoted_status' in tweet:
+            retweet = tweet['quoted_status']
+            retweet['quoted_by_id'] = tweet["id"]
+            tweets.append(retweet)
+            users.append(retweet['user'])
+        import_tweets(tweets)
+        import_users(users)
 
 
-def import_tweet(json_obj):
+def import_tweets(json_obj):
     # Pass dict to Cypher and build query.
     query = """
     UNWIND {tweets} AS t
@@ -106,22 +131,22 @@ def import_tweet(json_obj):
     WITH t,
          t.entities AS e,
          t.user AS u,
-         t.retweeted_status AS retweet
+         t.retweeted_status AS retweet,
+         t.quoted_status AS quote
 
     MERGE (tweet:Tweet {id:t.id})
     SET tweet.id_str = t.id_str, 
         tweet.text = t.text,
+        tweet.retweet_count = t.retweet_count,
         tweet.created_at = t.created_at,
         tweet.favorites = t.favorite_count,
         tweet.import_method = 'user',
         tweet.longitude = t.coordinates.coordinates[0],
-        tweet.latitude = t.coordinates.coordinates[1]
+        tweet.latitude = t.coordinates.coordinates[1],
+        tweet.source = REPLACE(SPLIT(t.source, ">")[1],"</a", "")
 
     MERGE (user:User {screen_name:u.screen_name})
     MERGE (user)-[:POSTS]->(tweet)
-
-    MERGE (source:Source {name:REPLACE(SPLIT(t.source, ">")[1], "</a", "")})
-    MERGE (tweet)-[:USING]->(source)
 
     FOREACH (h IN e.hashtags |
       MERGE (tag:Hashtag {name:LOWER(h.text)})
@@ -129,7 +154,7 @@ def import_tweet(json_obj):
     )
 
     FOREACH (u IN e.urls |
-      MERGE (url:Link {url:u.url})
+      MERGE (url:Link {expanded_url:u.expanded_url})
       MERGE (tweet)-[:CONTAINS]->(url)
     )
 
@@ -148,11 +173,17 @@ def import_tweet(json_obj):
         MERGE (retweet_tweet:Tweet {id:retweet_id})
         MERGE (tweet)-[:RETWEETS]->(retweet_tweet)
     )
+
+    FOREACH (quote_id IN [x IN [quote.id] WHERE x IS NOT NULL] |
+        MERGE (quote_tweet:Tweet {id:quote_id})
+        MERGE (tweet)-[:QUOTES]->(quote_tweet)
+    )
     """
 
     execute_query(query, tweets=json_obj)
 
-def import_user(json_obj):
+def import_users(json_obj):
+    print "Importing users for %i users" % len(json_obj)
     # Pass dict to Cypher and build query.
     query = """
     UNWIND {users} AS u
@@ -185,13 +216,67 @@ def callback_users(ch, method, properties, body):
     print body
 
 def callback_tweets(ch, method, properties, body):
+    global jsonlist
+
     jsontext = json.loads(body)
-    try:
-      import_tweets(jsontext)
-      ch.basic_ack(delivery_tag = method.delivery_tag)
-    except Exception as e:
-      print "Error importing tweets"
-      print e
+
+    print 'Received body'
+
+    if 'user' in jsontext:
+      print 'Its a tweet'
+      jsonlist.append(jsontext)
+ 
+    if len(jsonlist) % 250 == 0:
+      try:
+        try:
+          print 'importing tweets in jsonlist length %i' % len(jsonlist)
+          import_tweets(jsonlist)
+          ch.basic_ack(delivery_tag = method.delivery_tag, multiple = True)
+          jsonlist = []
+        except Exception as e:
+          print "Error importing tweets:"
+          print e
+          print json.dumps(jsonlist)
+          print "Trying again"
+          print 'retrying importing tweets in jsonlist length %i' % len(jsonlist)
+          import_tweets(jsontext)
+          ch.basic_ack(delivery_tag = method.delivery_tag, multiple = True)
+          jsonlist = []
+      except Exception as e:
+        print "Error importing tweets 2nd time"
+        print e
+        print json.dumps(jsonlist)
+        print "Skipping"
+
+def consume_jobs():
+    global channel
+
+    credentials = pika.PlainCredentials(RABBITMQ_USER, RABBITMQ_PASSWORD)
+
+    connection = pika.BlockingConnection(pika.ConnectionParameters(
+                   host=RABBITMQ_HOST,
+                   port=int(RABBITMQ_PORT),
+                   credentials=credentials
+                 ))
+
+    channel = connection.channel()
+
+    channel.queue_declare(queue='tweets', durable=True)
+    channel.queue_declare(queue='rels', durable=True)
+    #channel.queue_declare(queue='users', durable=True)
+
+    channel.basic_qos(prefetch_count=1200)
+
+    channel.basic_consume(callback_tweets,
+                          queue='tweets',
+                          no_ack=False)
+
+    #channel.basic_consume(callback_users,
+    #                      queue='users',
+    #                      no_ack=False)
+
+    print 'Starting consuming tweets'
+    channel.start_consuming()
 
 def main():
     global logger
@@ -205,33 +290,10 @@ def main():
     syslog.setFormatter(formatter)
     logger.addHandler(syslog)
 
-    try:
-      create_constraints()
-    except Exception:
-      time.sleep(300);
+    MAX_WORKERS = 2
+    indy_executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
 
-    credentials = pika.PlainCredentials(RABBITMQ_USER, RABBITMQ_PASSWORD)
-
-    connection = pika.BlockingConnection(pika.ConnectionParameters(
-                   host=RABBITMQ_HOST,
-                   port=int(RABBITMQ_PORT),
-                   credentials=credentials
-                 ))
-
-    channel = connection.channel()
-
-    channel.queue_declare(queue='tweets', durable=True)
-    channel.queue_declare(queue='users', durable=True)
-
-    channel.basic_consume(callback_tweets,
-                          queue='tweets',
-                          no_ack=False)
- 
-    #channel.basic_consume(callback_users,
-    #                      queue='users',
-    #                      no_ack=False)
-
-    channel.start_consuming()    
-
+    for i in range(1,MAX_WORKERS + 1):
+      indy_executor.submit(consume_jobs)
 
 if __name__ == "__main__": main() 
