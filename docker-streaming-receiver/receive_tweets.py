@@ -80,11 +80,11 @@ def create_constraints():
     graph = get_graph()
 
     # Add uniqueness constraints.
-    graph.run("CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
-    graph.run("CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
-    graph.run("CREATE CONSTRAINT ON (h:Hashtag) ASSERT h.name IS UNIQUE;")
-    graph.run("CREATE CONSTRAINT ON (l:Link) ASSERT l.expanded_url IS UNIQUE;")
-    graph.run("CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
+    #graph.run("CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
+    #graph.run("CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
+    #graph.run("CREATE CONSTRAINT ON (h:Hashtag) ASSERT h.name IS UNIQUE;")
+    #graph.run("CREATE CONSTRAINT ON (l:Link) ASSERT l.expanded_url IS UNIQUE;")
+    #graph.run("CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
 
 
 def import_tweets(json_obj):
