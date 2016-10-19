@@ -4,9 +4,7 @@ import os
 import traceback
 import sys
 import time
-from py2neo import neo4j
-from py2neo import ServiceRoot
-from py2neo.password import UserManager
+from py2neo import Graph
 
 import oauth2 as oauth
 import concurrent.futures
@@ -20,19 +18,20 @@ from logging.handlers import SysLogHandler
 TWITTER_CONSUMER_KEY = os.environ["TWITTER_CONSUMER_KEY"]
 TWITTER_CONSUMER_SECRET = os.environ["TWITTER_CONSUMER_SECRET"]
 
+# Twitter username
+TWITTER_USER = os.environ["TWITTER_USER"]
+
 # Twitter token key/secret from individual user oauth
 TWITTER_USER_KEY = os.environ["TWITTER_USER_KEY"]
 TWITTER_USER_SECRET = os.environ["TWITTER_USER_SECRET"]
 
 # Neo4j URL
-NEO4J_HOST = (os.environ.get('HOSTNAME', 'localhost'))
+NEO4J_HOST = (os.environ.get('NEO4J_HOST', os.environ.get('HOSTNAME', 'localhost')))
 NEO4J_PORT = 7474
 NEO4J_URL = "http://%s:%s/db/data/" % (NEO4J_HOST,NEO4J_PORT)
 NEO4J_HOST_PORT = '%s:%s' % (NEO4J_HOST,NEO4J_PORT)
 
-NEO4J_USER = 'neo4j'
-NEO4J_DEFAULT_PASSWORD = 'neo4j'
-NEO4J_PASSWORD = os.environ["NEO4J_PASSWORD"]
+NEO4J_AUTH = os.environ["NEO4J_AUTH"]
 
 # Number of times to retry connecting to Neo4j upon failure
 CONNECT_NEO4J_RETRIES = 15
@@ -68,18 +67,19 @@ def make_api_request(url, method='GET', headers={}):
 
 @retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))
 def get_graph():
-    global NEO4J_URL,NEO4J_HOST_PORT,NEO4J_USER,NEO4J_PASSWORD
+    global NEO4J_URL,NEO4J_HOST,NEO4J_PORT,NEO4J_AUTH
 
     # Connect to graph
-    neo4j.authenticate(NEO4J_HOST_PORT, NEO4J_USER, NEO4J_PASSWORD)
-    graph = neo4j.Graph(NEO4J_URL)
-    graph.cypher.execute('match (t:Tweet) return COUNT(t)')
+    creds = NEO4J_AUTH.split('/')
+    graph = Graph(user=creds[0], password=creds[1], host=NEO4J_HOST)
+
+    graph.run('match (t:Tweet) return COUNT(t)')
     return graph
 
 @retry(stop_max_attempt_number=EXEC_NEO4J_RETRIES, wait_fixed=(EXEC_NEO4J_WAIT_SECS * 1000))
 def execute_query(query, **kwargs):
     graph = get_graph()
-    graph.cypher.execute(query, **kwargs)
+    graph.run(query, **kwargs)
 
 @retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))
 def try_connecting_neo4j():
@@ -96,28 +96,13 @@ def try_connecting_neo4j():
 
     return True
 
-@retry(stop_max_attempt_number=3, wait_fixed=(2 * 1000))
-def change_password():
-    global NEO4J_URL,NEO4J_HOST_PORT,NEO4J_USER,NEO4J_PASSWORD,NEO4J_DEFAULT_PASSWORD
-
-    service_root = ServiceRoot(NEO4J_URL)
-    user_name = NEO4J_USER
-    password = NEO4J_DEFAULT_PASSWORD
-    user_manager = UserManager.for_user(service_root, user_name, password)
-    password_manager = user_manager.password_manager
-    new_password = NEO4J_PASSWORD
-    password_manager.change(new_password)
-
 def create_constraints():
-    # Connect to graph
-    graph = get_graph()
-
     # Add uniqueness constraints.
-    graph.cypher.execute("CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
-    graph.cypher.execute("CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
-    graph.cypher.execute("CREATE CONSTRAINT ON (h:Hashtag) ASSERT h.name IS UNIQUE;")
-    graph.cypher.execute("CREATE CONSTRAINT ON (l:Link) ASSERT l.url IS UNIQUE;")
-    graph.cypher.execute("CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
+    execute_query("CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
+    execute_query("CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
+    execute_query("CREATE CONSTRAINT ON (h:Hashtag) ASSERT h.name IS UNIQUE;")
+    execute_query("CREATE CONSTRAINT ON (l:Link) ASSERT l.url IS UNIQUE;")
+    execute_query("CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
 
 
 def import_friends(screen_name):
@@ -305,11 +290,13 @@ def import_tweets(screen_name):
     graph = get_graph()
 
     max_id_query = 'match (u:User {screen_name:{screen_name}})-[:POSTS]->(t:Tweet) return max(t.id) AS max_id'
-    res = graph.cypher.execute(max_id_query, screen_name=screen_name)
+    res = graph.run(max_id_query, screen_name=screen_name)
 
     for record in res:
-      if record.max_id is not None:
+      try:
         since_id = record.max_id
+      except AttributeError:
+        since_id = 0
 
     print 'Using since_id as %s' % since_id
 
@@ -437,7 +424,7 @@ def import_tweets(screen_name):
 def import_tweets_tagged(screen_name):
     graph = get_graph()
     tagged_query = 'MATCH (h:Hashtag)<-[:TAGS]-(t:Tweet)<-[:POSTS]-(u:User {screen_name:{screen_name}}) WITH h, COUNT(h) AS Hashtags ORDER BY Hashtags DESC LIMIT 5 RETURN h.name AS tag_name, Hashtags'
-    res = graph.cypher.execute(tagged_query, screen_name=screen_name)
+    res = graph.run(tagged_query, screen_name=screen_name)
     for record in res:
       import_tweets_search('#' + record.tag_name)
 
@@ -451,11 +438,13 @@ def import_mentions(screen_name):
     # Find max tweet previously processed
     graph = get_graph()
     max_id_query = 'match (u:User {screen_name:{screen_name}})<-[m:MENTIONS]-(t:Tweet) WHERE m.method="mention_search" return max(t.id) AS max_id'
-    res = graph.cypher.execute(max_id_query, screen_name=screen_name)
+    res = graph.run(max_id_query, screen_name=screen_name)
 
     for record in res:
-      if record.max_id is not None:
+      try:
         since_id = record.max_id
+      except AttributeError:
+        since_id = 0
 
     print 'Using since_id as %s' % since_id
 
@@ -713,15 +702,9 @@ def main():
     global logger
 
 
-    if len(sys.argv) == 2:
-        print "Operating for Twitter user: %s" % sys.argv[1]
-        logger.warning("running twitter app for user: %s" % sys.argv[1])
-        screen_name = sys.argv[1]
-    else:
-        print "Need to specify Twitter user: %s <user>" % (sys.argv[0])
-        exit(0)
-
-    print 'Arguments:', str(sys.argv)
+    print "Operating for Twitter user: %s" % TWITTER_USER
+    logger.warning("running twitter app for user: %s" % TWITTER_USER)
+    screen_name = TWITTER_USER
 
     f = ContextFilter()
     logger.addFilter(f)
@@ -735,8 +718,6 @@ def main():
     search_terms = ['neo4j']
 
     try_connecting_neo4j()    
-    time.sleep(2)
-    change_password()
     time.sleep(2)
     create_constraints()
 
