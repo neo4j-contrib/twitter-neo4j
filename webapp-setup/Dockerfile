@@ -7,7 +7,7 @@ RUN \
     && apt-get install -y nginx git supervisor cron \
     && pip install uwsgi \
     && pip install python-memcached boto3 \
-    && pip install flask flask_oauthlib py2neo retrying RandomWords
+    && pip install flask flask_oauthlib py2neo==2.0.9 retrying RandomWords
 
 COPY ./nginx_app.conf /app/
 COPY ./supervisor-twitterneo4j.conf /app/
