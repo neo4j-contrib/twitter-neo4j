@@ -1,5 +1,5 @@
 import json
-import urllib
+import urllib.parse
 import os
 import traceback
 import sys
@@ -13,17 +13,18 @@ import logging
 import socket
 from logging.handlers import SysLogHandler
 
+from t import ACCESS_TOKEN_KEY, ACCESS_TOKEN_SECRET, CONSUMER_KEY, CONSUMER_SECRET
 
 # Twitter key/secret as a result of registering application
-TWITTER_CONSUMER_KEY = os.environ["TWITTER_CONSUMER_KEY"]
-TWITTER_CONSUMER_SECRET = os.environ["TWITTER_CONSUMER_SECRET"]
+TWITTER_CONSUMER_KEY = CONSUMER_KEY
+TWITTER_CONSUMER_SECRET = CONSUMER_SECRET
 
 # Twitter username
 TWITTER_USER = os.environ["TWITTER_USER"]
 
 # Twitter token key/secret from individual user oauth
-TWITTER_USER_KEY = os.environ["TWITTER_USER_KEY"]
-TWITTER_USER_SECRET = os.environ["TWITTER_USER_SECRET"]
+TWITTER_USER_KEY = ACCESS_TOKEN_KEY
+TWITTER_USER_SECRET = ACCESS_TOKEN_SECRET
 
 # Neo4j URL
 NEO4J_HOST = (os.environ.get('NEO4J_HOST', os.environ.get('HOSTNAME', 'localhost')))
@@ -67,6 +68,7 @@ def make_api_request(url, method='GET', headers={}):
 
 @retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))
 def get_graph():
+    
     global NEO4J_URL,NEO4J_HOST,NEO4J_PORT,NEO4J_AUTH
 
     # Connect to graph
@@ -78,11 +80,17 @@ def get_graph():
 
 @retry(stop_max_attempt_number=EXEC_NEO4J_RETRIES, wait_fixed=(EXEC_NEO4J_WAIT_SECS * 1000))
 def execute_query(query, **kwargs):
-    graph = get_graph()
-    graph.run(query, **kwargs)
+    
+    print(query)
+    try:
+       graph = get_graph()
+       graph.run(query, **kwargs)
+    except Exception as e:
+       print("Failed with error as {}".format(e))
 
 @retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))
 def try_connecting_neo4j():
+    
     global NEO4J_HOST,NEO4J_PORT
 
     ip_address = NEO4J_HOST
@@ -97,6 +105,7 @@ def try_connecting_neo4j():
     return True
 
 def create_constraints():
+    
     # Add uniqueness constraints.
     execute_query("CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
     execute_query("CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
@@ -106,7 +115,8 @@ def create_constraints():
 
 
 def import_friends(screen_name):
-    count = 200
+    #count = 200
+    count = 10
     lang = "en"
     cursor = -1
     users_to_import = True
@@ -123,7 +133,7 @@ def import_friends(screen_name):
               'lang': lang,
               'cursor': cursor
             }
-            url = '%s?%s' % (base_url, urllib.urlencode(params))
+            url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
 
             response, content = make_api_request(url=url, method='GET', headers=headers)
             response_json = json.loads(content)
@@ -148,7 +158,7 @@ def import_friends(screen_name):
 
                 # Pass dict to Cypher and build query.
                 query = """
-                UNWIND {users} AS u
+                UNWIND $users AS u
 
                 WITH u
 
@@ -161,7 +171,7 @@ def import_friends(screen_name):
                     user.url = u.url,
                     user.profile_image_url = u.profile_image_url
 
-                MERGE (mainUser:User {screen_name:{screen_name}})
+                MERGE (mainUser:User {screen_name:$screen_name})
 
                     MERGE (mainUser)-[:FOLLOWS]->(user)
                 """
@@ -178,7 +188,7 @@ def import_friends(screen_name):
             print(traceback.format_exc())
             print(e)
             # Sleep for 15 minutes - twitter API rate limit
-            print 'Sleeping for 15 minutes due to quota'
+            print('Sleeping for 15 minutes due to quota')
             time.sleep(900)
             continue
 
@@ -208,7 +218,8 @@ def import_followers(screen_name):
               'lang': lang,
               'cursor': cursor
             }
-            url = '%s?%s' % (base_url, urllib.urlencode(params))
+            
+            url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
 
             response, content = make_api_request(url=url, method='GET', headers=headers)
             response_json = json.loads(content)
@@ -232,7 +243,7 @@ def import_followers(screen_name):
 
                 # Pass dict to Cypher and build query.
                 query = """
-                UNWIND {users} AS u
+                UNWIND $users AS u
 
                 WITH u
 
@@ -245,7 +256,7 @@ def import_followers(screen_name):
                     user.url = u.url,
                     user.profile_image_url = u.profile_image_url
 
-                MERGE (mainUser:User {screen_name:{screen_name}})
+                MERGE (mainUser:User {screen_name:$screen_name})
 
                 MERGE (user)-[:FOLLOWS]->(mainUser)
                 """
@@ -266,13 +277,13 @@ def import_followers(screen_name):
             print(traceback.format_exc())
             print(e)
             # Sleep for 15 minutes - twitter API rate limit
-            print 'Sleeping for 15 minutes due to quota'
+            print('Sleeping for 15 minutes due to quota')
             time.sleep(900)
             continue
 
         except Exception as e:
             logger.exception(e)
-            print(traceback.format_exc())
+            #print(traceback.format_exc())
             print(e)
             time.sleep(30)
             continue
@@ -289,7 +300,7 @@ def import_tweets(screen_name):
     # Connect to graph
     graph = get_graph()
 
-    max_id_query = 'match (u:User {screen_name:{screen_name}})-[:POSTS]->(t:Tweet) return max(t.id) AS max_id'
+    max_id_query = 'match (u:User {screen_name:$screen_name})-[:POSTS]->(t:Tweet) return max(t.id) AS max_id'
     res = graph.run(max_id_query, screen_name=screen_name)
 
     for record in res:
@@ -298,7 +309,7 @@ def import_tweets(screen_name):
       except AttributeError:
         since_id = 0
 
-    print 'Using since_id as %s' % since_id
+    print('Using since_id as %s' % since_id)
 
     while tweets_to_import:
         try:
@@ -318,7 +329,8 @@ def import_tweets(screen_name):
             if (since_id != 0):
                 params['since_id'] = since_id
 
-            url = '%s?%s' % (base_url, urllib.urlencode(params))
+            
+            url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
 
             response, content = make_api_request(url=url, method='GET', headers=headers)
             response_json = json.loads(content)
@@ -342,7 +354,7 @@ def import_tweets(screen_name):
 
                 # Pass dict to Cypher and build query.
                 query = """
-                UNWIND {tweets} AS t
+                UNWIND $tweets AS t
 
                 WITH t
                 ORDER BY t.id
@@ -372,7 +384,7 @@ def import_tweets(screen_name):
                 MERGE (tweet)-[:USING]->(source)
 
                 FOREACH (h IN e.hashtags |
-                  MERGE (tag:Hashtag {name:LOWER(h.text)})
+                  MERGE (tag:Hashtag {name:toLower(h.text)})
                   MERGE (tag)<-[:TAGS]-(tweet)
                 )
 
@@ -410,20 +422,20 @@ def import_tweets(screen_name):
             print(traceback.format_exc())
             print(e)
             # Sleep for 15 minutes - twitter API rate limit
-            print 'Sleeping for 15 minutes due to quota'
+            print('Sleeping for 15 minutes due to quota')
             time.sleep(900)
             continue
 
         except Exception as e:
             logger.exception(e)
-            print(traceback.format_exc())
+            #print(traceback.format_exc())
             print(e)
             time.sleep(30)
             continue
 
 def import_tweets_tagged(screen_name):
     graph = get_graph()
-    tagged_query = 'MATCH (h:Hashtag)<-[:TAGS]-(t:Tweet)<-[:POSTS]-(u:User {screen_name:{screen_name}}) WITH h, COUNT(h) AS Hashtags ORDER BY Hashtags DESC LIMIT 5 RETURN h.name AS tag_name, Hashtags'
+    tagged_query = 'MATCH (h:Hashtag)<-[:TAGS]-(t:Tweet)<-[:POSTS]-(u:User {screen_name:$screen_name}) WITH h, COUNT(h) AS Hashtags ORDER BY Hashtags DESC LIMIT 5 RETURN h.name AS tag_name, Hashtags'
     res = graph.run(tagged_query, screen_name=screen_name)
     for record in res:
       import_tweets_search('#' + record.tag_name)
@@ -437,7 +449,7 @@ def import_mentions(screen_name):
 
     # Find max tweet previously processed
     graph = get_graph()
-    max_id_query = 'match (u:User {screen_name:{screen_name}})<-[m:MENTIONS]-(t:Tweet) WHERE m.method="mention_search" return max(t.id) AS max_id'
+    max_id_query = 'match (u:User {screen_name:$screen_name})<-[m:MENTIONS]-(t:Tweet) WHERE m.method="mention_search" return max(t.id) AS max_id'
     res = graph.run(max_id_query, screen_name=screen_name)
 
     for record in res:
@@ -446,7 +458,7 @@ def import_mentions(screen_name):
       except AttributeError:
         since_id = 0
 
-    print 'Using since_id as %s' % since_id
+    print('Using since_id as %s' % since_id)
 
     while tweets_to_import:
         try:
@@ -466,7 +478,8 @@ def import_mentions(screen_name):
             if (since_id != 0):
                 params['since_id'] = since_id
 
-            url = '%s?%s' % (base_url, urllib.urlencode(params))
+            
+            url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
 
             response, content = make_api_request(url=url, method='GET', headers=headers)
             response_json = json.loads(content)
@@ -490,7 +503,7 @@ def import_mentions(screen_name):
 
                 # Pass dict to Cypher and build query.
                 query = """
-                UNWIND {tweets} AS t
+                UNWIND $tweets AS t
 
                 WITH t
                 ORDER BY t.id
@@ -520,7 +533,7 @@ def import_mentions(screen_name):
                 MERGE (tweet)-[:USING]->(source)
 
                 FOREACH (h IN e.hashtags |
-                  MERGE (tag:Hashtag {name:LOWER(h.text)})
+                  MERGE (tag:Hashtag {name:toLower(h.text)})
                   MERGE (tag)<-[:TAGS]-(tweet)
                 )
 
@@ -559,7 +572,7 @@ def import_mentions(screen_name):
             print(traceback.format_exc())
             print(e)
             # Sleep for 15 minutes - twitter API rate limit
-            print 'Sleeping for 15 minutes due to quota'
+            print('Sleeping for 15 minutes due to quota')
             time.sleep(900)
             continue
 
@@ -594,8 +607,8 @@ def import_tweets_search(search_term):
 
             if (since_id != 0):
                 params['since_id'] = since_id
-
-            url = '%s?%s' % (base_url, urllib.urlencode(params))
+            
+            url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
 
             response, content = make_api_request(url=url, method='GET', headers=headers)
             response_json = json.loads(content)
@@ -619,7 +632,7 @@ def import_tweets_search(search_term):
 
                 # Pass dict to Cypher and build query.
                 query = """
-                UNWIND {tweets} AS t
+                UNWIND $tweets AS t
 
                 WITH t
                 ORDER BY t.id
@@ -649,7 +662,7 @@ def import_tweets_search(search_term):
                 MERGE (tweet)-[:USING]->(source)
 
                 FOREACH (h IN e.hashtags |
-                  MERGE (tag:Hashtag {name:LOWER(h.text)})
+                  MERGE (tag:Hashtag {name:toLower(h.text)})
                   MERGE (tag)<-[:TAGS]-(tweet)
                 )
 
@@ -687,7 +700,7 @@ def import_tweets_search(search_term):
             print(traceback.format_exc())
             print(e)
             # Sleep for 15 minutes - twitter API rate limit
-            print 'Sleeping for 15 minutes due to quota'
+            print('Sleeping for 15 minutes due to quota')
             time.sleep(900)
             continue
 
@@ -699,10 +712,11 @@ def import_tweets_search(search_term):
             continue
 
 def main():
+    
     global logger
 
 
-    print "Operating for Twitter user: %s" % TWITTER_USER
+    print("Operating for Twitter user: %s" % TWITTER_USER)
     logger.warning("running twitter app for user: %s" % TWITTER_USER)
     screen_name = TWITTER_USER
 
@@ -741,9 +755,9 @@ def main():
           for search_term in search_terms:
             tweets_executor.submit(import_tweets_search, search_term)
 
-        print 'sleeping'
+        print('sleeping')
         time.sleep(1800)
-        print 'done sleeping - maybe import more'
+        print('done sleeping - maybe import more')
         exec_times = exec_times + 1
-
-if __name__ == "__main__": main() 
+main()
+#if __name__ == "__main__": main() 
