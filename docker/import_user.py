@@ -13,18 +13,17 @@ import logging
 import socket
 from logging.handlers import SysLogHandler
 
-from t import ACCESS_TOKEN_KEY, ACCESS_TOKEN_SECRET, CONSUMER_KEY, CONSUMER_SECRET
 
 # Twitter key/secret as a result of registering application
-TWITTER_CONSUMER_KEY = CONSUMER_KEY
-TWITTER_CONSUMER_SECRET = CONSUMER_SECRET
+TWITTER_CONSUMER_KEY = os.environ["TWITTER_CONSUMER_KEY"]
+TWITTER_CONSUMER_SECRET = os.environ["TWITTER_CONSUMER_SECRET"]
 
 # Twitter username
 TWITTER_USER = os.environ["TWITTER_USER"]
 
 # Twitter token key/secret from individual user oauth
-TWITTER_USER_KEY = ACCESS_TOKEN_KEY
-TWITTER_USER_SECRET = ACCESS_TOKEN_SECRET
+TWITTER_USER_KEY = os.environ["TWITTER_USER_KEY"]
+TWITTER_USER_SECRET = os.environ["TWITTER_USER_SECRET"]
 
 # Neo4j URL
 NEO4J_HOST = (os.environ.get('NEO4J_HOST', os.environ.get('HOSTNAME', 'localhost')))
@@ -80,13 +79,8 @@ def get_graph():
 
 @retry(stop_max_attempt_number=EXEC_NEO4J_RETRIES, wait_fixed=(EXEC_NEO4J_WAIT_SECS * 1000))
 def execute_query(query, **kwargs):
-    
-    print(query)
-    try:
        graph = get_graph()
        graph.run(query, **kwargs)
-    except Exception as e:
-       print("Failed with error as {}".format(e))
 
 @retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))
 def try_connecting_neo4j():
@@ -105,7 +99,6 @@ def try_connecting_neo4j():
     return True
 
 def create_constraints():
-    
     # Add uniqueness constraints.
     execute_query("CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
     execute_query("CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
@@ -115,8 +108,7 @@ def create_constraints():
 
 
 def import_friends(screen_name):
-    #count = 200
-    count = 10
+    count = 200
     lang = "en"
     cursor = -1
     users_to_import = True
@@ -283,7 +275,7 @@ def import_followers(screen_name):
 
         except Exception as e:
             logger.exception(e)
-            #print(traceback.format_exc())
+            print(traceback.format_exc())
             print(e)
             time.sleep(30)
             continue
@@ -428,7 +420,7 @@ def import_tweets(screen_name):
 
         except Exception as e:
             logger.exception(e)
-            #print(traceback.format_exc())
+            print(traceback.format_exc())
             print(e)
             time.sleep(30)
             continue
@@ -759,5 +751,4 @@ def main():
         time.sleep(1800)
         print('done sleeping - maybe import more')
         exec_times = exec_times + 1
-main()
-#if __name__ == "__main__": main() 
+if __name__ == "__main__": main() 
