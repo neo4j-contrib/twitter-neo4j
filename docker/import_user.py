@@ -79,12 +79,11 @@ def get_graph():
 
 @retry(stop_max_attempt_number=EXEC_NEO4J_RETRIES, wait_fixed=(EXEC_NEO4J_WAIT_SECS * 1000))
 def execute_query(query, **kwargs):
-       graph = get_graph()
-       graph.run(query, **kwargs)
+    graph = get_graph()
+    graph.run(query, **kwargs)
 
 @retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))
 def try_connecting_neo4j():
-    
     global NEO4J_HOST,NEO4J_PORT
 
     ip_address = NEO4J_HOST
