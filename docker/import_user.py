@@ -296,7 +296,8 @@ def import_tweets(screen_name):
 
     for record in res:
       try:
-        since_id = record.max_id
+        data_json = record.data()
+        since_id = data_json['max_id']
       except AttributeError:
         since_id = 0
 
