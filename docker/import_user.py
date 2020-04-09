@@ -284,7 +284,9 @@ def import_tweets_by_tweet_ids(filename):
     print('Importing Tweets for IDs in file:{}'.format(filename))
     forcedl = lambda  v : True if val.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'certainly', 'uh-huh'] else False
     try:
-        with open(filename) as f:
+        wkg_filename = filename+'.wkg'
+        os.rename(filename, wkg_filename)
+        with open(wkg_filename) as f:
             for line in f:
                 entries = line.split()
                 if (len(entries) == 1):
@@ -347,15 +349,6 @@ def import_tweets_by_tweet_id(tweet_id, forced=False):
             if tweets:
                 
                 tweets_to_import = False
-
-                '''
-                plural = "s." if len(tweets) > 1 else "."
-                print("Found " + str(len(tweets)) + " tweet" + plural)
-
-                tweet_id = str(tweets[len(tweets) - 1].get('id') - 1)
-                '''
-
-                # Pass dict to Cypher and build query.
 
                 query = """
                 UNWIND $tweets AS t
@@ -885,7 +878,7 @@ def main():
 
     try_connecting_neo4j()    
     time.sleep(2)
-    create_constraints()
+    #create_constraints()
 
     friends_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     followers_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
