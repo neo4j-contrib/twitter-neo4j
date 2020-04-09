@@ -98,6 +98,7 @@ def try_connecting_neo4j():
     return True
 
 def create_constraints():
+    print('Executing constraints')
     # Add uniqueness constraints.
     execute_query("CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
     execute_query("CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
@@ -279,9 +280,166 @@ def import_followers(screen_name):
             time.sleep(30)
             continue
 
+def import_tweets_by_tweet_ids(filename):
+    print('Importing Tweets for IDs in file:{}'.format(filename))
+    forcedl = lambda  v : True if val.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'certainly', 'uh-huh'] else False
+    try:
+        with open(filename) as f:
+            for line in f:
+                entries = line.split()
+                if (len(entries) == 1):
+                    entries.append('')
+                (key, val) = (entries[0], entries[1])
+                forced = forcedl(val)
+                import_tweets_by_tweet_id(key, forced)
+    except FileNotFoundError as e:
+        print("Skipping Tweet IDs import since there is no file with {}".format(filename))
+
+
+def import_tweets_by_tweet_id(tweet_id, forced=False):
+    print('Importing Tweet for {}'.format(tweet_id))
+    count = 200
+    lang = "en"
+    tweets_to_import = True
+    max_id = 0
+    since_id = 0
+
+    # Connect to graph
+    graph = get_graph()
+
+    t_id_match_query = 'match (t:Tweet {id_str:$tweet_id}) return t.id_str'
+    res = graph.run(t_id_match_query, tweet_id=tweet_id)
+
+    for record in res:
+      try:
+        data_json = record.data()
+        t_id = data_json['t.id_str']
+        print("There is already DB entry for {} tweet ID ".format(t_id))
+        if not forced:
+            print("Skipping as there is already entry for {} tweet ID ".format(t_id))
+            return
+      except AttributeError:
+        pass
+
+    print('Fetching tweet detail for ID:{}'.format(tweet_id))
+    
+    while tweets_to_import:
+        try:
+            base_url = 'https://api.twitter.com/1.1/statuses/show/'+tweet_id
+            headers = {'accept': 'application/json'}
+            
+            url = '%s' % (base_url)
+
+            response, content = make_api_request(url=url, method='GET', headers=headers)
+            
+            response_json = json.loads(content)
+
+            if isinstance(response_json, dict) and 'errors' in response_json.keys():
+              errors = response_json['errors']
+              for error in errors:
+                if 'code' in error.keys() and error['code'] == 88:
+                  raise TwitterRateLimitError(response_json)
+              raise Exception('Twitter API error: %s' % response_json)
+
+            # Keep status objects.
+            tweets_dict = response_json
+            tweets = [tweets_dict]
+            if tweets:
+                
+                tweets_to_import = False
+
+                '''
+                plural = "s." if len(tweets) > 1 else "."
+                print("Found " + str(len(tweets)) + " tweet" + plural)
+
+                tweet_id = str(tweets[len(tweets) - 1].get('id') - 1)
+                '''
+
+                # Pass dict to Cypher and build query.
+
+                query = """
+                UNWIND $tweets AS t
+
+                WITH t
+                ORDER BY t.id
+
+                WITH t,
+                     t.entities AS e,
+                     t.user AS u,
+                     t.retweeted_status AS retweet
+
+                MERGE (tweet:Tweet {id:t.id})
+                SET tweet.id_str = t.id_str, 
+                    tweet.text = t.text,
+                    tweet.created_at = t.created_at,
+                    tweet.favorites = t.favorite_count
+
+                MERGE (user:User {screen_name:u.screen_name})
+                SET user.name = u.name,
+                    user.location = u.location,
+                    user.followers = u.followers_count,
+                    user.following = u.friends_count,
+                    user.statuses = u.statusus_count,
+                    user.profile_image_url = u.profile_image_url
+
+                MERGE (user)-[:POSTS]->(tweet)
+
+                MERGE (source:Source {name:REPLACE(SPLIT(t.source, ">")[1], "</a", "")})
+                MERGE (tweet)-[:USING]->(source)
+
+                FOREACH (h IN e.hashtags |
+                  MERGE (tag:Hashtag {name:toLower(h.text)})
+                  MERGE (tag)<-[:TAGS]-(tweet)
+                )
+
+                FOREACH (u IN e.urls |
+                  MERGE (url:Link {url:u.expanded_url})
+                  MERGE (tweet)-[:CONTAINS]->(url)
+                )
+
+                FOREACH (m IN e.user_mentions |
+                  MERGE (mentioned:User {screen_name:m.screen_name})
+                  ON CREATE SET mentioned.name = m.name
+                  MERGE (tweet)-[:MENTIONS]->(mentioned)
+                )
+
+                FOREACH (r IN [r IN [t.in_reply_to_status_id] WHERE r IS NOT NULL] |
+                  MERGE (reply_tweet:Tweet {id:r})
+                  MERGE (tweet)-[:REPLY_TO]->(reply_tweet)
+                )
+
+                FOREACH (retweet_id IN [x IN [retweet.id] WHERE x IS NOT NULL] |
+                    MERGE (retweet_tweet:Tweet {id:retweet_id})
+                    MERGE (tweet)-[:RETWEETS]->(retweet_tweet)
+                )
+                """
+
+                # Send Cypher query.
+                execute_query(query, tweets=tweets)
+                print("Tweets added to graph!")
+            else:
+                print("No tweets found.")
+                tweets_to_import = False
+
+        except TwitterRateLimitError as e:
+            logger.exception(e)
+            print(traceback.format_exc())
+            print(e)
+            # Sleep for 15 minutes - twitter API rate limit
+            print('Sleeping for 15 minutes due to quota')
+            time.sleep(900)
+            continue
+
+        except Exception as e:
+            logger.exception(e)
+            print(traceback.format_exc())
+            print(e)
+            time.sleep(30)
+            continue
 
 
 def import_tweets(screen_name):
+    print('Importing Tweet for {}'.format(screen_name))
     count = 200
     lang = "en"
     tweets_to_import = True
@@ -576,6 +734,8 @@ def import_mentions(screen_name):
             continue
 
 def import_tweets_search(search_term):
+    print('Importing Tweet for {}'.format(search_term))
+    pdb.set_trace()
     count = 200
     lang = "en"
     tweets_to_import = True
@@ -732,8 +892,10 @@ def main():
     tweets_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
     exec_times = 0
+    filename='tweet_ids.txt'
 
     while True:
+        tweets_executor.submit(import_tweets_by_tweet_ids, filename)
         tweets_executor.submit(import_tweets, screen_name)
         tweets_executor.submit(import_tweets_search, '#graphconnect')
 
@@ -746,6 +908,7 @@ def main():
           tweets_executor.submit(import_mentions(screen_name))
           for search_term in search_terms:
             tweets_executor.submit(import_tweets_search, search_term)
+ 
 
         print('sleeping')
         time.sleep(1800)
