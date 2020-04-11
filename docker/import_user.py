@@ -295,7 +295,7 @@ class TweetsFetcher():
 
     def import_tweets_by_tweet_ids(self):
         print('Importing Tweets for IDs in file:{}'.format(self.filename))
-        forcedl = lambda  v : True if val.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'certainly', 'uh-huh'] else False
+        isTrue = lambda  v : True if val.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'certainly', 'uh-huh'] else False
         try:
             wkg_filename = self.filename+'.wkg'
             os.rename(self.filename, wkg_filename)
@@ -305,14 +305,13 @@ class TweetsFetcher():
                     if (len(entries) == 1):
                         entries.append('')
                     (key, val) = (entries[0], entries[1])
-                    forced = forcedl(val)
-                    self.__import_tweets_by_tweet_id(key, forced)
+                    fetch_retweet = isTrue(val)
+                    self.__import_tweets_by_tweet_id(key, fetch_retweet, True)
         except FileNotFoundError as e:
             print("Skipping Tweet IDs import since there is no file with {}".format(self.filename))
 
     def __store_tweets_to_db(self, tweets):
         print("storing {} count of tweets to DB".format(len(tweets)))
-        pdb.set_trace()
         if len(tweets) < 1:
             print("Skipping as no tweet to store in DB")
             return
@@ -395,14 +394,36 @@ class TweetsFetcher():
             if 'code' in error.keys() and error['code'] == 88:
               raise TwitterRateLimitError(response_json)
           raise Exception('Twitter API error: %s' % response_json)
+    
+    def __process_tweets_fetch(self, tweet_id):
+        print("Processing {}  Tweet".format(tweet_id))
+        base_url = 'https://api.twitter.com/1.1/statuses/show/'+tweet_id
+        headers = {'accept': 'application/json'}
+        
+        tweet_url = '%s' % (base_url)
+        tweet_json = self.__fetch_tweet_info(tweet_url)
+
+        tweets = [tweet_json]
+        return tweets
+
+    def __process_retweets_fetch(self, tweet_id):
+        print("Processing Retweet for {}  Tweet".format(tweet_id))
+        base_url = "https://api.twitter.com/1.1/statuses/retweets/"+tweet_id+".json"
+        headers = {'accept': 'application/json'}
+        
+        tweet_url = '%s' % (base_url)
+        tweet_json = self.__fetch_tweet_info(tweet_url)
+
+        tweets = tweet_json
+        return tweets
 
 
-    def __import_tweets_by_tweet_id(self, tweet_id, forced=False):
+    def __import_tweets_by_tweet_id(self, tweet_id, fetch_retweet=False, forced=False):
         print('Importing Tweet for {}'.format(tweet_id))
-        pdb.set_trace()
         count = 200
         lang = "en"
         tweets_to_import = True
+        retweets_to_import = fetch_retweet
         max_id = 0
         since_id = 0
 
@@ -427,56 +448,47 @@ class TweetsFetcher():
         
         while tweets_to_import:
             try:
-                base_url = 'https://api.twitter.com/1.1/statuses/show/'+tweet_id
-                headers = {'accept': 'application/json'}
-                
-                url = '%s' % (base_url)
-
-                response, content = make_api_request(url=url, method='GET', headers=headers)
-                
-                response_json = json.loads(content)
-
-                if isinstance(response_json, dict) and 'errors' in response_json.keys():
-                  errors = response_json['errors']
-                  for error in errors:
-                    if 'code' in error.keys() and error['code'] == 88:
-                      raise TwitterRateLimitError(response_json)
-                  raise Exception('Twitter API error: %s' % response_json)
-
-                # Keep status objects.
-                tweets_dict = response_json
-                tweets = [tweets_dict]
-                re_tweets = []
                 pdb.set_trace()
-                if(tweets_dict['retweet_count']):
-                    print("TODO: Fetch retweet user info")
-                    pdb.set_trace()
-                    retweet_base_url = "https://api.twitter.com/1.1/statuses/retweets/"+tweet_id+".json"
-                    #retweet_base_url = 'https://api.twitter.com/1.1/statuses/retweeters/ids.json?id='+tweet_id+'&count=100&stringify_ids=true'
-                    retweet_json = self.__fetch_tweet_info(retweet_base_url)
-                    re_tweets = retweet_json
-                    for t in re_tweets:
-                        t['ot'] = tweet_id
-                orig_tweet = [tweet_id]
+                tweets = self.__process_tweets_fetch(tweet_id)
                 if tweets:
                     tweets_to_import = False
                     print("{} Tweets to be added in DB".format(len(tweets)))
                     self.__store_tweets_to_db(tweets)
-
                 else:
                     print("No tweets found.")
                     tweets_to_import = False
 
+            except TwitterRateLimitError as e:
+                logger.exception(e)
+                print(traceback.format_exc())
+                print(e)
+                # Sleep for 15 minutes - twitter API rate limit
+                print('Sleeping for 15 minutes due to quota')
+                time.sleep(900)
+                continue
+
+            except Exception as e:
+                logger.exception(e)
+                print(traceback.format_exc())
+                print(e)
+                time.sleep(30)
+                continue
+
+
+        while retweets_to_import:
+            try:
+                re_tweets = []
+                pdb.set_trace()
+                re_tweets = self.__process_retweets_fetch(tweet_id)
                  
                 if re_tweets:
-                    tweets = re_tweets
-                    tweets_to_import = False
+                    retweets_to_import = False
                     print("{} Retweets to be added in DB".format(len(re_tweets)))
                     self.__store_tweets_to_db(re_tweets)
                     
                 else:
                     print("No retweets found.")
-                    tweets_to_import = False           
+                    retweets_to_import = False           
 
             except TwitterRateLimitError as e:
                 logger.exception(e)
