@@ -83,6 +83,13 @@ def execute_query(query, **kwargs):
     graph = get_graph()
     graph.run(query, **kwargs)
 
+@retry(stop_max_attempt_number=EXEC_NEO4J_RETRIES, wait_fixed=(EXEC_NEO4J_WAIT_SECS * 1000))
+def execute_query_with_result(query, **kwargs):
+    graph = get_graph()
+    result = graph.run(query, **kwargs).data()
+    return result
+
+
 @retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))
 def try_connecting_neo4j():
     global NEO4J_HOST,NEO4J_PORT
@@ -283,6 +290,95 @@ def import_followers(screen_name):
             print(e)
             time.sleep(30)
             continue
+
+class UserRelations():
+    """
+    This class uses expert pattern. 
+    It provides API to 
+    """
+    def __init__(self, source_screen_name):
+        self.source_screen_name = source_screen_name
+    
+    def __get_Users_list_from_db(self):
+        print("Finding users from DB")
+        query = """
+            MATCH (u:User) return u.screen_name
+        """
+        response_json = execute_query_with_result(query)
+        users = [ user['u.screen_name'] for user in response_json]
+        return users
+    
+    def __store_dm_friends_to_db(self, friendship):
+        print("storing {} count of friendship to DB".format(len(friendship)))
+        query = """
+        UNWIND $friendship AS dm
+
+
+        MERGE (suser:User {screen_name:dm.source})
+        MERGE (tuser:User {screen_name:dm.target})
+
+        MERGE (suser)-[:DM]->(tuser)
+        """
+
+        # Send Cypher query.
+        execute_query(query, friendship=friendship)
+        print("DM info added to graph!")
+
+    def __fetch_tweet_info(self, base_url):
+        headers = {'accept': 'application/json'}
+
+        url = '%s' % (base_url)
+
+        response, content = make_api_request(url=url, method='GET', headers=headers)
+
+        response_json = json.loads(content)
+        return response_json
+
+        if isinstance(response_json, dict) and 'errors' in response_json.keys():
+          errors = response_json['errors']
+          for error in errors:
+            if 'code' in error.keys() and error['code'] == 88:
+              raise TwitterRateLimitError(response_json)
+          raise Exception('Twitter API error: %s' % response_json)
+    
+    def __process_friendship_fetch(self, user):
+        print("Processing friendship fetch for {}  user".format(user))
+        base_url = 'https://api.twitter.com/1.1/friendships/show.json'
+        headers = {'accept': 'application/json'}
+    
+        params = {
+              'source_screen_name': self.source_screen_name,
+              'target_screen_name': user
+            }
+        url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
+        response_json = self.__fetch_tweet_info(url)
+        print(type(response_json))
+
+        friendship = response_json
+        return friendship
+
+    def __process_dm(self, users):
+        print("Finding relations between {} and {} users".format(self.source_screen_name, len(users)))
+        friendships = []
+        for user in users:
+            if(user == self.source_screen_name):
+                print("skipping as user is same")
+                continue
+            friendship = self.__process_friendship_fetch(user)
+            friendships.append(friendship)
+        can_dm_user = [friendship['relationship']['target']['screen_name'] for friendship in friendships if friendship['relationship']['source']['can_dm'] == True]
+        
+        dm_info = [{'source':self.source_screen_name, 'target':user} for user in can_dm_user]
+        print("found {} DM users".format(len(dm_info)))
+        self.__store_dm_friends_to_db(dm_info)
+
+    def findDMForUsersInDB(self):
+        print("Finding DM between the users")
+        users = self.__get_Users_list_from_db()
+        self.__process_dm(users)
+
+        
+
 
 class TweetsFetcher():
     """
@@ -936,6 +1032,7 @@ def import_tweets_search(search_term):
             continue
 
 tweetsFetcher = TweetsFetcher()
+userRelations = UserRelations(TWITTER_USER)
 
 def main():
     
@@ -964,11 +1061,13 @@ def main():
     friends_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     followers_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     tweets_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    user_relation_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
     exec_times = 0
     
     while True:
-        tweets_executor.submit(tweetsFetcher.import_tweets_by_tweet_ids)
+        user_relation_executor.submit(userRelations.findDMForUsersInDB)
+        #tweets_executor.submit(tweetsFetcher.import_tweets_by_tweet_ids)
         '''
         #tweets_executor.submit(import_tweets, screen_name)
         #tweets_executor.submit(import_tweets_search, '#graphconnect')
