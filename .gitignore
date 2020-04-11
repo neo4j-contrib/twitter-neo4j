@@ -1,3 +1,6 @@
 docker/twitterenv
 docker/twecoll.py
 .DS_Store
+docker/test.py
+docker/test_1.py
+docker/t.py
