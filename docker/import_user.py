@@ -103,12 +103,14 @@ def create_constraints():
     # Add uniqueness constraints.
     execute_query("CREATE CONSTRAINT ON (t:Tweet) ASSERT t.id IS UNIQUE;")
     execute_query("CREATE CONSTRAINT ON (u:User) ASSERT u.screen_name IS UNIQUE;")
+    execute_query("CREATE CONSTRAINT ON (u:User) ASSERT u.id IS UNIQUE;")
     execute_query("CREATE CONSTRAINT ON (h:Hashtag) ASSERT h.name IS UNIQUE;")
     execute_query("CREATE CONSTRAINT ON (l:Link) ASSERT l.url IS UNIQUE;")
     execute_query("CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
 
 
 def import_friends(screen_name):
+    print("Importing followings of {}".format(screen_name))
     count = 200
     lang = "en"
     cursor = -1
@@ -194,6 +196,7 @@ def import_friends(screen_name):
 
 
 def import_followers(screen_name):
+    print("Importing followers of {}".format(screen_name))
     count = 200
     lang = "en"
     cursor = -1
@@ -335,6 +338,8 @@ class TweetsFetcher():
 
         MERGE (user:User {screen_name:u.screen_name})
         SET user.name = u.name,
+            user.id = u.id,
+            user.id_str = u.id_str,
             user.location = u.location,
             user.followers = u.followers_count,
             user.following = u.friends_count,
