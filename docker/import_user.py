@@ -402,6 +402,7 @@ class TweetsFetcher():
         
         tweet_url = '%s' % (base_url)
         tweet_json = self.__fetch_tweet_info(tweet_url)
+        print(type(tweet_json))
 
         tweets = [tweet_json]
         return tweets
@@ -413,7 +414,7 @@ class TweetsFetcher():
         
         tweet_url = '%s' % (base_url)
         tweet_json = self.__fetch_tweet_info(tweet_url)
-
+        print(type(tweet_json))
         tweets = tweet_json
         return tweets
 
@@ -445,10 +446,9 @@ class TweetsFetcher():
             pass
 
         print('Fetching tweet detail for ID:{}'.format(tweet_id))
-        
         while tweets_to_import:
             try:
-                pdb.set_trace()
+                print("Processing tweet fetch for {}".format(tweet_id))
                 tweets = self.__process_tweets_fetch(tweet_id)
                 if tweets:
                     tweets_to_import = False
@@ -477,8 +477,7 @@ class TweetsFetcher():
 
         while retweets_to_import:
             try:
-                re_tweets = []
-                pdb.set_trace()
+                print("Processing retweet fetch for {}".format(tweet_id))
                 re_tweets = self.__process_retweets_fetch(tweet_id)
                  
                 if re_tweets:
