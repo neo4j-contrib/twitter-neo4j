@@ -1000,47 +1000,34 @@ def import_mentions(screen_name):
             continue
 
 def import_tweets_search(search_term):
-    print('Importing Tweet for {}'.format(search_term))
-    pdb.set_trace()
-    count = 200
+    count = 100
     lang = "en"
     tweets_to_import = True
-    max_id = 0
-    since_id = 0
+    max_id = None
+    #since_id = 0
+    total_count = 0
 
-        # Connect to graph
-    graph = get_graph()
-
-    max_id_query = 'match (t:Tweet) where t.text CONTAINS $search_term return max(t.id) AS max_id'
-    res = graph.run(max_id_query, search_term=search_term)
-
-    for record in res:
-      try:
-        data_json = record.data()
-        since_id = data_json['max_id']
-      except AttributeError:
-        since_id = 0
-
-    print('Using since_id as %s' % since_id)
     while tweets_to_import:
         try:
             base_url = 'https://api.twitter.com/1.1/search/tweets.json'
             headers = {'accept': 'application/json'}
 
             params = {
-              'exclude_replies': 'false',
-              'contributor_details': 'true',
               'q': search_term,
-              'count': count
+              'count': count,
+              'result_type': 'recent',
+              'tweet_mode':'extended'
             }
-            if (max_id != 0):
+            if (max_id):
                 params['max_id'] = max_id
 
+            '''
             if (since_id != 0):
                 params['since_id'] = since_id
-            
-            url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
+            '''
 
+            url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
+            print(url)
             response, content = make_api_request(url=url, method='GET', headers=headers)
             response_json = json.loads(content)
 
@@ -1058,8 +1045,16 @@ def import_tweets_search(search_term):
                 tweets_to_import = True
                 plural = "s." if len(tweets) > 1 else "."
                 print("Found " + str(len(tweets)) + " tweet" + plural)
+                total_count += len(tweets)
+                print("Found total {} tweets for {} search".format(total_count, search_term))
 
-                max_id = tweets[len(tweets) - 1].get('id') - 1
+                if not max_id:
+                    max_id = tweets[0]['id']
+
+                for tweet in tweets:
+                    max_id = min(max_id, tweet['id']) or tweet['id']
+                
+                #max_id = since_id + 1000
 
                 # Pass dict to Cypher and build query.
                 query = """
@@ -1082,7 +1077,6 @@ def import_tweets_search(search_term):
                 MERGE (user:User {screen_name:u.screen_name})
                 SET user.name = u.name,
                     user.id = u.id,
-                    user.id_str = u.id_str,
                     user.location = u.location,
                     user.followers = u.followers_count,
                     user.following = u.friends_count,
@@ -1179,6 +1173,7 @@ def main():
     exec_times = 0
     #user_relation_executor.submit(userRelations.findDMForUsersInDB)
     tweets_executor.submit(import_tweets_search, 'शुभं करोति')
+    #tweets_executor.submit(import_tweets_search, '#Aurangzeb')
     while True:
         #user_relation_executor.submit(userRelations.findDMForUsersInDB)
         #tweets_executor.submit(tweetsFetcher.import_tweets_by_tweet_ids)
