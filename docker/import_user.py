@@ -479,13 +479,11 @@ class TweetsFetcher():
         print("Tweets added to graph!")
 
 
-    def __fetch_tweet_info(self, base_url):
+    def __fetch_tweet_info(self, url):
         headers = {'accept': 'application/json'}
 
-        url = '%s' % (base_url)
-
         response, content = make_api_request(url=url, method='GET', headers=headers)
-
+  
         response_json = json.loads(content)
         return response_json
 
@@ -508,12 +506,17 @@ class TweetsFetcher():
         tweets = [tweet_json]
         return tweets
 
-    def __process_retweets_fetch(self, tweet_id):
+    def __process_retweets_fetch(self, tweet_id, count=100):
         print("Processing Retweet for {}  Tweet".format(tweet_id))
         base_url = "https://api.twitter.com/1.1/statuses/retweets/"+tweet_id+".json"
         headers = {'accept': 'application/json'}
+
+        params = {
+          'count': count
+        }
+
+        tweet_url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
         
-        tweet_url = '%s' % (base_url)
         tweet_json = self.__fetch_tweet_info(tweet_url)
         print(type(tweet_json))
         tweets = tweet_json
@@ -1066,8 +1069,8 @@ def main():
     exec_times = 0
     
     while True:
-        user_relation_executor.submit(userRelations.findDMForUsersInDB)
-        #tweets_executor.submit(tweetsFetcher.import_tweets_by_tweet_ids)
+        #user_relation_executor.submit(userRelations.findDMForUsersInDB)
+        tweets_executor.submit(tweetsFetcher.import_tweets_by_tweet_ids)
         '''
         #tweets_executor.submit(import_tweets, screen_name)
         #tweets_executor.submit(import_tweets_search, '#graphconnect')
