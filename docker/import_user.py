@@ -308,6 +308,32 @@ class UserRelations():
         users = [ user['u.screen_name'] for user in response_json]
         return users
     
+    def __get_dm_Users_list_from_db(self):
+        print("Finding DM users from DB")
+        source = [{'screen_name':self.source_screen_name}]
+        query = """
+            UNWIND $source AS source
+            WITH source
+                match(s:User {screen_name: source.screen_name})-[:DM]->(u:User) 
+                return u.screen_name
+        """
+        response_json = execute_query_with_result(query, source=source)
+        users = [ user['u.screen_name'] for user in response_json]
+        return users
+
+    def __get_nondm_Users_list_from_db(self):
+        print("Finding NonDM users from DB")
+        source = [{'screen_name':self.source_screen_name}]
+        query = """
+            UNWIND $source AS source
+            WITH source
+                match(s:User {screen_name: source.screen_name})-[:NonDM]->(u:User) 
+                return u.screen_name
+        """
+        response_json = execute_query_with_result(query, source=source)
+        users = [ user['u.screen_name'] for user in response_json]
+        return users
+
     def __store_dm_friends_to_db(self, friendship):
         print("storing {} count of friendship to DB".format(len(friendship)))
         query = """
@@ -324,6 +350,23 @@ class UserRelations():
         execute_query(query, friendship=friendship)
         print("DM info added to graph!")
 
+    def __store_nondm_friends_to_db(self, friendship):
+        print("storing {} count of non-DM friendship to DB".format(len(friendship)))
+        query = """
+        UNWIND $friendship AS nondm
+
+
+        MERGE (suser:User {screen_name:nondm.source})
+        MERGE (tuser:User {screen_name:nondm.target})
+
+        MERGE (suser)-[:NonDM]->(tuser)
+        """
+
+        # Send Cypher query.
+        execute_query(query, friendship=friendship)
+        print("DM info added to graph!")
+
+
     def __fetch_tweet_info(self, base_url):
         headers = {'accept': 'application/json'}
 
@@ -332,7 +375,6 @@ class UserRelations():
         response, content = make_api_request(url=url, method='GET', headers=headers)
 
         response_json = json.loads(content)
-        return response_json
 
         if isinstance(response_json, dict) and 'errors' in response_json.keys():
           errors = response_json['errors']
@@ -340,6 +382,7 @@ class UserRelations():
             if 'code' in error.keys() and error['code'] == 88:
               raise TwitterRateLimitError(response_json)
           raise Exception('Twitter API error: %s' % response_json)
+        return response_json
     
     def __process_friendship_fetch(self, user):
         print("Processing friendship fetch for {}  user".format(user))
@@ -357,26 +400,75 @@ class UserRelations():
         friendship = response_json
         return friendship
 
-    def __process_dm(self, users):
+    def __process_dm(self, users, batch=100):
         print("Finding relations between {} and {} users".format(self.source_screen_name, len(users)))
         friendships = []
+        can_dm_user = []
+        cant_dm_user = []
+        count = 0
         for user in users:
             if(user == self.source_screen_name):
                 print("skipping as user is same")
                 continue
+            count = count + 1
             friendship = self.__process_friendship_fetch(user)
-            friendships.append(friendship)
-        can_dm_user = [friendship['relationship']['target']['screen_name'] for friendship in friendships if friendship['relationship']['source']['can_dm'] == True]
-        
-        dm_info = [{'source':self.source_screen_name, 'target':user} for user in can_dm_user]
-        print("found {} DM users".format(len(dm_info)))
-        self.__store_dm_friends_to_db(dm_info)
+            if friendship['relationship']['source']['can_dm'] == True:
+                can_dm_user.append({'source':self.source_screen_name, 'target':user})
+            else:
+                cant_dm_user.append({'source':self.source_screen_name, 'target':user})
+            if(count%batch == 0):
+                print("Storing batch upto {}".format(count))
+                print("Linking {} DM users".format(len(can_dm_user)))
+                self.__store_dm_friends_to_db(can_dm_user)
+                can_dm_user = []
+                print("Linking {} Non-DM users".format(len(cant_dm_user)))
+                self.__store_nondm_friends_to_db(cant_dm_user)
+                cant_dm_user = []
+        print("Storing batch upto {}".format(count))
+        if(len(can_dm_user)):
+            print("Linking {} DM users".format(len(can_dm_user)))
+            self.__store_dm_friends_to_db(can_dm_user)
+
+        if(len(cant_dm_user)):
+            print("Linking {} Non-DM users".format(len(cant_dm_user)))
+            self.__store_nondm_friends_to_db(cant_dm_user)
+            cant_dm_user = []
+
+
 
     def findDMForUsersInDB(self):
         print("Finding DM between the users")
-        users = self.__get_Users_list_from_db()
-        self.__process_dm(users)
+        find_dm = True
+        try_count = 0
+        while find_dm:
+            try:
+                try_count = try_count + 1
+                print("Retry count is {}".format(try_count))
+                users = self.__get_Users_list_from_db()
+                print("Total number of users are {}".format(len(users)))
+                dmusers = self.__get_dm_Users_list_from_db()
+                nondmusers = self.__get_nondm_Users_list_from_db()
+                users_wkg = set(users) - set(dmusers) - set(nondmusers)
+                print('Processing with unchecked {} users'.format(len(users_wkg)))
+                if(len(users_wkg)):
+                    self.__process_dm(users_wkg, 10)
+                else:
+                    find_dm = False
+            except TwitterRateLimitError as e:
+                logger.exception(e)
+                print(traceback.format_exc())
+                print(e)
+                # Sleep for 15 minutes - twitter API rate limit
+                print('Sleeping for 15 minutes due to quota')
+                time.sleep(900)
+                continue
 
+            except Exception as e:
+                logger.exception(e)
+                print(traceback.format_exc())
+                print(e)
+                time.sleep(30)
+                continue
         
 
 
@@ -485,14 +577,16 @@ class TweetsFetcher():
         response, content = make_api_request(url=url, method='GET', headers=headers)
   
         response_json = json.loads(content)
-        return response_json
+        
 
         if isinstance(response_json, dict) and 'errors' in response_json.keys():
           errors = response_json['errors']
           for error in errors:
             if 'code' in error.keys() and error['code'] == 88:
-              raise TwitterRateLimitError(response_json)
+                print("rate limit exceeded")
+                raise TwitterRateLimitError(response_json)
           raise Exception('Twitter API error: %s' % response_json)
+
     
     def __process_tweets_fetch(self, tweet_id):
         print("Processing {}  Tweet".format(tweet_id))
@@ -907,12 +1001,27 @@ def import_mentions(screen_name):
 
 def import_tweets_search(search_term):
     print('Importing Tweet for {}'.format(search_term))
+    pdb.set_trace()
     count = 200
     lang = "en"
     tweets_to_import = True
     max_id = 0
     since_id = 0
 
+        # Connect to graph
+    graph = get_graph()
+
+    max_id_query = 'match (t:Tweet) where t.text CONTAINS $search_term return max(t.id) AS max_id'
+    res = graph.run(max_id_query, search_term=search_term)
+
+    for record in res:
+      try:
+        data_json = record.data()
+        since_id = data_json['max_id']
+      except AttributeError:
+        since_id = 0
+
+    print('Using since_id as %s' % since_id)
     while tweets_to_import:
         try:
             base_url = 'https://api.twitter.com/1.1/search/tweets.json'
@@ -922,8 +1031,7 @@ def import_tweets_search(search_term):
               'exclude_replies': 'false',
               'contributor_details': 'true',
               'q': search_term,
-              'count': count,
-              'lang': lang,
+              'count': count
             }
             if (max_id != 0):
                 params['max_id'] = max_id
@@ -973,6 +1081,8 @@ def import_tweets_search(search_term):
 
                 MERGE (user:User {screen_name:u.screen_name})
                 SET user.name = u.name,
+                    user.id = u.id,
+                    user.id_str = u.id_str,
                     user.location = u.location,
                     user.followers = u.followers_count,
                     user.following = u.friends_count,
@@ -1067,13 +1177,14 @@ def main():
     user_relation_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
     exec_times = 0
-    
+    #user_relation_executor.submit(userRelations.findDMForUsersInDB)
+    tweets_executor.submit(import_tweets_search, 'शुभं करोति')
     while True:
         #user_relation_executor.submit(userRelations.findDMForUsersInDB)
-        tweets_executor.submit(tweetsFetcher.import_tweets_by_tweet_ids)
+        #tweets_executor.submit(tweetsFetcher.import_tweets_by_tweet_ids)
+        #tweets_executor.submit(import_tweets_search, 'शुभं करोति')
         '''
         #tweets_executor.submit(import_tweets, screen_name)
-        #tweets_executor.submit(import_tweets_search, '#graphconnect')
 
         if (exec_times % 3) == 0:
             friends_executor.submit(import_friends, screen_name)
