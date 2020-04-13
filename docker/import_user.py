@@ -59,6 +59,12 @@ class TwitterRateLimitError(Exception):
     def __str__(self):
         return repr(self.value)
 
+class TwitterUserNotFoundError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
 def make_api_request(url, method='GET', headers={}):
   token = oauth.Token(key=TWITTER_USER_KEY, secret=TWITTER_USER_SECRET)
   consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY, secret=TWITTER_CONSUMER_SECRET)
@@ -334,6 +340,29 @@ class UserRelations():
         users = [ user['u.screen_name'] for user in response_json]
         return users
 
+    def __get_nonexists_Users_list_from_db(self):
+        print("Finding users from DB")
+        query = """
+            MATCH (u:User) where  (u.exists=0) return u.screen_name
+        """
+        response_json = execute_query_with_result(query)
+        users = [ user['u.screen_name'] for user in response_json]
+        return users
+
+    def __mark_nonexists_users_to_db(self, screen_name):
+        print("Marking non exists users in DB")
+        pdb.set_trace()
+        user = [{'screen_name':screen_name, 'exists':0}]
+        query = """
+            UNWIND $user AS u
+
+            MERGE (user:User {screen_name:u.screen_name})
+            SET user.exists = u.exists
+        """
+        execute_query(query, user=user)
+        users = [ user['u.screen_name'] for user in response_json]
+        return users
+
     def __store_dm_friends_to_db(self, friendship):
         print("storing {} count of friendship to DB".format(len(friendship)))
         query = """
@@ -379,8 +408,11 @@ class UserRelations():
         if isinstance(response_json, dict) and 'errors' in response_json.keys():
           errors = response_json['errors']
           for error in errors:
-            if 'code' in error.keys() and error['code'] == 88:
-              raise TwitterRateLimitError(response_json)
+            if 'code' in error.keys():
+                if error['code'] == 88:
+                    raise TwitterRateLimitError(response_json)
+                elif error['code'] == 50:
+                    raise TwitterUserNotFoundError(response_json)
           raise Exception('Twitter API error: %s' % response_json)
         return response_json
     
@@ -394,6 +426,7 @@ class UserRelations():
               'target_screen_name': user
             }
         url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
+ 
         response_json = self.__fetch_tweet_info(url)
         print(type(response_json))
 
@@ -410,8 +443,14 @@ class UserRelations():
             if(user == self.source_screen_name):
                 print("skipping as user is same")
                 continue
+            try:
+                friendship = self.__process_friendship_fetch(user)
+            except TwitterUserNotFoundError as unf:
+                logger.exception(unf)
+                logger.warning("Twitter couldn't found user {} and so ignoring and setting in DB".format(user))
+                self.__mark_nonexists_users_to_db(user)
+                continue
             count = count + 1
-            friendship = self.__process_friendship_fetch(user)
             if friendship['relationship']['source']['can_dm'] == True:
                 can_dm_user.append({'source':self.source_screen_name, 'target':user})
             else:
@@ -446,9 +485,11 @@ class UserRelations():
                 print("Retry count is {}".format(try_count))
                 users = self.__get_Users_list_from_db()
                 print("Total number of users are {}".format(len(users)))
+                nonexists_users = self.__get_nonexists_Users_list_from_db()
+                print("Total number of invalid users are {} and they are {}".format(len(nonexists_users), nonexists_users))
                 dmusers = self.__get_dm_Users_list_from_db()
                 nondmusers = self.__get_nondm_Users_list_from_db()
-                users_wkg = set(users) - set(dmusers) - set(nondmusers)
+                users_wkg = set(users) - set(nonexists_users) - set(dmusers) - set(nondmusers)
                 print('Processing with unchecked {} users'.format(len(users_wkg)))
                 if(len(users_wkg)):
                     self.__process_dm(users_wkg, 10)
@@ -1171,8 +1212,8 @@ def main():
     user_relation_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
     exec_times = 0
-    #user_relation_executor.submit(userRelations.findDMForUsersInDB)
-    tweets_executor.submit(import_tweets_search, 'शुभं करोति')
+    user_relation_executor.submit(userRelations.findDMForUsersInDB)
+    #tweets_executor.submit(import_tweets_search, 'शुभं करोति')
     #tweets_executor.submit(import_tweets_search, '#Aurangzeb')
     while True:
         #user_relation_executor.submit(userRelations.findDMForUsersInDB)
