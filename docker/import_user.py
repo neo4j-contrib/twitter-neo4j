@@ -360,8 +360,7 @@ class UserRelations():
             SET user.exists = u.exists
         """
         execute_query(query, user=user)
-        users = [ user['u.screen_name'] for user in response_json]
-        return users
+        return True
 
     def __store_dm_friends_to_db(self, friendship):
         print("storing {} count of friendship to DB".format(len(friendship)))
