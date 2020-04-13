@@ -176,6 +176,7 @@ def import_friends(screen_name):
                     user.followers = u.followers_count,
                     user.following = u.friends_count,
                     user.statuses = u.statusus_count,
+                    user.description = toLower(u.description),
                     user.url = u.url,
                     user.profile_image_url = u.profile_image_url
 
@@ -262,6 +263,7 @@ def import_followers(screen_name):
                     user.followers = u.followers_count,
                     user.following = u.friends_count,
                     user.statuses = u.statusus_count,
+                    user.description = toLower(u.description),
                     user.url = u.url,
                     user.profile_image_url = u.profile_image_url
 
@@ -351,7 +353,7 @@ class UserRelations():
 
     def __mark_nonexists_users_to_db(self, screen_name):
         print("Marking non exists users in DB")
-        pdb.set_trace()
+        #pdb.set_trace()
         user = [{'screen_name':screen_name, 'exists':0}]
         query = """
             UNWIND $user AS u
@@ -572,6 +574,7 @@ class TweetsFetcher():
             user.followers = u.followers_count,
             user.following = u.friends_count,
             user.statuses = u.statusus_count,
+            user.description = toLower(u.description),
             user.profile_image_url = u.profile_image_url
 
         MERGE (user)-[:POSTS]->(tweet)
@@ -832,6 +835,7 @@ def import_tweets(screen_name):
                     user.followers = u.followers_count,
                     user.following = u.friends_count,
                     user.statuses = u.statusus_count,
+                    user.description = toLower(u.description),
                     user.profile_image_url = u.profile_image_url
 
                 MERGE (user)-[:POSTS]->(tweet)
@@ -981,6 +985,7 @@ def import_mentions(screen_name):
                     user.followers = u.followers_count,
                     user.following = u.friends_count,
                     user.statuses = u.statusus_count,
+                    user.description = toLower(u.description),
                     user.profile_image_url = u.profile_image_url
 
                 MERGE (user)-[:POSTS]->(tweet)
@@ -1121,6 +1126,7 @@ def import_tweets_search(search_term):
                     user.followers = u.followers_count,
                     user.following = u.friends_count,
                     user.statuses = u.statusus_count,
+                    user.description = toLower(u.description),
                     user.profile_image_url = u.profile_image_url
 
                 MERGE (user)-[:POSTS]->(tweet)
