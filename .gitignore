@@ -4,3 +4,17 @@ docker/twecoll.py
 docker/test.py
 docker/test_1.py
 docker/t.py
+__pycache__/cypher_store.cpython-36.pyc
+__pycache__/twitter_logging.cpython-36.pyc
+__pycache__/user_friendship.cpython-36.pyc
+docker/.tweets_example.txt.swp
+docker/__pycache__/cypher_store.cpython-36.pyc
+docker/__pycache__/twitter_access.cpython-36.pyc
+docker/__pycache__/twitter_errors.cpython-36.pyc
+docker/__pycache__/twitter_logging.cpython-36.pyc
+docker/__pycache__/user_friendship.cpython-36.pyc
+docker/test/__pycache__/session.cpython-36.pyc
+docker/test/__pycache__/spider.cpython-36.pyc
+docker/test/main.py
+docker/test/session.py
+docker/test/spider.py
