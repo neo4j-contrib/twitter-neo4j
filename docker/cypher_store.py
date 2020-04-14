@@ -62,7 +62,7 @@ class CypherStoreIntf:
         try_connecting_neo4j()
         print("Cypher Store init finished")
 
-    def get_Users_list_from_db(self):
+    def get_all_users_list(self):
         print("Finding users from DB")
         query = """
             MATCH (u:User) return u.screen_name
@@ -72,7 +72,7 @@ class CypherStoreIntf:
         logger.debug("Got {} users".format(len(users)))
         return users
     
-    def get_dm_Users_list_from_db(self):
+    def get_dm_users_list(self):
         print("Finding DM users from DB")
         source = [{'screen_name':self.source_screen_name}]
         query = """
@@ -85,7 +85,7 @@ class CypherStoreIntf:
         users = [ user['u.screen_name'] for user in response_json]
         return users
 
-    def get_nondm_Users_list_from_db(self):
+    def get_nondm_users_list(self):
         print("Finding NonDM users from DB")
         source = [{'screen_name':self.source_screen_name}]
         query = """
@@ -98,7 +98,7 @@ class CypherStoreIntf:
         users = [ user['u.screen_name'] for user in response_json]
         return users
 
-    def get_nonexists_Users_list_from_db(self):
+    def get_nonexists_users_list(self):
         print("Finding users from DB")
         query = """
             MATCH (u:User) where  (u.exists=0) return u.screen_name
@@ -119,7 +119,7 @@ class CypherStoreIntf:
         execute_query(query, user=user)
         return True
 
-    def store_dm_friends_to_db(self, friendship):
+    def store_dm_friends(self, friendship):
         print("storing {} count of friendship to DB".format(len(friendship)))
         query = """
         UNWIND $friendship AS dm
@@ -135,7 +135,7 @@ class CypherStoreIntf:
         execute_query(query, friendship=friendship)
         print("DM info added to graph!")
 
-    def store_nondm_friends_to_db(self, friendship):
+    def store_nondm_friends(self, friendship):
         print("storing {} count of non-DM friendship to DB".format(len(friendship)))
         query = """
         UNWIND $friendship AS nondm

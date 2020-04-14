@@ -51,7 +51,7 @@ class UserRelations():
             except TwitterUserNotFoundError as unf:
                 logger.exception(unf)
                 logger.warning("Twitter couldn't found user {} and so ignoring and setting in DB".format(user))
-                self.cypherStoreIntf.mark_nonexists_users_to_db(user)
+                self.cypherStoreIntf.mark_nonexists_users(user)
                 continue
             count = count + 1
             if friendship['relationship']['source']['can_dm'] == True:
@@ -61,19 +61,19 @@ class UserRelations():
             if(count%batch == 0):
                 print("Storing batch upto {}".format(count))
                 print("Linking {} DM users".format(len(can_dm_user)))
-                self.cypherStoreIntf.store_dm_friends_to_db(can_dm_user)
+                self.cypherStoreIntf.store_dm_friends(can_dm_user)
                 can_dm_user = []
                 print("Linking {} Non-DM users".format(len(cant_dm_user)))
-                self.cypherStoreIntf.store_nondm_friends_to_db(cant_dm_user)
+                self.cypherStoreIntf.store_nondm_friends(cant_dm_user)
                 cant_dm_user = []
         print("Storing batch upto {}".format(count))
         if(len(can_dm_user)):
             print("Linking {} DM users".format(len(can_dm_user)))
-            self.cypherStoreIntf.store_dm_friends_to_db(can_dm_user)
+            self.cypherStoreIntf.store_dm_friends(can_dm_user)
 
         if(len(cant_dm_user)):
             print("Linking {} Non-DM users".format(len(cant_dm_user)))
-            self.cypherStoreIntf.store_nondm_friends_to_db(cant_dm_user)
+            self.cypherStoreIntf.store_nondm_friends(cant_dm_user)
             cant_dm_user = []
 
 
@@ -86,12 +86,12 @@ class UserRelations():
             try:
                 try_count = try_count + 1
                 print("Retry count is {}".format(try_count))
-                users = self.cypherStoreIntf.get_Users_list_from_db()
+                users = self.cypherStoreIntf.get_all_users_list()
                 print("Total number of users are {}".format(len(users)))
-                nonexists_users = self.cypherStoreIntf.get_nonexists_Users_list_from_db()
+                nonexists_users = self.cypherStoreIntf.get_nonexists_users_list()
                 print("Total number of invalid users are {} and they are {}".format(len(nonexists_users), nonexists_users))
-                dmusers = self.cypherStoreIntf.get_dm_Users_list_from_db()
-                nondmusers = self.cypherStoreIntf.get_nondm_Users_list_from_db()
+                dmusers = self.cypherStoreIntf.get_dm_users_list()
+                nondmusers = self.cypherStoreIntf.get_nondm_users_list()
                 users_wkg = set(users) - set(nonexists_users) - set(dmusers) - set(nondmusers)
                 print('Processing with unchecked {} users'.format(len(users_wkg)))
                 if(len(users_wkg)):
