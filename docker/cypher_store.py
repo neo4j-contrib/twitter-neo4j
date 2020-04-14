@@ -107,7 +107,7 @@ class CypherStoreIntf:
         users = [ user['u.screen_name'] for user in response_json]
         return users
 
-    def mark_nonexists_users_to_db(self, screen_name):
+    def mark_nonexists_users(self, screen_name):
         print("Marking non exists users in DB")
         user = [{'screen_name':screen_name, 'exists':0}]
         query = """
