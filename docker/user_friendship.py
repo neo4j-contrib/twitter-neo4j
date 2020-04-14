@@ -2,24 +2,12 @@
 import pdb
 import os
 from cypher_store import CypherStoreIntf
-#from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
+from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
+import traceback
 import urllib.parse
-import json
 import time
-from twitter_access import make_api_request
+from twitter_access import fetch_tweet_info
 from twitter_logging import logger
-
-class TwitterRateLimitError(Exception):
-    def __init__(self, value):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
-
-class TwitterUserNotFoundError(Exception):
-    def __init__(self, value):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
 
 class UserRelations():
     """
@@ -32,30 +20,9 @@ class UserRelations():
         self.cypherStoreIntf = CypherStoreIntf(source_screen_name)
         print("User friendship init finished")
     
-    def __fetch_tweet_info(self, base_url):
-        headers = {'accept': 'application/json'}
-
-        url = '%s' % (base_url)
-
-        response, content = make_api_request(url=url, method='GET', headers=headers)
-
-        response_json = json.loads(content)
-
-        if isinstance(response_json, dict) and 'errors' in response_json.keys():
-          errors = response_json['errors']
-          for error in errors:
-            if 'code' in error.keys():
-                if error['code'] == 88:
-                    raise TwitterRateLimitError(response_json)
-                elif error['code'] == 50:
-                    raise TwitterUserNotFoundError(response_json)
-          raise Exception('Twitter API error: %s' % response_json)
-        return response_json
-    
     def __process_friendship_fetch(self, user):
         print("Processing friendship fetch for {}  user".format(user))
         base_url = 'https://api.twitter.com/1.1/friendships/show.json'
-        headers = {'accept': 'application/json'}
     
         params = {
               'source_screen_name': self.source_screen_name,
@@ -63,7 +30,7 @@ class UserRelations():
             }
         url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
  
-        response_json = self.__fetch_tweet_info(url)
+        response_json = fetch_tweet_info(url)
         print(type(response_json))
 
         friendship = response_json
