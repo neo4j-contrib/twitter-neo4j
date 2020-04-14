@@ -42,7 +42,7 @@ class DMFileStoreIntf():
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
             logger.error("File {} I/O error({}): {}".format(in_file, e.errno, e.strerror))
 
-        users = [ user['target_screen_name'] for user in json_data if 'DM' in user and user['DM'] == 1]
+        users = [ user['target_screen_name'] for user in json_data if 'can_dm' in user and user['can_dm'] == 1]
         logger.debug("Got {} DM users".format(len(users)))
         return users
 
@@ -57,7 +57,7 @@ class DMFileStoreIntf():
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
             logger.error("File {} I/O error({}): {}".format(in_file, e.errno, e.strerror))
 
-        users = [ user['target_screen_name'] for user in json_data if 'DM' in user and user['DM'] == 0]
+        users = [ user['target_screen_name'] for user in json_data if 'can_dm' in user and user['can_dm'] == 0]
         logger.debug("Got {} Non existant users".format(len(users)))
         return users
 
@@ -98,7 +98,7 @@ class DMFileStoreIntf():
         try:
             with open(out_file, "a+") as f:
                 for friend in friendship:
-                    out_json = {'source_screen_name':friend['source'],'target_screen_name':friend['target'], 'DM':1}
+                    out_json = {'source_screen_name':friend['source'],'target_screen_name':friend['target'], 'can_dm':1}
                     json.dump(out_json, f)
                     f.write(os.linesep)
             print("DM info added to File!")
@@ -114,7 +114,7 @@ class DMFileStoreIntf():
         try:
             with open(out_file, "a+") as f:
                 for friend in friendship:
-                    out_json = {'source_screen_name':friend['source'],'target_screen_name':friend['target'], 'DM':0}
+                    out_json = {'source_screen_name':friend['source'],'target_screen_name':friend['target'], 'can_dm':0}
                     json.dump(out_json, f)
                     f.write(os.linesep)
             print("Non DM info added to File!")
