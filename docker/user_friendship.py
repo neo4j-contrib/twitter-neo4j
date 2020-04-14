@@ -1,8 +1,8 @@
 
 import pdb
 import os
-from cypher_store import CypherStoreIntf
-#from file_store import FileStoreIntf
+#from cypher_store import CypherStoreIntf
+from file_store import DMFileStoreIntf
 from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
 import traceback
 import urllib.parse
@@ -18,7 +18,7 @@ class UserRelations():
     def __init__(self, source_screen_name, outfile=None):
         print("Initializing user friendship")
         self.source_screen_name = source_screen_name
-        self.cypherStoreIntf = CypherStoreIntf(source_screen_name)
+        self.dataStoreIntf = DMFileStoreIntf(source_screen_name)
         print("User friendship init finished")
     
     def __process_friendship_fetch(self, user):
@@ -52,7 +52,7 @@ class UserRelations():
             except TwitterUserNotFoundError as unf:
                 logger.exception(unf)
                 logger.warning("Twitter couldn't found user {} and so ignoring and setting in DB".format(user))
-                self.cypherStoreIntf.mark_nonexists_users(user)
+                self.dataStoreIntf.mark_nonexists_users(user)
                 continue
             count = count + 1
             if friendship['relationship']['source']['can_dm'] == True:
@@ -62,19 +62,19 @@ class UserRelations():
             if(count%batch == 0):
                 print("Storing batch upto {}".format(count))
                 print("Linking {} DM users".format(len(can_dm_user)))
-                self.cypherStoreIntf.store_dm_friends(can_dm_user)
+                self.dataStoreIntf.store_dm_friends(can_dm_user)
                 can_dm_user = []
                 print("Linking {} Non-DM users".format(len(cant_dm_user)))
-                self.cypherStoreIntf.store_nondm_friends(cant_dm_user)
+                self.dataStoreIntf.store_nondm_friends(cant_dm_user)
                 cant_dm_user = []
         print("Storing batch upto {}".format(count))
         if(len(can_dm_user)):
             print("Linking {} DM users".format(len(can_dm_user)))
-            self.cypherStoreIntf.store_dm_friends(can_dm_user)
+            self.dataStoreIntf.store_dm_friends(can_dm_user)
 
         if(len(cant_dm_user)):
             print("Linking {} Non-DM users".format(len(cant_dm_user)))
-            self.cypherStoreIntf.store_nondm_friends(cant_dm_user)
+            self.dataStoreIntf.store_nondm_friends(cant_dm_user)
             cant_dm_user = []
 
 
@@ -87,12 +87,12 @@ class UserRelations():
             try:
                 try_count = try_count + 1
                 print("Retry count is {}".format(try_count))
-                users = self.cypherStoreIntf.get_all_users_list()
+                users = self.dataStoreIntf.get_all_users_list()
                 print("Total number of users are {}".format(len(users)))
-                nonexists_users = self.cypherStoreIntf.get_nonexists_users_list()
+                nonexists_users = self.dataStoreIntf.get_nonexists_users_list()
                 print("Total number of invalid users are {} and they are {}".format(len(nonexists_users), nonexists_users))
-                dmusers = self.cypherStoreIntf.get_dm_users_list()
-                nondmusers = self.cypherStoreIntf.get_nondm_users_list()
+                dmusers = self.dataStoreIntf.get_dm_users_list()
+                nondmusers = self.dataStoreIntf.get_nondm_users_list()
                 users_wkg = set(users) - set(nonexists_users) - set(dmusers) - set(nondmusers)
                 print('Processing with unchecked {} users'.format(len(users_wkg)))
                 if(len(users_wkg)):

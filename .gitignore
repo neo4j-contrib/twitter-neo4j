@@ -23,3 +23,6 @@ docker/file_store.py
 docker/user_friendship.py
 docker/user_friendship.py
 docker/user_friendship.py
+docker/data/twitter_all_users_name.json
+docker/data/twitter_dm_output.json
+docker/__pycache__/file_store.cpython-36.pyc

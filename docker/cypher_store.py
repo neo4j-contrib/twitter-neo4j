@@ -55,7 +55,7 @@ def execute_query_with_result(query, **kwargs):
     result = graph.run(query, **kwargs).data()
     return result
 
-class CypherStoreIntf:
+class CypherStoreIntf():
     def __init__(self, source_screen_name):
         print("Initializing Cypher Store")
         self.source_screen_name = source_screen_name
