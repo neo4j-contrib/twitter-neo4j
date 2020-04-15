@@ -9,6 +9,7 @@ import urllib.parse
 import time
 from twitter_access import fetch_tweet_info
 from twitter_logging import logger
+from datetime import datetime
 
 class UserRelations():
     """
@@ -104,7 +105,7 @@ class UserRelations():
                 print(traceback.format_exc())
                 print(e)
                 # Sleep for 15 minutes - twitter API rate limit
-                print('Sleeping for 15 minutes due to quota')
+                print('Sleeping for 15 minutes due to quota. Current time={}'.format(datetime.now()))
                 time.sleep(900)
                 continue
 
