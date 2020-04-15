@@ -114,4 +114,9 @@ class UserRelations():
                 print(e)
                 time.sleep(30)
                 continue
-        
+
+def main():
+    userRelations = UserRelations("dpkmr")
+    userRelations.findDMForUsersInDB()
+
+if __name__ == "__main__": main()
