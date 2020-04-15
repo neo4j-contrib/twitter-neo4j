@@ -16,15 +16,12 @@ class StoreUtil:
     @staticmethod
     def __push_data_to_db(dmusers_by_source={}, non_dmusers_by_source={}, non_exists_users=[]):
         print("Pushing data to cypher")
-        pdb.set_trace()
         cypherStoreIntf = CypherStoreIntf()
         for user in non_exists_users:
             cypherStoreIntf.mark_nonexists_users(user)
-        pdb.set_trace()
         for source, dm_users in dmusers_by_source.items():
             cypherStoreIntf.set_source_screen_name(source)
             cypherStoreIntf.store_dm_friends(dm_users)
-        pdb.set_trace()
         for source, nondm_users in non_dmusers_by_source.items():
             cypherStoreIntf.set_source_screen_name(source)
             cypherStoreIntf.store_nondm_friends(nondm_users)
