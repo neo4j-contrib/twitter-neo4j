@@ -3,13 +3,14 @@ import json
 import codecs
 from twitter_logging import logger
 import os
+import common
 
 class DMFileStoreIntf():
     """
     This uses expert design pattern and Facade pattern for file based data read and write
     This class handles the file read for input and thenafter it writes the DM data to the file again
     """
-    def __init__(self, source_screen_name, outfile="data/twitter_dm_output.json"):
+    def __init__(self, source_screen_name=None, outfile=common.def_dm_out_file):
         print("Initializing File Store")
         self.source_screen_name = source_screen_name
         self.outfile = outfile
@@ -122,4 +123,20 @@ class DMFileStoreIntf():
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
             logger.error("File {} I/O error({}): {}".format(in_file, e.errno, e.strerror))
         return True
+
+    def read_out_file_data(self):
+        print("Reading Store file data")
+        in_file = self.outfile
+        json_data = []
+        try:
+            with open(in_file) as f:
+                json_data = [json.loads(line) for line in f]
+        except IOError as e:
+            print("I/O error({0}): {1}".format(e.errno, e.strerror))
+            logger.error("File {} I/O error({}): {}".format(in_file, e.errno, e.strerror))
+        return json_data
+        users = [ user['target_screen_name'] for user in json_data if 'can_dm' in user and user['can_dm'] == 1]
+        logger.debug("Got {} DM users".format(len(users)))
+        return users
+
         

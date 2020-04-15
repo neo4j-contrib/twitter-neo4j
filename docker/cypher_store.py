@@ -56,11 +56,14 @@ def execute_query_with_result(query, **kwargs):
     return result
 
 class CypherStoreIntf():
-    def __init__(self, source_screen_name):
+    def __init__(self, source_screen_name=None):
         print("Initializing Cypher Store")
         self.source_screen_name = source_screen_name
         try_connecting_neo4j()
         print("Cypher Store init finished")
+
+    def set_source_screen_name(self, source_screen_name):
+        self.source_screen_name = source_screen_name
 
     def get_all_users_list(self):
         print("Finding users from DB")
