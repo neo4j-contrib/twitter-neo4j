@@ -908,7 +908,9 @@ def import_tweets_search(search_term):
                     max_id = tweets[0]['id']
 
                 for tweet in tweets:
-                    max_id = min(max_id, tweet['id']) or tweet['id']
+                    max_id = min(max_id, tweet['id']) 
+                #decrement one less so that same tweet is not sent again in next call.
+                max_id = max_id - 1
                 
                 #max_id = since_id + 1000
                 # Pass dict to Cypher and build query.
@@ -1031,8 +1033,9 @@ def main():
     tweets_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     user_relation_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     exec_times = 0
-    user_relation_executor.submit(userRelations.findDMForUsersInDB)
+    #user_relation_executor.submit(userRelations.findDMForUsersInDB)
     #tweets_executor.submit(import_tweets_search, 'शुभं करोति')
+    tweets_executor.submit(import_tweets_search, 'from:narendramodi saisha filter:retweets')
     #tweets_executor.submit(import_tweets_search, '#Aurangzeb')
     while True:
         #user_relation_executor.submit(userRelations.findDMForUsersInDB)
