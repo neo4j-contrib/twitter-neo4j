@@ -31,17 +31,17 @@ Add user info in following JSON format.
  u.screen_name -> It is user screen name
  u.id -> user ID (0 if id is not available)
  
-Output location:
-Output file will be created in same 'data' folder with name  'twitter_dm_output.json'
-
 
 4. Go to folder 'docker' and run the script for fetching DM relationship. Command is below
     python3 user_friendship.py
     
 *************Output file format:*****************
 
-It is self explantory except can_dm (1-> means DM is possible)
+Output location:
+Output file will be created in same 'data' folder with name  'twitter_dm_output.json'
 
-(neo4jenv) (base) Deepaks-MacBook-Air:data deepak$ head twitter_dm_output.json
+Example output file:
 {"source_screen_name": "dpkmr", "target_screen_name": "SumithNair14", "can_dm": 0}
 {"source_screen_name": "dpkmr", "target_screen_name": "GMahnot", "can_dm": 0}
+
+Output data is self explantory except can_dm (1-> means DM is possible)
