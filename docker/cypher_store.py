@@ -55,7 +55,7 @@ def execute_query_with_result(query, **kwargs):
     result = graph.run(query, **kwargs).data()
     return result
 
-class CypherStoreIntf():
+class DMCypherStoreIntf():
     def __init__(self, source_screen_name=None):
         print("Initializing Cypher Store")
         self.source_screen_name = source_screen_name
@@ -153,5 +153,107 @@ class CypherStoreIntf():
         # Send Cypher query.
         execute_query(query, friendship=friendship)
         print("DM info added to graph!")
+
+class TweetCypherStoreIntf:
+    """
+    This class uses expert pattern. It provides API for tweets info management
+    """
+    def __init__(self):
+        pass
+
+    def is_tweet_exists(self, tweet_id):
+        print("Checking existance of tweet [{}]in the store".format(tweet_id))
+        res = False
+        t_id_match_query = 'match (t:Tweet {id_str:$tweet_id}) return t.id_str'
+        res = execute_query_with_result(t_id_match_query, tweet_id=tweet_id)
+        for record in res:
+          try:
+            if 't.id_str' in record:
+                print("There is already DB entry for {} tweet ID ".format(record['t.id_str']))
+                res = True
+                break
+          except AttributeError:
+            pass
+        return res
+
+    def store_tweets_info(self, tweets):
+        print("storing {} count of tweets to DB".format(len(tweets)))
+        if len(tweets) < 1:
+            print("Skipping as no tweet to store in DB")
+            return
+        query = """
+        UNWIND $tweets AS t
+
+        WITH t
+        ORDER BY t.id
+
+        WITH t,
+             t.entities AS e,
+             t.user AS u,
+             t.retweeted_status AS retweet
+
+        MERGE (tweet:Tweet {id:t.id})
+        SET tweet.id_str = t.id_str, 
+            tweet.text = t.text,
+            tweet.full_text = toLower(t.full_text),
+            tweet.created_at = t.created_at,
+            tweet.favorites = t.favorite_count,
+            tweet.retweet_count = t.retweet_count
+
+        MERGE (user:User {screen_name:u.screen_name})
+        SET user.name = u.name,
+            user.id = u.id,
+            user.created_at = u.created_at,
+            user.description = u.description,
+            user.statuses_count = u.statuses_count,
+            user.id_str = u.id_str,
+            user.location = u.location,
+            user.followers = u.followers_count,
+            user.following = u.friends_count,
+            user.statuses = u.statusus_count,
+            user.description = toLower(u.description),
+            user.protected = u.protected,
+            user.listed_count = u.listed_count,
+            user.verified = u.verified,
+            user.lang = u.lang,
+            user.contributors_enabled = u.contributors_enabled,
+            user.profile_image_url = u.profile_image_url
+
+        MERGE (user)-[:POSTS]->(tweet)
+
+        MERGE (source:Source {name:REPLACE(SPLIT(t.source, ">")[1], "</a", "")})
+        MERGE (tweet)-[:USING]->(source)
+
+        FOREACH (h IN e.hashtags |
+          MERGE (tag:Hashtag {name:toLower(h.text)})
+          MERGE (tag)<-[:TAGS]-(tweet)
+        )
+
+        FOREACH (u IN e.urls |
+          MERGE (url:Link {url:u.expanded_url})
+          MERGE (tweet)-[:CONTAINS]->(url)
+        )
+
+        FOREACH (m IN e.user_mentions |
+          MERGE (mentioned:User {screen_name:m.screen_name})
+          ON CREATE SET mentioned.name = m.name
+          MERGE (tweet)-[:MENTIONS]->(mentioned)
+        )
+
+        FOREACH (r IN [r IN [t.in_reply_to_status_id] WHERE r IS NOT NULL] |
+          MERGE (reply_tweet:Tweet {id:r})
+          MERGE (tweet)-[:REPLY_TO]->(reply_tweet)
+        )
+
+        FOREACH (retweet_id IN [x IN [retweet.id] WHERE x IS NOT NULL] |
+            MERGE (retweet_tweet:Tweet {id:retweet_id})
+            MERGE (tweet)-[:RETWEETS]->(retweet_tweet)
+        )
+        """
+
+        # Send Cypher query.
+        execute_query(query, tweets=tweets)
+        print("Tweets added to graph!")
+    
 
 

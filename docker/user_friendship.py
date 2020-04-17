@@ -1,7 +1,7 @@
 
 import pdb
 import os
-#from cypher_store import CypherStoreIntf
+#from cypher_store import CypherDMStoreIntf
 from file_store import DMFileStoreIntf
 from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
 import traceback

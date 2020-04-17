@@ -33,3 +33,4 @@ docker/data/twitter_dm_output_bkp.json
 docker/tweet_ids.txt.wkg
 docker/tweet_ids.txt
 docker/.tweets_example.txt.swp
+docker/.tweet_ids.txt.wkg.swp

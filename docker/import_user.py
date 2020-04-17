@@ -1078,8 +1078,8 @@ def main():
     exec_times = 0
     #user_relation_executor.submit(userRelations.findDMForUsersInDB)
     #tweets_executor.submit(import_tweets_search, 'शुभं करोति')
-    #tweets_executor.submit(import_tweets_search, 'RT @actormanojjoshi: काग़ज़ मिले की')
-    tweets_executor.submit(tweetsFetcher.import_tweets_by_tweet_ids)
+    tweets_executor.submit(import_tweets_search, 'RT @actormanojjoshi: काग़ज़ मिले की')
+    #tweets_executor.submit(tweetsFetcher.import_tweets_by_tweet_ids)
     #tweets_executor.submit(import_tweets_search, '#Aurangzeb')
     while True:
         #user_relation_executor.submit(userRelations.findDMForUsersInDB)
