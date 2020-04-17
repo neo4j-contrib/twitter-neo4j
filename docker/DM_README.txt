@@ -1,9 +1,12 @@
 *For running the code for DM check*
 Steps overview:
 1. Install the necessary python packages
-2. Run the script for fetching DM relationship
+2. Run the script for fetching DM relationship. Command is below
+    python3 user_friendship.py
+    
 
-Things must to be done before step-3
+
+Things must to be done before step-2
 A. Go to folder docker 
 B. Set following environment variable (Needed for twitter authentication). Below example is for Linux and Macbook
 
@@ -30,4 +33,15 @@ $ head twitter_all_users_name.json
   }
  ]
  
-command 'python3 user_friendship.py'
+ 
+Output location:
+Output file will be created in same 'data' folder with name  'twitter_dm_output.json'
+
+Output file format: It is self explantory except can_dm (1 means DM is possible)
+
+(neo4jenv) (base) Deepaks-MacBook-Air:data deepak$ head twitter_dm_output.json
+{"source_screen_name": "dpkmr", "target_screen_name": "SumithNair14", "can_dm": 0}
+{"source_screen_name": "dpkmr", "target_screen_name": "GMahnot", "can_dm": 0}
+
+
+
