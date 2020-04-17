@@ -19,9 +19,7 @@ C. Provide the input file which contains the list of users for which DM check is
 For doing this create data folder (twitter-neo4j/docker/data)
 and then create a file with name twitter_all_users_name.json 
 and then add user info in following JSON format. 
-u.screen_name -> It is user screen name
-u.id -> user ID (0 if id is not available)
-$ head twitter_all_users_name.json 
+
 [
   {
     "u.screen_name": "DangoreAjay",
@@ -33,6 +31,9 @@ $ head twitter_all_users_name.json
   }
  ]
  
+ File format explanation:
+ u.screen_name -> It is user screen name
+ u.id -> user ID (0 if id is not available)
  
 Output location:
 Output file will be created in same 'data' folder with name  'twitter_dm_output.json'
