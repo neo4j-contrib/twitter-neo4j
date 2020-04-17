@@ -1,4 +1,4 @@
-*For running the code for DM check*
+*Help guide for running this code for DM check*
 Steps overview:
 0. Fetch this Github to your machine (git clone ....)
 1. Install the necessary python packages (pip3 install oauth2)
