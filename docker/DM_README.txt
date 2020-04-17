@@ -16,7 +16,7 @@ export TWITTER_USER_KEY=<User key>
 export TWITTER_USER_SECRET=<User Secret>
 
 C. Provide the input file which contains the list of users for which DM check is needed
-For doing this create data folder (twitter-neo4j/docker/)
+For doing this create data folder (twitter-neo4j/docker/data)
 and then create a file with name twitter_all_users_name.json 
 and then add user info in following JSON format. 
 u.screen_name -> It is user screen name
@@ -37,7 +37,7 @@ $ head twitter_all_users_name.json
 Output location:
 Output file will be created in same 'data' folder with name  'twitter_dm_output.json'
 
-Output file format: It is self explantory except can_dm (1 means DM is possible)
+Output file format: It is self explantory except can_dm (1-> means DM is possible)
 
 (neo4jenv) (base) Deepaks-MacBook-Air:data deepak$ head twitter_dm_output.json
 {"source_screen_name": "dpkmr", "target_screen_name": "SumithNair14", "can_dm": 0}
