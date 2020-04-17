@@ -1,21 +1,17 @@
 *For running the code for DM check*
 Steps overview:
 1. Install the necessary python packages (pip3 install oauth2)
-2. Go to folder 'docker' and run the script for fetching DM relationship. Command is below
-    python3 user_friendship.py
-    
 
-
-Things must to be done before step-2
-A. Go to folder docker 
-B. Set following environment variable (Needed for twitter authentication). Below example is for Linux and Macbook
+2. Below are the steps for providing twitter auth
+Set following environment variable (Needed for twitter authentication). Below example is for Linux and Macbook
 
 export TWITTER_CONSUMER_KEY=<Consumer key>
 export TWITTER_CONSUMER_SECRET=<Consumer Secret>
 export TWITTER_USER_KEY=<User key>
 export TWITTER_USER_SECRET=<User Secret>
 
-C. Edit the input file(twitter-neo4j/docker/data/twitter_all_users_name.json) and add list of users for which DM check is needed
+3. Below are the steps for providing the input data (users for DM)
+Edit the input file(twitter-neo4j/docker/data/twitter_all_users_name.json) and add list of users for which DM check is needed
 
 Add user info in following JSON format. 
 
@@ -37,11 +33,14 @@ Add user info in following JSON format.
 Output location:
 Output file will be created in same 'data' folder with name  'twitter_dm_output.json'
 
-Output file format: It is self explantory except can_dm (1-> means DM is possible)
+
+4. Go to folder 'docker' and run the script for fetching DM relationship. Command is below
+    python3 user_friendship.py
+    
+*************Output file format:*****************
+
+It is self explantory except can_dm (1-> means DM is possible)
 
 (neo4jenv) (base) Deepaks-MacBook-Air:data deepak$ head twitter_dm_output.json
 {"source_screen_name": "dpkmr", "target_screen_name": "SumithNair14", "can_dm": 0}
 {"source_screen_name": "dpkmr", "target_screen_name": "GMahnot", "can_dm": 0}
-
-
-
