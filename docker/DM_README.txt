@@ -1,7 +1,7 @@
 *Help guide for running this code for DM check*
 Steps overview:
 0. Fetch this Github to your machine (git clone ....)
-1. Install the necessary python packages (pip3 install oauth2)
+1. Install the necessary python packages (pip3 install oauth2). It is preferred to use the python virtualenv for avoiding any conflict (Refer: https://sites.google.com/site/jbsakabffoi12449ujkn/home/software-programming/python-virtual-environment-a-means-for-using-multiple-python-versions-concurrently for this)
 
 2. Below are the steps for providing twitter auth
 Set following environment variable (Needed for twitter authentication). Below example is for Linux and Macbook
@@ -11,6 +11,7 @@ export TWITTER_CONSUMER_KEY=<Consumer key>
 export TWITTER_CONSUMER_SECRET=<Consumer Secret>
 export TWITTER_USER_KEY=<User key>
 export TWITTER_USER_SECRET=<User Secret>
+export TWITTER_USER=<your twitter screen name>
 
 ******************Example************
 export TWITTER_CONSUMER_KEY=fKnZ6VKTE8tP9Ao81bsPH2kW0
