@@ -36,8 +36,12 @@ def fetch_tweet_info(url, headers = {'accept': 'application/json'}):
     return response_json
 
 def __make_api_request(url, method='GET', headers={}):
-    token = oauth.Token(key=TWITTER_USER_KEY, secret=TWITTER_USER_SECRET)
-    consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY, secret=TWITTER_CONSUMER_SECRET)
+    try:
+      token = oauth.Token(key=TWITTER_USER_KEY, secret=TWITTER_USER_SECRET)
+      consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY, secret=TWITTER_CONSUMER_SECRET)
+      client = oauth.Client(consumer, token)
+      return client.request(url, method, headers=headers)
+    except Exception as e:
+      logger.error("Error {} while {} API with {} method".format(e, url, method))
+      raise
 
-    client = oauth.Client(consumer, token)
-    return client.request(url, method, headers=headers)
