@@ -5,6 +5,7 @@ Steps overview:
 
 2. Below are the steps for providing twitter auth
 Set following environment variable (Needed for twitter authentication). Below example is for Linux and Macbook
+Note: If you don't have this info, you can fetch it from Twitter. Visit https://apps.twitter.com/ page 
 
 export TWITTER_CONSUMER_KEY=<Consumer key>
 export TWITTER_CONSUMER_SECRET=<Consumer Secret>
