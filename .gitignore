@@ -34,3 +34,7 @@ docker/tweet_ids.txt.wkg
 docker/tweet_ids.txt
 docker/.tweets_example.txt.swp
 docker/.tweet_ids.txt.wkg.swp
+docker/__pycache__/twitter_logging.cpython-37.pyc
+docker/__pycache__/file_store.cpython-37.pyc
+docker/__pycache__/twitter_access.cpython-37.pyc
+docker/__pycache__/twitter_errors.cpython-37.pyc
