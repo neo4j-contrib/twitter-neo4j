@@ -30,3 +30,6 @@ docker/__pycache__/common.cpython-36.pyc
 docker/__pycache__/common.cpython-37.pyc
 docker/__pycache__/cypher_store.cpython-37.pyc
 docker/data/twitter_dm_output_bkp.json
+docker/tweet_ids.txt.wkg
+docker/tweet_ids.txt
+docker/.tweets_example.txt.swp

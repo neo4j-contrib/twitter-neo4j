@@ -358,6 +358,7 @@ class TweetsFetcher():
         MERGE (tweet:Tweet {id:t.id})
         SET tweet.id_str = t.id_str, 
             tweet.text = t.text,
+            tweet.full_text = toLower(t.full_text),
             tweet.created_at = t.created_at,
             tweet.favorites = t.favorite_count,
             tweet.retweet_count = t.retweet_count
@@ -417,7 +418,6 @@ class TweetsFetcher():
 
     def __fetch_tweet_info(self, url):
         headers = {'accept': 'application/json'}
-
         response, content = make_api_request(url=url, method='GET', headers=headers)
   
         response_json = json.loads(content)
@@ -431,33 +431,45 @@ class TweetsFetcher():
                 raise TwitterRateLimitError(response_json)
           raise Exception('Twitter API error: %s' % response_json)
 
+        return response_json
+
     
     def __process_tweets_fetch(self, tweet_id):
         print("Processing {}  Tweet".format(tweet_id))
+        tweets = None
         base_url = 'https://api.twitter.com/1.1/statuses/show/'+tweet_id
         headers = {'accept': 'application/json'}
+
+        params = {
+          'result_type': 'recent',
+          'tweet_mode':'extended'
+        }
         
-        tweet_url = '%s' % (base_url)
+        tweet_url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
         tweet_json = self.__fetch_tweet_info(tweet_url)
         print(type(tweet_json))
-
-        tweets = [tweet_json]
+        if(tweet_json):
+            tweets = [tweet_json]
         return tweets
 
     def __process_retweets_fetch(self, tweet_id, count=100):
         print("Processing Retweet for {}  Tweet".format(tweet_id))
         base_url = "https://api.twitter.com/1.1/statuses/retweets/"+tweet_id+".json"
         headers = {'accept': 'application/json'}
+        tweets = None
 
         params = {
-          'count': count
+          'count': count,
+          'result_type': 'recent',
+          'tweet_mode':'extended'
         }
 
         tweet_url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
         
         tweet_json = self.__fetch_tweet_info(tweet_url)
         print(type(tweet_json))
-        tweets = tweet_json
+        if(tweet_json):
+            tweets = tweet_json
         return tweets
 
 
@@ -549,6 +561,9 @@ class TweetsFetcher():
 
 
 def import_tweets(screen_name):
+    '''
+    TODO: Check and remove this methodt if not needed
+    '''
     print('Importing Tweet for {}'.format(screen_name))
     count = 200
     lang = "en"
@@ -627,6 +642,7 @@ def import_tweets(screen_name):
                 MERGE (tweet:Tweet {id:t.id})
                 SET tweet.id_str = t.id_str, 
                     tweet.text = t.text,
+                    tweet.full_text = toLower(t.full_text),
                     tweet.created_at = t.created_at,
                     tweet.favorites = t.favorite_count
 
@@ -782,6 +798,7 @@ def import_mentions(screen_name):
                 MERGE (tweet:Tweet {id:t.id})
                 SET tweet.id_str = t.id_str, 
                     tweet.text = t.text,
+                    tweet.full_text = toLower(t.full_text),
                     tweet.created_at = t.created_at,
                     tweet.favorites = t.favorite_count
 
@@ -928,6 +945,7 @@ def import_tweets_search(search_term):
                 MERGE (tweet:Tweet {id:t.id})
                 SET tweet.id_str = t.id_str, 
                     tweet.text = t.text,
+                    tweet.full_text = toLower(t.full_text),
                     tweet.created_at = t.created_at,
                     tweet.favorites = t.favorite_count
 
@@ -1035,7 +1053,8 @@ def main():
     exec_times = 0
     #user_relation_executor.submit(userRelations.findDMForUsersInDB)
     #tweets_executor.submit(import_tweets_search, 'शुभं करोति')
-    tweets_executor.submit(import_tweets_search, 'from:narendramodi saisha filter:retweets')
+    #tweets_executor.submit(import_tweets_search, 'RT @actormanojjoshi: काग़ज़ मिले की')
+    tweets_executor.submit(tweetsFetcher.import_tweets_by_tweet_ids)
     #tweets_executor.submit(import_tweets_search, '#Aurangzeb')
     while True:
         #user_relation_executor.submit(userRelations.findDMForUsersInDB)
