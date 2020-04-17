@@ -173,6 +173,10 @@ def import_friends(screen_name):
 
                 MERGE (user:User {screen_name:u.screen_name})
                 SET user.name = u.name,
+                    user.id = u.id,
+                    user.created_at = u.created_at,
+                    user.description = u.description,
+                    user.statuses_count = u.statuses_count,
                     user.location = u.location,
                     user.followers = u.followers_count,
                     user.following = u.friends_count,
@@ -265,6 +269,10 @@ def import_followers(screen_name):
 
                 MERGE (user:User {screen_name:u.screen_name})
                 SET user.name = u.name,
+                    user.id = u.id,
+                    user.created_at = u.created_at,
+                    user.description = u.description,
+                    user.statuses_count = u.statuses_count,
                     user.location = u.location,
                     user.followers = u.followers_count,
                     user.following = u.friends_count,
@@ -366,6 +374,9 @@ class TweetsFetcher():
         MERGE (user:User {screen_name:u.screen_name})
         SET user.name = u.name,
             user.id = u.id,
+            user.created_at = u.created_at,
+            user.description = u.description,
+            user.statuses_count = u.statuses_count,
             user.id_str = u.id_str,
             user.location = u.location,
             user.followers = u.followers_count,
@@ -644,10 +655,15 @@ def import_tweets(screen_name):
                     tweet.text = t.text,
                     tweet.full_text = toLower(t.full_text),
                     tweet.created_at = t.created_at,
-                    tweet.favorites = t.favorite_count
+                    tweet.favorites = t.favorite_count,
+                    tweet.retweet_count = t.retweet_count
 
                 MERGE (user:User {screen_name:u.screen_name})
                 SET user.name = u.name,
+                    user.id = u.id,
+                    user.created_at = u.created_at,
+                    user.description = u.description,
+                    user.statuses_count = u.statuses_count,
                     user.location = u.location,
                     user.followers = u.followers_count,
                     user.following = u.friends_count,
@@ -800,10 +816,15 @@ def import_mentions(screen_name):
                     tweet.text = t.text,
                     tweet.full_text = toLower(t.full_text),
                     tweet.created_at = t.created_at,
-                    tweet.favorites = t.favorite_count
+                    tweet.favorites = t.favorite_count,
+                    tweet.retweet_count = t.retweet_count
 
                 MERGE (user:User {screen_name:u.screen_name})
                 SET user.name = u.name,
+                    user.id = u.id,
+                    user.created_at = u.created_at,
+                    user.description = u.description,
+                    user.statuses_count = u.statuses_count,
                     user.location = u.location,
                     user.followers = u.followers_count,
                     user.following = u.friends_count,
@@ -947,11 +968,15 @@ def import_tweets_search(search_term):
                     tweet.text = t.text,
                     tweet.full_text = toLower(t.full_text),
                     tweet.created_at = t.created_at,
-                    tweet.favorites = t.favorite_count
+                    tweet.favorites = t.favorite_count,
+                    tweet.retweet_count = t.retweet_count
 
                 MERGE (user:User {screen_name:u.screen_name})
                 SET user.name = u.name,
                     user.id = u.id,
+                    user.created_at = u.created_at,
+                    user.description = u.description,
+                    user.statuses_count = u.statuses_count,
                     user.location = u.location,
                     user.followers = u.followers_count,
                     user.following = u.friends_count,
