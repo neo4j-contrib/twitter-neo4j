@@ -1,8 +1,7 @@
 *For running the code for DM check*
 Steps overview:
-1. Fetch the github
-2. Install the necessary python packages
-3. Run the script for fetching DM relationship
+1. Install the necessary python packages
+2. Run the script for fetching DM relationship
 
 Things must to be done before step-3
 A. Go to folder docker 
