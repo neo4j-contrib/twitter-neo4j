@@ -1,7 +1,7 @@
 *For running the code for DM check*
 Steps overview:
 1. Install the necessary python packages (pip3 install oauth2)
-2. Run the script for fetching DM relationship. Command is below
+2. Go to folder 'docker' and run the script for fetching DM relationship. Command is below
     python3 user_friendship.py
     
 
