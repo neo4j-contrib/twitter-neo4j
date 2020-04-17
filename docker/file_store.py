@@ -22,9 +22,10 @@ class DMFileStoreIntf():
         try:
             with open(in_file) as f:
                 r = f.read()
-                ru = r.encode('utf-8')
-                decoded_data = codecs.decode(ru, 'utf-8-sig')
-                response_json = json.loads(decoded_data)
+                if r:
+                    ru = r.encode('utf-8')
+                    decoded_data = codecs.decode(ru, 'utf-8-sig')
+                    response_json = json.loads(decoded_data)
         except IOError as e:
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
             logger.error("File {} I/O error({}): {}".format(in_file, e.errno, e.strerror))
