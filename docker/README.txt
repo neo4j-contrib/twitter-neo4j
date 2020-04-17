@@ -6,7 +6,7 @@ Steps overview:
 
 Things must to be done before step-3
 A. Go to folder docker 
-B. Set following environment variable (Needed for twitter authentication)
+B. Set following environment variable (Needed for twitter authentication). Below example is for Linux and Macbook
 
 export TWITTER_CONSUMER_KEY=<Consumer key>
 export TWITTER_CONSUMER_SECRET=<Consumer Secret>
