@@ -11,6 +11,12 @@ export TWITTER_CONSUMER_SECRET=<Consumer Secret>
 export TWITTER_USER_KEY=<User key>
 export TWITTER_USER_SECRET=<User Secret>
 
+******************Example************
+export TWITTER_CONSUMER_KEY=fKnZ6VKTE8tP9Ao81bsPH2kW0
+export TWITTER_CONSUMER_SECRET=hJzbqxVQaIyoATWEzl2DFUjedqczMj0l4lh8ybYxCCYMQn9OlS
+export TWITTER_USER_KEY=163170036-oi3d1SsDojHueToqJomPkRpWHvGWvRDozjSXnojm
+export TWITTER_USER_SECRET=fqeZyUgBtJRuVvXozJErT1P8y3dgsU9rq4Ih2WwmuhedK
+
 3. Below are the steps for providing the input data (users for DM)
 Edit the input file(twitter-neo4j/docker/data/twitter_all_users_name.json) and add list of users for which DM check is needed
 
