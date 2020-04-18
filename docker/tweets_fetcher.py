@@ -120,7 +120,7 @@ class TweetsFetcher:
             params['max_id'] = max_id
 
         tweet_url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
-        print(tweet_url)
+        #print(tweet_url)
         response_json = fetch_tweet_info(tweet_url)
 
         # Keep status objects.
