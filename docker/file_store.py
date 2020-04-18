@@ -41,8 +41,8 @@ class DMFileStoreIntf():
             with open(in_file) as f:
                 json_data = [json.loads(line) for line in f]
         except IOError as e:
-            print("I/O error({0}): {1}".format(e.errno, e.strerror))
-            logger.error("File {} I/O error({}): {}".format(in_file, e.errno, e.strerror))
+            print("Info: Couldn't read file:({0}): {1}".format(e.errno, e.strerror))
+            logger.info("File {} I/O error({}): {}".format(in_file, e.errno, e.strerror))
 
         users = [ user['target_screen_name'] for user in json_data if 'can_dm' in user and user['can_dm'] == 1]
         logger.debug("Got {} DM users".format(len(users)))
@@ -56,8 +56,8 @@ class DMFileStoreIntf():
             with open(in_file) as f:
                 json_data = [json.loads(line) for line in f]
         except IOError as e:
-            print("I/O error({0}): {1}".format(e.errno, e.strerror))
-            logger.error("File {} I/O error({}): {}".format(in_file, e.errno, e.strerror))
+            print("Info: Couldn't read file:({0}): {1}".format(e.errno, e.strerror))
+            logger.info("File {} I/O error({}): {}".format(in_file, e.errno, e.strerror))
 
         users = [ user['target_screen_name'] for user in json_data if 'can_dm' in user and user['can_dm'] == 0]
         logger.debug("Got {} Non existant users".format(len(users)))
@@ -71,8 +71,8 @@ class DMFileStoreIntf():
             with open(in_file) as f:
                 json_data = [json.loads(line) for line in f]
         except IOError as e:
-            print("I/O error({0}): {1}".format(e.errno, e.strerror))
-            logger.error("File {} I/O error({}): {}".format(in_file, e.errno, e.strerror))
+            print("Info: Couldn't read file:({0}): {1}".format(e.errno, e.strerror))
+            logger.info("File {} I/O error({}): {}".format(in_file, e.errno, e.strerror))
 
         users = [ user['target_screen_name'] for user in json_data if 'exists' in user and user['exists'] == 0]
         logger.debug("Got {} Non existant users".format(len(users)))
