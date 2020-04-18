@@ -1,7 +1,7 @@
 
 import pdb
 import os
-#from cypher_store import CypherDMStoreIntf
+#from cypher_store import DMCypherStoreIntf
 from file_store import DMFileStoreIntf
 from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
 import traceback
@@ -117,7 +117,7 @@ class UserRelations():
                 continue
 
 def main():
-    userRelations = UserRelations("dpkmr")
+    userRelations = UserRelations(os.environ["TWITTER_USER"])
     userRelations.findDMForUsersInDB()
 
 if __name__ == "__main__": main()
