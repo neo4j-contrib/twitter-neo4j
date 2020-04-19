@@ -1,7 +1,22 @@
 *Help guide for running this code for DM check*
+
+Recommendation:
+It’s recommended that you install it into a Python virtual environment. You can use either Python’s built-in venv library or the virtualenv package. If you’ve never used a Python virtual environment before, then check out https://sites.google.com/site/jbsakabffoi12449ujkn/home/software-programming/python-virtual-environment-a-means-for-using-multiple-python-versions-concurrently.
+
+Python virtual enviromnet helps in easily uninstalling the packages which are installed for this software.
+>>pip3 install virtualenv
+>>virtualenv test
+
+>>source test/bin/activate
+
+>>pip3 freeze
+ (it should be blank)
+
+
 Steps overview:
 0. Fetch this Github to your machine (git clone ....)
-1. Install the necessary python packages (pip3 install oauth2). It is preferred to use the python virtualenv for avoiding any conflict (Refer: https://sites.google.com/site/jbsakabffoi12449ujkn/home/software-programming/python-virtual-environment-a-means-for-using-multiple-python-versions-concurrently for this)
+1. Install the necessary python packages (pip3 install oauth2). It is preferred to use the python virtualenv for avoiding any conflict (Refer:  for this)
+
 
 2. Below are the steps for providing twitter auth
 Set following environment variable (Needed for twitter authentication). Below example is for Linux and Macbook
@@ -18,6 +33,7 @@ export TWITTER_CONSUMER_KEY=fKnZ6VKTE8tP9Ao81bsPH2kW0
 export TWITTER_CONSUMER_SECRET=hJzbqxVQaIyoATWEzl2DFUjedqczMj0l4lh8ybYxCCYMQn9OlS
 export TWITTER_USER_KEY=163170036-oi3d1SsDojHueToqJomPkRpWHvGWvRDozjSXnojm
 export TWITTER_USER_SECRET=fqeZyUgBtJRuVvXozJErT1P8y3dgsU9rq4Ih2WwmuhedK
+export TWITTER_USER=mytwitterscreeenname
 
 3. Below are the steps for providing the input data (users for DM)
 Edit the input file(twitter-neo4j/docker/data/twitter_all_users_name.json) and add list of users for which DM check is needed
