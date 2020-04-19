@@ -40,3 +40,4 @@ docker/__pycache__/twitter_access.cpython-37.pyc
 docker/__pycache__/twitter_errors.cpython-37.pyc
 docker/data/twitter_all_users_name.json
 docker/tweet_ids.txt_1
+docker/data/twitter_dm_output 2.json

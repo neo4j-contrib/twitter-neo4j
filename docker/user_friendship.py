@@ -80,7 +80,7 @@ class UserRelations():
 
 
 
-    def findDMForUsersInDB(self):
+    def findDMForUsersInStore(self):
         print("Finding DM between the users")
         find_dm = True
         try_count = 0
@@ -118,6 +118,6 @@ class UserRelations():
 
 def main():
     userRelations = UserRelations(os.environ["TWITTER_USER"])
-    userRelations.findDMForUsersInDB()
+    userRelations.findDMForUsersInStore()
 
 if __name__ == "__main__": main()
