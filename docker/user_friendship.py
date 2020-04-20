@@ -124,7 +124,7 @@ class UserRelations():
                 continue
 
 def main():
-    print("Starting DM lookup. \nInput file is data/twitter_all_users_name.json and output file is data/twitter_dm_output.json\n")
+    print("Starting DM lookup. \nConfig file name should be .env\nInput file is data/twitter_all_users_name.json and output file is data/twitter_dm_output.json\n")
     userRelations = UserRelations(os.environ["TWITTER_USER"])
     userRelations.findDMForUsersInStore()
 
