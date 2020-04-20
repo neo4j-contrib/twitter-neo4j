@@ -6,6 +6,10 @@ Capabilities:
 '''
 import pdb
 import os
+from dotenv import load_dotenv
+#As first step try to read the config file which has the required environment variables
+# The name of file must be .env file and .env file should be in the current folder of this code
+load_dotenv()
 from cypher_store import TweetCypherStoreIntf
 #from file_store import DMFileStoreIntf
 from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
