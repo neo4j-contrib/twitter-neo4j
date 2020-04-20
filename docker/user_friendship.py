@@ -1,7 +1,12 @@
 
 import pdb
 import os
+from dotenv import load_dotenv
 #from cypher_store import DMCypherStoreIntf
+#As first step try to read the config file which has the required environment variables
+# The name of file must be .env file and .env file should be in the current folder of this code
+load_dotenv()
+
 from file_store import DMFileStoreIntf
 from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
 import traceback
@@ -10,6 +15,8 @@ import time
 from twitter_access import fetch_tweet_info
 from twitter_logging import logger
 from datetime import datetime
+
+
 
 class UserRelations():
     """
@@ -117,6 +124,7 @@ class UserRelations():
                 continue
 
 def main():
+    print("Starting DM lookup. \nInput file is data/twitter_all_users_name.json and output file is data/twitter_dm_output.json\n")
     userRelations = UserRelations(os.environ["TWITTER_USER"])
     userRelations.findDMForUsersInStore()
 
