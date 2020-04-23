@@ -1,4 +1,5 @@
 *Help guide for running this code for DM check*
+**This code should work in all PCs platforms(Linux/MacOS/Windows)** 
 
 Recommendation:
 It’s recommended that you install it into a Python virtual environment. You can use either Python’s built-in venv library or the virtualenv package. If you’ve never used a Python virtual environment before, then check out https://sites.google.com/site/jbsakabffoi12449ujkn/home/software-programming/python-virtual-environment-a-means-for-using-multiple-python-versions-concurrently.
@@ -19,21 +20,16 @@ Steps overview:
 
 
 2. Below are the steps for providing twitter auth
-Set following environment variable (Needed for twitter authentication). Below example is for Linux and Macbook
+Set following environment variable (Needed for twitter authentication). For doing this, update .env file as per instruction mentioned inline (.env file is present in the same location docker/.env)
 Note: If you don't have this info, you can fetch it from Twitter. Visit https://apps.twitter.com/ page 
 
-export TWITTER_CONSUMER_KEY=<Consumer key>
-export TWITTER_CONSUMER_SECRET=<Consumer Secret>
-export TWITTER_USER_KEY=<User key>
-export TWITTER_USER_SECRET=<User Secret>
-export TWITTER_USER=<your twitter screen name>
 
 ******************Example************
-export TWITTER_CONSUMER_KEY=fKnZ6VKTE8tP9Ao81bsPH2kW0
-export TWITTER_CONSUMER_SECRET=hJzbqxVQaIyoATWEzl2DFUjedqczMj0l4lh8ybYxCCYMQn9OlS
-export TWITTER_USER_KEY=163170036-oi3d1SsDojHueToqJomPkRpWHvGWvRDozjSXnojm
-export TWITTER_USER_SECRET=fqeZyUgBtJRuVvXozJErT1P8y3dgsU9rq4Ih2WwmuhedK
-export TWITTER_USER=mytwitterscreeenname
+TWITTER_CONSUMER_KEY=fKnZ6VKTE8tP9Ao81bsPH2kW0
+TWITTER_CONSUMER_SECRET=hJzbqxVQaIyoATWEzl2DFUjedqczMj0l4lh8ybYxCCYMQn9OlS
+TWITTER_USER_KEY=163170036-oi3d1SsDojHueToqJomPkRpWHvGWvRDozjSXnojm
+TWITTER_USER_SECRET=fqeZyUgBtJRuVvXozJErT1P8y3dgsU9rq4Ih2WwmuhedK
+TWITTER_USER=mytwitterscreeenname
 
 3. Below are the steps for providing the input data (users for DM)
 Edit the input file(twitter-neo4j/docker/data/twitter_all_users_name.json) and add list of users for which DM check is needed
