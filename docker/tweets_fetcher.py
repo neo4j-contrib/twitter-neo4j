@@ -54,18 +54,15 @@ class TweetsFetcher:
 
     def __process_tweet_search_cmd(self, cmd_args):
         print('Processing Tweet fetch command [{}]'.format(cmd_args))
-        retweet = False
-        forced = True
-        if 'retweets_fetch' in cmd_args and cmd_args['retweets_fetch'] == "True":
-            retweet = True
-        if 'forced' in cmd_args and cmd_args['forced'] == "False":
-            forced = False
+        catgories_list = []
+        if 'categories_list' in cmd_args:
+            catgories_list = cmd_args['categories_list']
 
         if 'search_term' not in cmd_args:
             logger.error("Invalid input file format for {} tweets cmd".format(cmd_args))
             return
         search_term = cmd_args['search_term']
-        self.import_tweets_search(search_term)
+        self.import_tweets_search(search_term, catgories_list)
 
 
     def __process_command(self, command_json):
@@ -225,7 +222,7 @@ class TweetsFetcher:
                 time.sleep(30)
                 continue
 
-    def import_tweets_search(self, search_term):
+    def import_tweets_search(self, search_term, categories_list):
         print("Processing Tweets import for search key [{}]".format(search_term))
         count = 100
         tweets_to_import = True
@@ -251,7 +248,7 @@ class TweetsFetcher:
                     #decrement one less so that same tweet is not sent again in next call.
                     max_id = max_id - 1
 
-                    self.tweetStoreIntf.store_tweets_info(tweets)
+                    self.tweetStoreIntf.store_tweets_info(tweets, categories_list)
                     print("Search tweets added to graph for %s !" % (search_term))
                 else:
                     print("No search tweets found for %s." % (search_term))

@@ -2004,3 +2004,5 @@ docker/testenv/lib/python3.6/weakref.py
 docker/tweets_fetcher.py
 docker/.env_1
 docker/oauth.py
+docker/.env
+docker/.env

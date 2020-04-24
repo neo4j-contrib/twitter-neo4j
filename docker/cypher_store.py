@@ -176,7 +176,7 @@ class TweetCypherStoreIntf:
             pass
         return res
 
-    def store_tweets_info(self, tweets):
+    def store_tweets_info(self, tweets, categories=[]):
         print("storing {} count of tweets to DB".format(len(tweets)))
         if len(tweets) < 1:
             print("Skipping as no tweet to store in DB")
@@ -249,10 +249,16 @@ class TweetCypherStoreIntf:
             MERGE (retweet_tweet:Tweet {id:retweet_id})
             MERGE (tweet)-[:RETWEETS]->(retweet_tweet)
         )
+
+        FOREACH (category IN $categories |
+            MERGE(c:Category {name:category})
+            MERGE(tweet)-[:category]->(c)
+        )
+
         """
 
         # Send Cypher query.
-        execute_query(query, tweets=tweets)
+        execute_query(query, tweets=tweets, categories=categories)
         print("Tweets added to graph!")
     
 

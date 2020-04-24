@@ -1,4 +1,9 @@
 import pdb
+from dotenv import load_dotenv
+#As first step try to read the config file which has the required environment variables
+# The name of file must be .env file and .env file should be in the current folder of this code
+load_dotenv()
+
 import json
 import urllib.parse
 import os
@@ -121,6 +126,7 @@ def create_constraints():
     execute_query("CREATE CONSTRAINT ON (h:Hashtag) ASSERT h.name IS UNIQUE;")
     execute_query("CREATE CONSTRAINT ON (l:Link) ASSERT l.url IS UNIQUE;")
     execute_query("CREATE CONSTRAINT ON (s:Source) ASSERT s.name IS UNIQUE;")
+    execute_query("CREATE CONSTRAINT ON (c:Category) ASSERT c.name IS UNIQUE;")
 
 
 def import_friends(screen_name):
@@ -221,6 +227,7 @@ def import_friends(screen_name):
 
 def import_followers(screen_name):
     print("Importing followers of {}".format(screen_name))
+    pdb.set_trace()
     count = 200
     lang = "en"
     cursor = -1
@@ -260,6 +267,7 @@ def import_followers(screen_name):
                 followers_to_import = True
                 plural = "s." if len(users) > 1 else "."
                 print("Found " + str(len(users)) + " followers" + plural)
+                pdb.set_trace()
 
                 # Pass dict to Cypher and build query.
                 query = """
@@ -288,11 +296,16 @@ def import_followers(screen_name):
 
                 MERGE (mainUser:User {screen_name:$screen_name})
 
+                FOREACH (category IN $categories |
+                    MERGE(c:Category {name:category})
+                    MERGE(user)-[:class]->(c)
+                )
+
                 MERGE (user)-[:FOLLOWS]->(mainUser)
                 """
 
                 # Send Cypher query.
-                execute_query(query, users=users, screen_name=screen_name)
+                execute_query(query, users=users, screen_name=screen_name, categories=[])
                 print("Followers added to graph!")
 
                 # increment cursor
@@ -1078,7 +1091,8 @@ def main():
     exec_times = 0
     #user_relation_executor.submit(userRelations.findDMForUsersInDB)
     #tweets_executor.submit(import_tweets_search, 'शुभं करोति')
-    tweets_executor.submit(import_tweets_search, 'RT @actormanojjoshi: काग़ज़ मिले की')
+    #tweets_executor.submit(import_tweets_search, 'RT @actormanojjoshi: काग़ज़ मिले की')
+    followers_executor.submit(import_followers, screen_name)
     #tweets_executor.submit(tweetsFetcher.import_tweets_by_tweet_ids)
     #tweets_executor.submit(import_tweets_search, '#Aurangzeb')
     while True:
