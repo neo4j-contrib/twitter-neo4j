@@ -274,7 +274,6 @@ class TweetsFetcher:
                     tweets_to_import = False
 
             except TwitterRateLimitError as e:
-                pdb.set_trace()
                 logger.exception(e)
                 print(traceback.format_exc())
                 print(e)
