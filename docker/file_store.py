@@ -11,7 +11,7 @@ class DMFileStoreIntf():
     This class handles the file read for input and thenafter it writes the DM data to the file again
     """
     def __init__(self, source_screen_name=None, outfile=common.def_dm_out_file):
-        print("Initializing File Store")
+        print("Initializing File Store\nInput file is data/twitter_all_users_name.json and output file is data/twitter_dm_output.json\n")
         self.source_screen_name = source_screen_name
         self.outfile = outfile
         print("File Store init finished")

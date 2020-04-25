@@ -194,7 +194,7 @@ class TweetCypherStoreIntf:
 
         MERGE (tweet:Tweet {id:t.id})
         SET tweet.id_str = t.id_str, 
-            tweet.text = t.text,
+            tweet.text = toLower(t.text),
             tweet.full_text = toLower(t.full_text),
             tweet.created_at = t.created_at,
             tweet.favorites = t.favorite_count,

@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 # The name of file must be .env file and .env file should be in the current folder of this code
 load_dotenv()
 
-from file_store import DMFileStoreIntf
+from cypher_store import DMCypherStoreIntf as DMStoreIntf
+#from file_store import DMFileStoreIntf as DMStoreIntf
 from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
 import traceback
 import urllib.parse
@@ -26,7 +27,7 @@ class UserRelations():
     def __init__(self, source_screen_name, outfile=None):
         print("Initializing user friendship")
         self.source_screen_name = source_screen_name
-        self.dataStoreIntf = DMFileStoreIntf(source_screen_name)
+        self.dataStoreIntf = DMStoreIntf(source_screen_name)
         print("User friendship init finished")
     
     def __process_friendship_fetch(self, user):
@@ -51,11 +52,27 @@ class UserRelations():
         can_dm_user = []
         cant_dm_user = []
         count = 0
+        threshold_count = 0;
+        rate_limit_count = 180
+        start_time = datetime.now()
         for user in users:
             if(user == self.source_screen_name):
                 print("skipping as user is same")
                 continue
             try:
+                current_time = datetime.now()
+                time_diff = (current_time - start_time).seconds
+                remaining_time = (15*60) - time_diff
+                print("Rate time={}, count={} and remaining seconds = {}".format(rate_limit_count, threshold_count, remaining_time))
+
+                if threshold_count + 1 >= rate_limit_count:
+                    if remaining_time >= 0:
+                        sleeptime = remaining_time + 2
+                        print("sleeping for {} seconds to avoid threshold. Current time={}".format(sleeptime, datetime.now()))
+                        time.sleep(sleeptime)
+                    threshold_count = 0
+                    start_time = datetime.now()
+                    print("Continuing after threshold reset")
                 friendship = self.__process_friendship_fetch(user)
             except TwitterUserNotFoundError as unf:
                 logger.exception(unf)
@@ -63,6 +80,7 @@ class UserRelations():
                 self.dataStoreIntf.mark_nonexists_users(user)
                 continue
             count = count + 1
+            threshold_count = threshold_count + 1
             if friendship['relationship']['source']['can_dm'] == True:
                 can_dm_user.append({'source':self.source_screen_name, 'target':user})
             else:
@@ -124,7 +142,7 @@ class UserRelations():
                 continue
 
 def main():
-    print("Starting DM lookup. \nConfig file name should be .env\nInput file is data/twitter_all_users_name.json and output file is data/twitter_dm_output.json\n")
+    print("Starting DM lookup. \nConfig file name should be .env\n")
     userRelations = UserRelations(os.environ["TWITTER_USER"])
     userRelations.findDMForUsersInStore()
 

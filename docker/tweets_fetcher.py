@@ -115,8 +115,7 @@ class TweetsFetcher:
         params = {
           'q': search_term,
           'count': count,
-          'result_type': 'recent',
-          'tweet_mode':'extended'
+          'result_type': 'recent'
         }
         if (max_id):
             params['max_id'] = max_id
