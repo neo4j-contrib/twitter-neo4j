@@ -2006,3 +2006,5 @@ docker/.env_1
 docker/oauth.py
 docker/.env
 docker/.env
+docker/tweet_ids.txt_pending
+docker/.env

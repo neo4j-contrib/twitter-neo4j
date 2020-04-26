@@ -270,6 +270,8 @@ class TweetsFetcher:
                     print("Search tweets added to graph for %s !" % (search_term))
                 else:
                     print("No search tweets found for %s." % (search_term))
+                    if(not total_count):
+                        logger.warning("No search tweets found for %s." % (search_term))
                     tweets_to_import = False
 
             except TwitterRateLimitError as e:
