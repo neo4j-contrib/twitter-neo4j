@@ -16,7 +16,7 @@ from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
 import traceback
 import urllib.parse
 import time
-from twitter_access import fetch_tweet_info
+from twitter_access import fetch_tweet_info, get_reponse_header
 from twitter_logging import logger
 from datetime import datetime
 import json
@@ -224,38 +224,33 @@ class TweetsFetcher:
 
     def import_tweets_search(self, search_term, categories_list):
         print("Processing Tweets import for search key [{}]".format(search_term))
-        count = 100
+        frequency = 100
         tweets_to_import = True
         max_id = None
         total_count = 0
-        threshold_count = 0;
-        rate_limit_count = 40000
         start_time = datetime.now()
 
         while tweets_to_import:
             try:
-                current_time = datetime.now()
-                time_diff = (current_time - start_time).seconds
-                remaining_time = (15*60) - time_diff
-                print("Rate time={}, count={} and remaining seconds = {}".format(rate_limit_count, threshold_count, remaining_time))
 
-                if threshold_count + count >= rate_limit_count:
-                    if remaining_time >= 0:
-                        sleeptime = remaining_time + 5
-                        print("sleeping for {} seconds to avoid threshold. Current time={}".format(sleeptime, datetime.now()))
-                        time.sleep(sleeptime)
-                    threshold_count = 0
+                curr_limit = get_reponse_header('x-rate-limit-remaining')
+                if(curr_limit and int(curr_limit) <= frequency+1):
+                    print("Sleeping as remaining x-rate-limit-remaining is {}".format(curr_limit))
+                    time_diff = (datetime.now()-start_time).seconds
+                    remaining_time = (15*60) - time_diff
+                    sleeptime = remaining_time + 2
+                    print("sleeping for {} seconds to avoid threshold. Current time={}".format(sleeptime, datetime.now()))
+                    time.sleep(sleeptime)
                     start_time = datetime.now()
                     print("Continuing after threshold reset")
 
-                tweets = self.__process_tweets_search(search_term=search_term, max_id=max_id)
+                tweets = self.__process_tweets_search(search_term=search_term, max_id=max_id, count=frequency)
 
                 if len(tweets) > 0:
                     tweets_to_import = True
                     plural = "s." if len(tweets) > 1 else "."
                     print("Found " + str(len(tweets)) + " tweet" + plural)
                     total_count += len(tweets)
-                    threshold_count += len(tweets)
                     print("Found total {} tweets for {} search\n".format(total_count, search_term))
 
                     if not max_id:
