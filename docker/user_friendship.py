@@ -59,8 +59,6 @@ class UserRelations():
                 print("skipping as user is same")
                 continue
             try:
-                friendship = self.__process_friendship_fetch(user)
-                print("Fetched friendship info for {} user".format(user))
                 curr_limit = get_reponse_header('x-rate-limit-remaining')
                 if(curr_limit and int(curr_limit) <= frequency+1):
                     print("Sleeping as remaining x-rate-limit-remaining is {}".format(curr_limit))
@@ -71,6 +69,9 @@ class UserRelations():
                     time.sleep(sleeptime)
                     start_time = datetime.now()
                     print("Continuing after threshold reset")
+                    
+                print("Fetching friendship info for {} user".format(user))
+                friendship = self.__process_friendship_fetch(user)
             except TwitterUserNotFoundError as unf:
                 logger.exception(unf)
                 logger.warning("Twitter couldn't found user {} and so ignoring and setting in DB".format(user))
