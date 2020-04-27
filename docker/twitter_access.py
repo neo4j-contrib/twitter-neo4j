@@ -4,7 +4,7 @@ from twitter_logging import logger
 from twitter_errors import TwitterRateLimitError, TwitterUserNotFoundError
 
 auth_type = os.getenv("TWITTER_AUTH_TYPE", "oauth")
-if auth_type == "appauth":
+if auth_type.lower() == "appauth":
   from authhandler.appauth_handler import make_api_request
 else:
   from authhandler.oauth_handler import make_api_request

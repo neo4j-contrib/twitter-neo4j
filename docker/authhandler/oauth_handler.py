@@ -4,6 +4,8 @@ import os
 import json
 from twitter_logging import logger
 
+print("Using oauth")
+
 # Global variables
 # Twitter key/secret as a result of registering application
 TWITTER_CONSUMER_KEY = os.environ["TWITTER_CONSUMER_KEY"]
