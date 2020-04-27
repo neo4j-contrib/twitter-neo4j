@@ -28,6 +28,8 @@ import urllib.parse
 import base64
 import certifi
 import json
+from twitter_logging import logger
+import requests
 
 # Global variables
 # Twitter key/secret as a result of registering application
@@ -72,3 +74,19 @@ class AppAuthHandler:
         headers['Authorization'] = 'Bearer ' + self._access_token
 
 
+
+auth = AppAuthHandler()
+
+
+def make_api_request(url, method='GET', headers={}):
+    try:
+      auth.apply_auth(url,method,headers, None)
+      response = requests.get(
+      url,
+      headers=headers,
+      )
+      json_response = response.json()
+      return json_response
+    except Exception as e:
+      logger.error("Error {} while {} API with {} method".format(e, url, method))
+      raise

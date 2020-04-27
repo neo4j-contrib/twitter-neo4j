@@ -4,8 +4,8 @@ import pdb
 import json
 from twitter_logging import logger
 from twitter_errors import TwitterRateLimitError, TwitterUserNotFoundError
-from authhandler.appauth_handler import AppAuthHandler
-import requests
+from authhandler.appauth_handler import make_api_request
+
 
 # Global variables
 # Twitter key/secret as a result of registering application
@@ -19,11 +19,10 @@ TWITTER_USER = os.environ["TWITTER_USER"]
 TWITTER_USER_KEY = os.environ["TWITTER_USER_KEY"]
 TWITTER_USER_SECRET = os.environ["TWITTER_USER_SECRET"]
 
-auth = AppAuthHandler()
 
 def fetch_tweet_info(url, headers = {'accept': 'application/json'}):
     logger.debug("Fetching {} URL".format(url))
-    response_json = __make_api_request(url=url, method='GET', headers=headers)
+    response_json = make_api_request(url=url, method='GET', headers=headers)
 
     #response_json = json.loads(content)
 
@@ -39,6 +38,7 @@ def fetch_tweet_info(url, headers = {'accept': 'application/json'}):
       raise Exception('Twitter API error: %s' % response_json)
     return response_json
 
+'''    
 def __make_api_request(url, method='GET', headers={}):
     try:
       auth.apply_auth(url,method,headers, None)
@@ -51,12 +51,13 @@ def __make_api_request(url, method='GET', headers={}):
     except Exception as e:
       logger.error("Error {} while {} API with {} method".format(e, url, method))
       raise
-
+'''
     
 
 
-'''
+
 def __make_api_request(url, method='GET', headers={}):
+    pdb.set_trace()
     try:
       token = oauth.Token(key=TWITTER_USER_KEY, secret=TWITTER_USER_SECRET)
       consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY, secret=TWITTER_CONSUMER_SECRET)
@@ -65,6 +66,6 @@ def __make_api_request(url, method='GET', headers={}):
     except Exception as e:
       logger.error("Error {} while {} API with {} method".format(e, url, method))
       raise
-'''
+
 
 
