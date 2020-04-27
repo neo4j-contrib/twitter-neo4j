@@ -89,7 +89,7 @@ def make_api_request(url, method='GET', headers={}):
       headers=headers,
       )
       json_response = response.json()
-      return json_response
+      return response.headers, json_response
     except Exception as e:
       logger.error("Error {} while {} API with {} method".format(e, url, method))
       raise

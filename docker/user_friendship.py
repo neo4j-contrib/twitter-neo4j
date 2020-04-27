@@ -13,7 +13,7 @@ from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
 import traceback
 import urllib.parse
 import time
-from twitter_access import fetch_tweet_info
+from twitter_access import fetch_tweet_info, get_reponse_header
 from twitter_logging import logger
 from datetime import datetime
 
@@ -52,35 +52,31 @@ class UserRelations():
         can_dm_user = []
         cant_dm_user = []
         count = 0
-        threshold_count = 0;
-        rate_limit_count = 180
         start_time = datetime.now()
+        frequency = 1
         for user in users:
             if(user == self.source_screen_name):
                 print("skipping as user is same")
                 continue
             try:
-                current_time = datetime.now()
-                time_diff = (current_time - start_time).seconds
-                remaining_time = (15*60) - time_diff
-                print("Rate time={}, count={} and remaining seconds = {}".format(rate_limit_count, threshold_count, remaining_time))
-
-                if threshold_count + 1 >= rate_limit_count:
-                    if remaining_time >= 0:
-                        sleeptime = remaining_time + 2
-                        print("sleeping for {} seconds to avoid threshold. Current time={}".format(sleeptime, datetime.now()))
-                        time.sleep(sleeptime)
-                    threshold_count = 0
+                friendship = self.__process_friendship_fetch(user)
+                print("Fetched friendship info for {} user".format(user))
+                curr_limit = get_reponse_header('x-rate-limit-remaining')
+                if(curr_limit and int(curr_limit) <= frequency+1):
+                    print("Sleeping as remaining x-rate-limit-remaining is {}".format(curr_limit))
+                    time_diff = (datetime.now()-start_time).seconds
+                    remaining_time = (15*60) - time_diff
+                    sleeptime = remaining_time + 2
+                    print("sleeping for {} seconds to avoid threshold. Current time={}".format(sleeptime, datetime.now()))
+                    time.sleep(sleeptime)
                     start_time = datetime.now()
                     print("Continuing after threshold reset")
-                friendship = self.__process_friendship_fetch(user)
             except TwitterUserNotFoundError as unf:
                 logger.exception(unf)
                 logger.warning("Twitter couldn't found user {} and so ignoring and setting in DB".format(user))
                 self.dataStoreIntf.mark_nonexists_users(user)
                 continue
             count = count + 1
-            threshold_count = threshold_count + 1
             if friendship['relationship']['source']['can_dm'] == True:
                 can_dm_user.append({'source':self.source_screen_name, 'target':user})
             else:

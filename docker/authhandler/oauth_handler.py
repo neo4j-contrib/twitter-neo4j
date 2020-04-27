@@ -21,7 +21,7 @@ def make_api_request(url, method='GET', headers={}):
       consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY, secret=TWITTER_CONSUMER_SECRET)
       client = oauth.Client(consumer, token)
       response, content = client.request(url, method, headers=headers)
-      return json.loads(content)
+      return response, json.loads(content)
     except Exception as e:
       logger.error("Error {} while {} API with {} method".format(e, url, method))
       raise
