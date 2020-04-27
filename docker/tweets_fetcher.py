@@ -229,7 +229,7 @@ class TweetsFetcher:
         max_id = None
         total_count = 0
         threshold_count = 0;
-        rate_limit_count = 17600
+        rate_limit_count = 40000
         start_time = datetime.now()
 
         while tweets_to_import:
