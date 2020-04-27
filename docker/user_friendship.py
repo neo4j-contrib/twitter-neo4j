@@ -118,7 +118,9 @@ class UserRelations():
                 nonexists_users = self.dataStoreIntf.get_nonexists_users_list()
                 print("Total number of invalid users are {} and they are {}".format(len(nonexists_users), nonexists_users))
                 dmusers = self.dataStoreIntf.get_dm_users_list()
+                print("Total number of DM users are {}".format(len(dmusers)))
                 nondmusers = self.dataStoreIntf.get_nondm_users_list()
+                print("Total number of Non DM users are {}".format(len(nondmusers)))
                 users_wkg = set(users) - set(nonexists_users) - set(dmusers) - set(nondmusers)
                 print('Processing with unchecked {} users'.format(len(users_wkg)))
                 if(len(users_wkg)):

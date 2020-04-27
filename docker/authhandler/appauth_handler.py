@@ -32,6 +32,7 @@ from twitter_logging import logger
 import requests
 
 print("Using appauth")
+logger.warning("Using appauth")
 
 # Global variables
 # Twitter key/secret as a result of registering application
