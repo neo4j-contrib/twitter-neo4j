@@ -1,30 +1,18 @@
-import oauth2 as oauth
-import os
 import pdb
-import json
+import os
 from twitter_logging import logger
 from twitter_errors import TwitterRateLimitError, TwitterUserNotFoundError
-from authhandler.appauth_handler import make_api_request
 
-
-# Global variables
-# Twitter key/secret as a result of registering application
-TWITTER_CONSUMER_KEY = os.environ["TWITTER_CONSUMER_KEY"]
-TWITTER_CONSUMER_SECRET = os.environ["TWITTER_CONSUMER_SECRET"]
-
-# Twitter username
-TWITTER_USER = os.environ["TWITTER_USER"]
-
-# Twitter token key/secret from individual user oauth
-TWITTER_USER_KEY = os.environ["TWITTER_USER_KEY"]
-TWITTER_USER_SECRET = os.environ["TWITTER_USER_SECRET"]
+auth_type = os.getenv("TWITTER_AUTH_TYPE", "oauth")
+if auth_type == "appauth":
+  from authhandler.appauth_handler import make_api_request
+else:
+  from authhandler.oauth_handler import make_api_request
 
 
 def fetch_tweet_info(url, headers = {'accept': 'application/json'}):
     logger.debug("Fetching {} URL".format(url))
     response_json = make_api_request(url=url, method='GET', headers=headers)
-
-    #response_json = json.loads(content)
 
     if isinstance(response_json, dict) and 'errors' in response_json.keys():
       errors = response_json['errors']
@@ -38,34 +26,7 @@ def fetch_tweet_info(url, headers = {'accept': 'application/json'}):
       raise Exception('Twitter API error: %s' % response_json)
     return response_json
 
-'''    
-def __make_api_request(url, method='GET', headers={}):
-    try:
-      auth.apply_auth(url,method,headers, None)
-      response = requests.get(
-      url,
-      headers=headers,
-      )
-      json_response = response.json()
-      return json_response
-    except Exception as e:
-      logger.error("Error {} while {} API with {} method".format(e, url, method))
-      raise
-'''
-    
 
-
-
-def __make_api_request(url, method='GET', headers={}):
-    pdb.set_trace()
-    try:
-      token = oauth.Token(key=TWITTER_USER_KEY, secret=TWITTER_USER_SECRET)
-      consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY, secret=TWITTER_CONSUMER_SECRET)
-      client = oauth.Client(consumer, token)
-      return client.request(url, method, headers=headers)
-    except Exception as e:
-      logger.error("Error {} while {} API with {} method".format(e, url, method))
-      raise
 
 
 

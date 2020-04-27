@@ -2014,3 +2014,4 @@ docker/twe_test.py
 docker/tweepy/
 docker/tweets.txt
 docker/twitter_access.py_bak
+docker/authhandler/__pycache__/oauth_handler.cpython-36.pyc
