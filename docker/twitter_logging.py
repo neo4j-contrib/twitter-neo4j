@@ -12,6 +12,6 @@ syslog = SysLogHandler(address=(syslog_addr[0], int(syslog_addr[1])))
 formatter = logging.Formatter('%(asctime)s twitter.importer: ' + TWITTER_USER + ' %(message).60s', datefmt='%b %d %H:%M:%S')
 
 logger = logging.getLogger()
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.INFO)
 syslog.setFormatter(formatter)
 logger.addHandler(syslog)

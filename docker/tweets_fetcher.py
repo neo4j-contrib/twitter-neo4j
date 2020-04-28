@@ -35,6 +35,7 @@ class TweetsFetcher:
         self.filename = filename
         self.database = database
         self.tweetStoreIntf = TweetCypherStoreIntf()
+        self.grandtotal = 0 #Tracks the count of total tweets stored in DB
         pass
 
     def __process_tweet_fetch_cmd(self, cmd_args):
@@ -157,6 +158,7 @@ class TweetsFetcher:
         retweets_to_import = fetch_retweet
         max_id = 0
         since_id = 0
+        total_count = 0
 
         if self.tweetStoreIntf.is_tweet_exists(tweet_id) == True and not forced:
             print("Skipping as there is already entry for {} tweet ID ".format(tweet_id))
@@ -171,6 +173,7 @@ class TweetsFetcher:
                     tweets_to_import = False
                     print("{} Tweets to be added in DB".format(len(tweets)))
                     self.tweetStoreIntf.store_tweets_info(tweets)
+                    total_count += len(tweets)
                 else:
                     print("No tweets found.")
                     tweets_to_import = False
@@ -201,6 +204,7 @@ class TweetsFetcher:
                     retweets_to_import = False
                     print("{} Retweets to be added in DB".format(len(re_tweets)))
                     self.tweetStoreIntf.store_tweets_info(re_tweets)
+                    total_count += len(re_tweets)
                     
                 else:
                     print("No retweets found.")
@@ -221,6 +225,8 @@ class TweetsFetcher:
                 print(e)
                 time.sleep(30)
                 continue
+        logger.info("[stats] Adding {} tweets to {} grandtotal for tweet ID--> {} ".format(total_count, self.grandtotal, tweet_id))
+        self.grandtotal += total_count
 
     def import_tweets_search(self, search_term, categories_list):
         print("Processing Tweets import for search key [{}]".format(search_term))
@@ -284,11 +290,18 @@ class TweetsFetcher:
                 print(e)
                 time.sleep(30)
                 continue
+        logger.info("[stats] Adding {} tweets to {} grandtotal for search--> {}".format(total_count, self.grandtotal, search_term))
+        self.grandtotal += total_count
 
 
 def main():
+    tweets_fetch_stats = {'processed': 0}
     tweetsFetcher = TweetsFetcher()
-    tweetsFetcher.handle_tweets_command()
-    #tweetsFetcher.import_tweets_search('RT @actormanojjoshi: काग़ज़ मिले की')
+    try:
+        tweetsFetcher.handle_tweets_command()
+        #tweetsFetcher.import_tweets_search('RT @actormanojjoshi: काग़ज़ मिले की')
+    finally:
+        tweets_fetch_stats['processed'] = tweetsFetcher.grandtotal
+        logger.info("[tweets_fetcher stats] {}".format(tweets_fetch_stats))
 
 if __name__ == "__main__": main()

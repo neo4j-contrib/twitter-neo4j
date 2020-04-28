@@ -28,6 +28,7 @@ class UserRelations():
         print("Initializing user friendship")
         self.source_screen_name = source_screen_name
         self.dataStoreIntf = DMStoreIntf(source_screen_name)
+        self.grandtotal = 0 #Tracks the count of total friendship stored in DB
         print("User friendship init finished")
     
     def __process_friendship_fetch(self, user):
@@ -69,13 +70,14 @@ class UserRelations():
                     time.sleep(sleeptime)
                     start_time = datetime.now()
                     print("Continuing after threshold reset")
-                    
+
                 print("Fetching friendship info for {} user".format(user))
                 friendship = self.__process_friendship_fetch(user)
             except TwitterUserNotFoundError as unf:
                 logger.exception(unf)
                 logger.warning("Twitter couldn't found user {} and so ignoring and setting in DB".format(user))
                 self.dataStoreIntf.mark_nonexists_users(user)
+                self.grandtotal += 1
                 continue
             count = count + 1
             if friendship['relationship']['source']['can_dm'] == True:
@@ -86,9 +88,11 @@ class UserRelations():
                 print("Storing batch upto {}".format(count))
                 print("Linking {} DM users".format(len(can_dm_user)))
                 self.dataStoreIntf.store_dm_friends(can_dm_user)
+                self.grandtotal += len(can_dm_user)
                 can_dm_user = []
                 print("Linking {} Non-DM users".format(len(cant_dm_user)))
                 self.dataStoreIntf.store_nondm_friends(cant_dm_user)
+                self.grandtotal += len(cant_dm_user)
                 cant_dm_user = []
         print("Storing batch upto {}".format(count))
         if(len(can_dm_user)):
@@ -142,7 +146,15 @@ class UserRelations():
 
 def main():
     print("Starting DM lookup. \nConfig file name should be .env\n")
+    stats_tracker = {'processed': 0}
     userRelations = UserRelations(os.environ["TWITTER_USER"])
-    userRelations.findDMForUsersInStore()
+    try:
+        userRelations.findDMForUsersInStore()
+    except Exception as e:
+        pass
+    finally:
+        stats_tracker['processed'] = userRelations.grandtotal
+        logger.info("[DM stats] {}".format(stats_tracker))
+        print("Exiting program")
 
 if __name__ == "__main__": main()

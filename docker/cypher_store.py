@@ -203,10 +203,9 @@ class TweetCypherStoreIntf:
         MERGE (user:User {screen_name:u.screen_name})
         SET user.name = u.name,
             user.id = u.id,
-            user.created_at = u.created_at,
-            user.description = u.description,
-            user.statuses_count = u.statuses_count,
             user.id_str = u.id_str,
+            user.created_at = u.created_at,
+            user.statuses_count = u.statuses_count,
             user.location = u.location,
             user.followers = u.followers_count,
             user.following = u.friends_count,

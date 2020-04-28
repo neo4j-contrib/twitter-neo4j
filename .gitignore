@@ -2016,3 +2016,6 @@ docker/tweets.txt
 docker/twitter_access.py_bak
 docker/authhandler/__pycache__/oauth_handler.cpython-36.pyc
 docker/.env_0
+docker/tweets_fetcher.py
+docker/tweets_fetcher.py
+docker/cypher_store.py
