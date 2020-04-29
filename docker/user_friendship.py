@@ -74,7 +74,6 @@ class UserRelations():
                 print("Fetching friendship info for {} user".format(user))
                 friendship = self.__process_friendship_fetch(user)
             except TwitterUserNotFoundError as unf:
-                logger.exception(unf)
                 logger.warning("Twitter couldn't found user {} and so ignoring and setting in DB".format(user))
                 self.dataStoreIntf.mark_nonexists_users(user)
                 self.grandtotal += 1
