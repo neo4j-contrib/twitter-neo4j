@@ -57,14 +57,17 @@ class TweetsFetcher:
     def __process_tweet_search_cmd(self, cmd_args):
         print('Processing Tweet fetch command [{}]'.format(cmd_args))
         catgories_list = []
+        sync_with_store = False
         if 'categories_list' in cmd_args:
             catgories_list = cmd_args['categories_list']
+        if 'sync_with_store' in cmd_args and cmd_args['sync_with_store'].lower() == "true":
+            sync_with_store = True
 
         if 'search_term' not in cmd_args:
             logger.error("Invalid input file format for {} tweets cmd".format(cmd_args))
             return
         search_term = cmd_args['search_term']
-        self.import_tweets_search(search_term, catgories_list)
+        self.import_tweets_search(search_term, catgories_list, sync_with_store)
 
 
     def __process_command(self, command_json):
@@ -228,13 +231,19 @@ class TweetsFetcher:
         logger.info("[stats] Adding {} tweets to {} grandtotal for tweet ID--> {} ".format(total_count, self.grandtotal, tweet_id))
         self.grandtotal += total_count
 
-    def import_tweets_search(self, search_term, categories_list):
+    def import_tweets_search(self, search_term, categories_list, sync_with_store):
         print("Processing Tweets import for search key [{}]".format(search_term))
         frequency = 100
         tweets_to_import = True
         max_id = None
         total_count = 0
         start_time = datetime.now()
+        search_term_query = self.tweetStoreIntf.util_get_search_term_query(search_term)
+        if sync_with_store:
+            print("Syncing with store")
+            min_id = self.tweetStoreIntf.get_tweets_min_id(search_term_query)
+            if(min_id):
+                max_id = int(min_id) - 1
 
         while tweets_to_import:
             try:
@@ -246,7 +255,8 @@ class TweetsFetcher:
                     remaining_time = (15*60) - time_diff
                     sleeptime = remaining_time + 2
                     print("sleeping for {} seconds to avoid threshold. Current time={}".format(sleeptime, datetime.now()))
-                    time.sleep(sleeptime)
+                    if(sleeptime > 0):
+                        time.sleep(sleeptime)
                     start_time = datetime.now()
                     print("Continuing after threshold reset")
 

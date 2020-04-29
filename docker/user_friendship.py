@@ -67,7 +67,8 @@ class UserRelations():
                     remaining_time = (15*60) - time_diff
                     sleeptime = remaining_time + 2
                     print("sleeping for {} seconds to avoid threshold. Current time={}".format(sleeptime, datetime.now()))
-                    time.sleep(sleeptime)
+                    if(sleeptime > 0):
+                        time.sleep(sleeptime)
                     start_time = datetime.now()
                     print("Continuing after threshold reset")
 

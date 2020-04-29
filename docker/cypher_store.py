@@ -176,6 +176,26 @@ class TweetCypherStoreIntf:
             pass
         return res
 
+    def util_get_search_term_query(self, search_term):
+        search_term_query = 't.text contains toLower("'+ search_term+'")'
+        return search_term_query
+
+    def get_tweets_min_id(self, search_term):
+        print("Checking min id of tweet [{}]in the store".format(search_term))
+        result = 0
+        t_id_match_query = 'match (t:Tweet) WHERE ' + search_term + ' return min(t.id_str) as min_id'
+        print("Search query is -> {}".format(t_id_match_query))
+        res = execute_query_with_result(t_id_match_query)
+        for record in res:
+          try:
+            if 'min_id' in record:
+                print("There is min Tweet ID {} ".format(record['min_id']))
+                result = record['min_id']
+                break
+          except AttributeError:
+            pass
+        return result
+
     def store_tweets_info(self, tweets, categories=[]):
         print("storing {} count of tweets to DB".format(len(tweets)))
         if len(tweets) < 1:
