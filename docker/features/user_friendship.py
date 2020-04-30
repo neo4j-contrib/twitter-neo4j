@@ -13,7 +13,6 @@ from datetime import datetime
 Initialization code
 '''
 def __init_program():
-    pdb.set_trace()
     print("CWD is {}".format(os.getcwd()))
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
@@ -183,7 +182,6 @@ def main():
     except Exception as e:
         pass
     finally:
-        pdb.set_trace()
         stats_tracker['processed'] = userRelations.grandtotal
         logger.info("[DM stats] {}".format(stats_tracker))
         print("Exiting program")
