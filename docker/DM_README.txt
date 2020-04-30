@@ -20,7 +20,7 @@ Steps overview:
 
 
 2. Below are the steps for providing twitter auth
-Set following environment variable (Needed for twitter authentication). For doing this, update .env file as per instruction mentioned inline (.env file is present in the same location docker/.env)
+Set following environment variable (Needed for twitter authentication). For doing this, update .env file as per instruction mentioned inline (.env file is present in the config folder [docker/config/.env])
 Note: If you don't have this info, you can fetch it from Twitter. Visit https://apps.twitter.com/ page 
 
 
