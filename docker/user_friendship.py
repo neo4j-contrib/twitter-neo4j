@@ -124,7 +124,6 @@ class UserRelations():
                 nondmusers = self.dataStoreIntf.get_nondm_users_list()
                 print("Total number of Non DM users are {}".format(len(nondmusers)))
                 users_wkg = sorted(set(users) - set(nonexists_users) - set(dmusers) - set(nondmusers))
-                pdb.set_trace()
                 print('Processing with unchecked {} users'.format(len(users_wkg)))
                 if(len(users_wkg)):
                     self.__process_dm(users_wkg, 10)
