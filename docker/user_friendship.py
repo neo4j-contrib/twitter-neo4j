@@ -9,7 +9,6 @@ if store_type.lower() == "file_store":
     from file_store import DMFileStoreIntf as DMStoreIntf
 else:
     from cypher_store import DMCypherStoreIntf as DMStoreIntf
-#from file_store import DMFileStoreIntf as DMStoreIntf
 from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
 import traceback
 import urllib.parse
