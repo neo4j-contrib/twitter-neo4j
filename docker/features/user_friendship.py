@@ -15,6 +15,11 @@ User defined modules
 from config.load_config import load_config
 config_file_name = 'dm_env.py'
 load_config(config_file_name)
+
+dep_check = os.getenv("DEPENDENCY_CHECK", False)
+if dep_check:
+    from installer import dependency_check
+
 store_type = os.getenv("DB_STORE_TYPE", "file_store")
 if store_type.lower() == "file_store":
     from libs.file_store import DMFileStoreIntf as DMStoreIntf
@@ -107,10 +112,12 @@ class UserRelations():
         if(len(can_dm_user)):
             print("Linking {} DM users".format(len(can_dm_user)))
             self.dataStoreIntf.store_dm_friends(can_dm_user)
+            self.grandtotal += len(can_dm_user)
 
         if(len(cant_dm_user)):
             print("Linking {} Non-DM users".format(len(cant_dm_user)))
             self.dataStoreIntf.store_nondm_friends(cant_dm_user)
+            self.grandtotal += len(cant_dm_user)
             cant_dm_user = []
 
 
@@ -162,6 +169,7 @@ def main():
     except Exception as e:
         pass
     finally:
+        pdb.set_trace()
         stats_tracker['processed'] = userRelations.grandtotal
         logger.info("[DM stats] {}".format(stats_tracker))
         print("Exiting program")

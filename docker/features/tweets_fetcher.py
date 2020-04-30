@@ -24,6 +24,10 @@ from config.load_config import load_config
 config_file_name = 'tweet_env.py'
 load_config(config_file_name)
 
+dep_check = os.getenv("DEPENDENCY_CHECK", False)
+if dep_check:
+    from installer import dependency_check
+
 from libs.cypher_store import TweetCypherStoreIntf
 #from file_store import DMFileStoreIntf
 from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError

@@ -2090,3 +2090,15 @@ docker/features/libs/authhandler/__pycache__/appauth_handler.cpython-36.pyc
 docker/features/libs/authhandler/__pycache__/oauth_handler.cpython-36.pyc
 docker/features/config/dm_env.py
 docker/features/data/twitter_dm_output.json
+docker/features/__pycache__/common.cpython-37.pyc
+docker/features/__pycache__/dependency_check.cpython-37.pyc
+docker/features/config/__pycache__/__init__.cpython-37.pyc
+docker/features/config/__pycache__/load_config.cpython-37.pyc
+docker/features/installer/__pycache__/dependency_check.cpython-37.pyc
+docker/features/libs/__pycache__/__init__.cpython-37.pyc
+docker/features/libs/__pycache__/file_store.cpython-37.pyc
+docker/features/libs/__pycache__/twitter_access.cpython-37.pyc
+docker/features/libs/__pycache__/twitter_errors.cpython-37.pyc
+docker/features/libs/__pycache__/twitter_logging.cpython-37.pyc
+docker/features/libs/authhandler/__pycache__/__init__.cpython-37.pyc
+docker/features/libs/authhandler/__pycache__/oauth_handler.cpython-37.pyc
