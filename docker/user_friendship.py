@@ -1,8 +1,8 @@
 
 import pdb
 import os
-import config.load_config
-
+from config.load_config import load_config
+load_config('dm.env')
 store_type = os.getenv("DB_STORE_TYPE", "file_store")
 if store_type.lower() == "file_store":
     from file_store import DMFileStoreIntf as DMStoreIntf

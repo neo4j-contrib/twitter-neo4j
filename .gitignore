@@ -2026,3 +2026,4 @@ docker/config/__pycache__/load_config.cpython-36.pyc
 docker/.env
 docker/config/.env_0
 docker/config/.env
+docker/config/tweet_fetcher.env

@@ -6,7 +6,8 @@ Capabilities:
 '''
 import pdb
 import os
-import config.load_config
+from config.load_config import load_config
+load_config('tweet_fetcher.env')
 
 from cypher_store import TweetCypherStoreIntf
 #from file_store import DMFileStoreIntf
