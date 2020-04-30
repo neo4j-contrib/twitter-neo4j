@@ -7,6 +7,5 @@ def install(package):
     else:
         pip._internal.main(['install', package])
 
-
 install('python-dotenv')
 install('oauth2')

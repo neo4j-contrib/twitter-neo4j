@@ -16,7 +16,7 @@ from config.load_config import load_config
 config_file_name = 'dm_env.py'
 load_config(config_file_name)
 
-dep_check = os.getenv("DEPENDENCY_CHECK", False)
+dep_check = os.getenv("DEPENDENCY_CHECK", True)
 if dep_check:
     from installer import dependency_check
 
