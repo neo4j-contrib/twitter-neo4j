@@ -1,10 +1,17 @@
+
+'''
+Built-in modules
+'''
 import pdb
 import json
 import codecs
-from twitter_logging import logger
 import os
-import common
 
+'''
+User defined modules
+'''
+import common
+from libs.twitter_logging import logger
 class DMFileStoreIntf():
     """
     This uses expert design pattern and Facade pattern for file based data read and write

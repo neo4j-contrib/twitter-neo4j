@@ -21,6 +21,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 '''
 
+'''
+Built-in modules
+'''
 import pdb
 import os
 import urllib
@@ -28,8 +31,13 @@ import urllib.parse
 import base64
 import certifi
 import json
-from twitter_logging import logger
 import requests
+
+'''
+User defined modules
+'''
+from libs.twitter_logging import logger
+
 
 print("Using appauth")
 logger.warning("Using appauth")

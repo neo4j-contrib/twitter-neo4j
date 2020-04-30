@@ -1,8 +1,15 @@
+'''
+Built-in modules
+'''
 import pdb
 import oauth2 as oauth
 import os
 import json
-from twitter_logging import logger
+
+'''
+User defined modules
+'''
+from libs.twitter_logging import logger
 
 print("Using oauth")
 

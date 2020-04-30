@@ -1,9 +1,10 @@
 import pdb
 from py2neo import Graph
-from twitter_logging import logger
 import socket
 import os
 from retrying import retry
+
+from libs.twitter_logging import logger
 
 #Global variables
 # Number of times to retry connecting to Neo4j upon failure

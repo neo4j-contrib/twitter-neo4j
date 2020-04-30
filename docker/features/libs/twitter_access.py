@@ -1,13 +1,21 @@
+
+'''
+Built-in modules
+'''
 import pdb
 import os
-from twitter_logging import logger
-from twitter_errors import TwitterRateLimitError, TwitterUserNotFoundError
+
+'''
+User defined modules
+'''
+from libs.twitter_logging import logger
+from libs.twitter_errors import TwitterRateLimitError, TwitterUserNotFoundError
 
 auth_type = os.getenv("TWITTER_AUTH_TYPE", "oauth")
 if auth_type.lower() == "appauth":
-  from authhandler.appauth_handler import make_api_request
+  from libs.authhandler.appauth_handler import make_api_request
 else:
-  from authhandler.oauth_handler import make_api_request
+  from libs.authhandler.oauth_handler import make_api_request
 
 g_headers = None
 

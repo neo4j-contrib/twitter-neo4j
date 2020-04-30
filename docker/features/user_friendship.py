@@ -1,21 +1,30 @@
 
+'''
+Built-in modules
+'''
 import pdb
 import os
+import traceback
+import urllib.parse
+import time
+from datetime import datetime
+
+'''
+User defined modules
+'''
 from config.load_config import load_config
 config_file_name = 'dm.env'
 load_config(config_file_name)
 store_type = os.getenv("DB_STORE_TYPE", "file_store")
 if store_type.lower() == "file_store":
-    from file_store import DMFileStoreIntf as DMStoreIntf
+    from libs.file_store import DMFileStoreIntf as DMStoreIntf
 else:
-    from cypher_store import DMCypherStoreIntf as DMStoreIntf
-from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
-import traceback
-import urllib.parse
-import time
-from twitter_access import fetch_tweet_info, get_reponse_header
-from twitter_logging import logger
-from datetime import datetime
+    from libs.cypher_store import DMCypherStoreIntf as DMStoreIntf
+from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
+
+from libs.twitter_access import fetch_tweet_info, get_reponse_header
+from libs.twitter_logging import logger
+
 
 
 

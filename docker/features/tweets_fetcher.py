@@ -4,23 +4,33 @@ Capabilities:
    Fetch tweets and retweets by ID
    Search tweets by search query
 '''
+
+'''
+Built-in modules
+'''
 import pdb
 import os
+import traceback
+import urllib.parse
+import time
+from datetime import datetime
+import json
+import time
+
+'''
+User defined modules
+'''
 from config.load_config import load_config
 config_file_name = 'tweet_fetcher.env'
 load_config(config_file_name)
 
-from cypher_store import TweetCypherStoreIntf
+from libs.cypher_store import TweetCypherStoreIntf
 #from file_store import DMFileStoreIntf
-from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
-import traceback
-import urllib.parse
-import time
-from twitter_access import fetch_tweet_info, get_reponse_header
-from twitter_logging import logger
-from datetime import datetime
-import json
-import time
+from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
+
+from libs.twitter_access import fetch_tweet_info, get_reponse_header
+from libs.twitter_logging import logger
+
 
 isTrue = lambda  v : True if val.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'certainly', 'uh-huh'] else False
 
