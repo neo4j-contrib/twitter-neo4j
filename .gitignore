@@ -2027,3 +2027,4 @@ docker/.env
 docker/config/.env_0
 docker/config/.env
 docker/config/tweet_fetcher.env
+docker/config/dm.env

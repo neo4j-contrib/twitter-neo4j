@@ -2,7 +2,8 @@
 import pdb
 import os
 from config.load_config import load_config
-load_config('dm.env')
+config_file_name = 'dm.env'
+load_config(config_file_name)
 store_type = os.getenv("DB_STORE_TYPE", "file_store")
 if store_type.lower() == "file_store":
     from file_store import DMFileStoreIntf as DMStoreIntf
@@ -122,7 +123,8 @@ class UserRelations():
                 print("Total number of DM users are {}".format(len(dmusers)))
                 nondmusers = self.dataStoreIntf.get_nondm_users_list()
                 print("Total number of Non DM users are {}".format(len(nondmusers)))
-                users_wkg = set(users) - set(nonexists_users) - set(dmusers) - set(nondmusers)
+                users_wkg = sorted(set(users) - set(nonexists_users) - set(dmusers) - set(nondmusers))
+                pdb.set_trace()
                 print('Processing with unchecked {} users'.format(len(users_wkg)))
                 if(len(users_wkg)):
                     self.__process_dm(users_wkg, 10)
@@ -145,7 +147,7 @@ class UserRelations():
                 continue
 
 def main():
-    print("Starting DM lookup. \nConfig file name should be .env\n")
+    print("Starting DM lookup. \nConfig file should be [config/{}]\n".format(config_file_name))
     stats_tracker = {'processed': 0}
     userRelations = UserRelations(os.environ["TWITTER_USER"])
     try:

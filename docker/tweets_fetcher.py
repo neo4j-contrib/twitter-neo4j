@@ -7,7 +7,8 @@ Capabilities:
 import pdb
 import os
 from config.load_config import load_config
-load_config('tweet_fetcher.env')
+config_file_name = 'tweet_fetcher.env'
+load_config(config_file_name)
 
 from cypher_store import TweetCypherStoreIntf
 #from file_store import DMFileStoreIntf
@@ -304,6 +305,7 @@ class TweetsFetcher:
 
 
 def main():
+    print("Starting Tweet fetcher. \nConfig file should be [config/{}]\n".format(config_file_name))
     tweets_fetch_stats = {'processed': 0}
     tweetsFetcher = TweetsFetcher()
     try:
