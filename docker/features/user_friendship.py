@@ -13,7 +13,7 @@ from datetime import datetime
 User defined modules
 '''
 from config.load_config import load_config
-config_file_name = 'dm.env'
+config_file_name = 'dm_env.py'
 load_config(config_file_name)
 store_type = os.getenv("DB_STORE_TYPE", "file_store")
 if store_type.lower() == "file_store":

@@ -2088,3 +2088,5 @@ docker/features/libs/__pycache__/twitter_logging.cpython-36.pyc
 docker/features/libs/authhandler/__pycache__/__init__.cpython-36.pyc
 docker/features/libs/authhandler/__pycache__/appauth_handler.cpython-36.pyc
 docker/features/libs/authhandler/__pycache__/oauth_handler.cpython-36.pyc
+docker/features/config/dm_env.py
+docker/features/data/twitter_dm_output.json

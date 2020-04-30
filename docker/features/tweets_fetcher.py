@@ -21,7 +21,7 @@ import time
 User defined modules
 '''
 from config.load_config import load_config
-config_file_name = 'tweet_fetcher.env'
+config_file_name = 'tweet_env.py'
 load_config(config_file_name)
 
 from libs.cypher_store import TweetCypherStoreIntf
