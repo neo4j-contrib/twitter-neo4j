@@ -1,13 +1,13 @@
 
 import pdb
 import os
-from dotenv import load_dotenv
-#from cypher_store import DMCypherStoreIntf
-#As first step try to read the config file which has the required environment variables
-# The name of file must be .env file and .env file should be in the current folder of this code
-load_dotenv()
+import config.load_config
 
-from cypher_store import DMCypherStoreIntf as DMStoreIntf
+store_type = os.getenv("DB_STORE_TYPE", "file_store")
+if store_type.lower() == "file_store":
+    from file_store import DMFileStoreIntf as DMStoreIntf
+else:
+    from cypher_store import DMCypherStoreIntf as DMStoreIntf
 #from file_store import DMFileStoreIntf as DMStoreIntf
 from twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
 import traceback

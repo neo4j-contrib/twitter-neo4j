@@ -2019,3 +2019,9 @@ docker/.env_0
 docker/tweets_fetcher.py
 docker/tweets_fetcher.py
 docker/cypher_store.py
+docker/__pycache__/load_config.cpython-36.pyc
+docker/config/.env_1
+docker/config/__pycache__/__init__.cpython-36.pyc
+docker/config/__pycache__/load_config.cpython-36.pyc
+docker/.env
+docker/config/.env_0
