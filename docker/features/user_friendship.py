@@ -10,8 +10,22 @@ import time
 from datetime import datetime
 
 '''
+Initialization code
+'''
+def __init_program():
+    pdb.set_trace()
+    print("CWD is {}".format(os.getcwd()))
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    os.chdir(dname)
+    print("After change, CWD is {}".format(os.getcwd()))
+
+__init_program()
+
+'''
 User defined modules
 '''
+
 from config.load_config import load_config
 config_file_name = 'env.py'
 load_config(config_file_name)

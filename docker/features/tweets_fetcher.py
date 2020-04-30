@@ -18,6 +18,18 @@ import json
 import time
 
 '''
+Initialization code
+'''
+def __init_program():
+    print("CWD is {}".format(os.getcwd()))
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    os.chdir(dname)
+    print("After change, CWD is {}".format(os.getcwd()))
+
+__init_program()
+
+'''
 User defined modules
 '''
 from config.load_config import load_config
