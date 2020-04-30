@@ -13,7 +13,7 @@ from datetime import datetime
 User defined modules
 '''
 from config.load_config import load_config
-config_file_name = 'dm_env.py'
+config_file_name = 'env.py'
 load_config(config_file_name)
 
 dep_check = os.getenv("DEPENDENCY_CHECK", True)
