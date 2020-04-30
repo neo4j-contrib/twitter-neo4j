@@ -68,7 +68,7 @@ class DMCypherStoreIntf():
     def get_all_users_list(self):
         print("Finding users from DB")
         query = """
-            MATCH (u:User) return u.screen_name
+            MATCH (u:User) return u.screen_name ORDER BY u.screen_name
         """
         response_json = execute_query_with_result(query)
         users = [ user['u.screen_name'] for user in response_json]

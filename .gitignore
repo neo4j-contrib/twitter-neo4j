@@ -2025,3 +2025,4 @@ docker/config/__pycache__/__init__.cpython-36.pyc
 docker/config/__pycache__/load_config.cpython-36.pyc
 docker/.env
 docker/config/.env_0
+docker/config/.env
