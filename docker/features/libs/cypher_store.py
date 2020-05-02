@@ -56,6 +56,19 @@ def execute_query_with_result(query, **kwargs):
     result = graph.run(query, **kwargs).data()
     return result
 
+class DMCypherDBInit:
+
+    @staticmethod
+    def create_constraints(constraints_lists):
+        pdb.set_trace()
+        for constraint in constraints_lists:
+            print("applying constraint->{}".format(constraint))
+            try:
+                execute_query(constraint)
+                print("applied constraint")
+            except Exception as e:
+                print(e)
+
 class DMCypherStoreIntf():
     def __init__(self, source_screen_name=None):
         print("Initializing Cypher Store")
