@@ -254,7 +254,7 @@ class TweetsFetcher:
                 print(e)
                 time.sleep(30)
                 continue
-        logger.info("[stats] Adding {} tweets to {} grandtotal for tweet ID--> {} ".format(total_count, self.grandtotal, tweet_id))
+        logger.info("[stats] {} tweets for [{}]".format(total_count, tweet_id))
         self.grandtotal += total_count
 
     def import_tweets_search(self, search_term, categories_list, sync_with_store):
@@ -326,7 +326,7 @@ class TweetsFetcher:
                 print(e)
                 time.sleep(30)
                 continue
-        logger.info("[stats] Adding {} tweets to {} grandtotal for search--> {}".format(total_count, self.grandtotal, search_term))
+        logger.info("[stats] {} tweets for [{}]".format(total_count, search_term))
         self.grandtotal += total_count
 
 
