@@ -50,23 +50,16 @@ from libs.twitter_logging import logger
 
 isTrue = lambda  v : True if val.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'certainly', 'uh-huh'] else False
 
-class TweetsFetcher:
-    """
-    This class uses expert pattern. 
-    It provides functioanlity for fetching Tweets and related info
-    It stores Tweets info to Graph Database
-    """
-    def __init__(self, filename='tweet_ids.txt', database='neo4j'):
-        print("Initializing TweetsFetcher object")
-        self.filename = filename
-        self.database = database
-        self.tweetStoreIntf = TweetCypherStoreIntf()
-        self.grandtotal = 0 #Tracks the count of total tweets stored in DB
-        self.filters_dict = {"retweeted_status_screen_name":self.retweeted_status_screen_name}
-        pass
+class TweetFilterHandler:
+    '''
+        This is expert design pattern. 
+        It takes care of applying filters on the tweets. After filter, only needed tweets will be returned
+    '''
 
-    def retweeted_status_screen_name(self, tweet, filter_param):
-        #print("Applying filter retweeted_status_screen_name on {}".format(tweet))
+    def __init__(self):
+        self.filters_dict = {"retweeted_status_screen_name":self.__retweeted_status_screen_name}
+
+    def __retweeted_status_screen_name(self, tweet, filter_param):
         status = False
         desired_screen_name = filter_param
         retweet_user_name = tweet['user']['screen_name']
@@ -87,6 +80,11 @@ class TweetsFetcher:
         filtered_tweets = tweets
         for filter_str, filter_params in filters.items():
             print("Processing filter [{}], param {}".format(filter_str, filter_params))
+            if filter_str not in self.filters_dict:
+                logger.error("{} is invalid tweet filter".format(filter_str))
+                print("Skipping filter {} as it is invalid tweet filter".format(filter_str))
+                pdb.set_trace()
+                continue
             filtered = filter(lambda seq: self.filters_dict[filter_str](seq, filter_params), filtered_tweets) 
             accepted_tweets = []
             for tweet in filtered:
@@ -95,6 +93,21 @@ class TweetsFetcher:
             print("after filter [{}] tweet count is [{}]".format(filter_str, len(filtered_tweets)))
         print("Final count of tweets after applying all filters is {}".format(len(filtered_tweets)))
         return filtered_tweets
+
+class TweetsFetcher:
+    """
+    This class uses expert pattern. 
+    It provides functioanlity for fetching Tweets and related info
+    It stores Tweets info to Graph Database
+    """
+    def __init__(self, filename='tweet_ids.txt', database='neo4j'):
+        print("Initializing TweetsFetcher object")
+        self.filename = filename
+        self.database = database
+        self.tweetStoreIntf = TweetCypherStoreIntf()
+        self.grandtotal = 0 #Tracks the count of total tweets stored in DB
+        self.filterhandler = TweetFilterHandler()
+        pass
 
     def __process_tweet_fetch_cmd(self, cmd_args):
         print('Processing Tweet fetch command [{}]'.format(cmd_args))
@@ -337,7 +350,7 @@ class TweetsFetcher:
                     #decrement one less so that same tweet is not sent again in next call.
                     max_id = max_id - 1
                     if tweet_filter:
-                        filtered_tweets = self.apply_filters(tweets,tweet_filter)
+                        filtered_tweets = self.filterhandler.apply_filters(tweets,tweet_filter)
                     else:
                         filtered_tweets = tweets
                     print("{} Tweets to be stored out of {} tweets".format(len(filtered_tweets), len(tweets)))
