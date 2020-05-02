@@ -1,7 +1,8 @@
 *Help guide for running this code for DM check*
-**This code should work in all PCs platforms(Linux/MacOS/Windows)** 
+**This code should work in all PCs platforms(Linux/MacOS/Windows) and QPython** 
 
-Recommendation:
+
+Recommendations for PC Platform(Skip for QPython):
 It’s recommended that you install it into a Python virtual environment. You can use either Python’s built-in venv library or the virtualenv package. If you’ve never used a Python virtual environment before, then check out https://sites.google.com/site/jbsakabffoi12449ujkn/home/software-programming/python-virtual-environment-a-means-for-using-multiple-python-versions-concurrently.
 
 Python virtual enviromnet helps in easily uninstalling the packages which are installed for this software.
@@ -12,15 +13,15 @@ Python virtual enviromnet helps in easily uninstalling the packages which are in
 
 >>pip3 freeze
  (it should be blank)
-
+Note that this program itself installs the necessary python packages and so, there is no need to explicitely install it. It is preferred to use the python virtualenv for avoiding any conflict (Refer:  for this)
+However, program does dependency check each time. There is a knob to disable this check. But use it only if you are sure that all modules are already installed.
 
 Steps overview:
-0. Fetch this Github to your machine (git clone ....)
-1. Install the necessary python packages (pip3 install oauth2). It is preferred to use the python virtualenv for avoiding any conflict (Refer:  for this)
+0. Fetch this Github to your PC (git clone https://github.com/krdpk17/twitter-neo4j). 
+For mobile, install Git App(search MGit in play store) and clone https://github.com/krdpk17/twitter-neo4j 
 
-
-2. Below are the steps for providing twitter auth
-Set following environment variable (Needed for twitter authentication). For doing this, update .env file as per instruction mentioned inline (.env file is present in the config folder [docker/config/.env])
+1. Below are the steps for providing twitter auth
+Set following environment variable (Needed for twitter authentication). For doing this, update env.py file as per instruction mentioned inline (.env file is present in the config folder [docker/config/env.py])
 Note: If you don't have this info, you can fetch it from Twitter. Visit https://apps.twitter.com/ page 
 
 
@@ -31,7 +32,7 @@ TWITTER_USER_KEY=163170036-oi3d1SsDojHueToqJomPkRpWHvGWvRDozjSXnojm
 TWITTER_USER_SECRET=fqeZyUgBtJRuVvXozJErT1P8y3dgsU9rq4Ih2WwmuhedK
 TWITTER_USER=mytwitterscreeenname
 
-3. Below are the steps for providing the input data (users for DM)
+2. Below are the steps for providing the input data (users for DM)
 Edit the input file(twitter-neo4j/docker/data/twitter_all_users_name.json) and add list of users for which DM check is needed
 
 Add user info in following JSON format. 
@@ -52,7 +53,7 @@ Add user info in following JSON format.
  u.id -> user ID (0 if id is not available)
  
 
-4. Go to folder 'docker' and run the script for fetching DM relationship. Command is below
+3. In this folder, 'docker/features', you will see user_friendship.py. Run the script for fetching DM relationship. Command is below for PC
     python3 user_friendship.py
     
 *************Output file format:*****************
