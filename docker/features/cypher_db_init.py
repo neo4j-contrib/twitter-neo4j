@@ -23,4 +23,5 @@ constraint_list = [
 
 ]
 
-DMCypherDBInit.create_constraints(constraint_list)
+if __name__ == "__main__":
+	DMCypherDBInit.create_constraints(constraint_list)

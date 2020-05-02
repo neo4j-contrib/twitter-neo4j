@@ -60,7 +60,6 @@ class DMCypherDBInit:
 
     @staticmethod
     def create_constraints(constraints_lists):
-        pdb.set_trace()
         for constraint in constraints_lists:
             print("applying constraint->{}".format(constraint))
             try:
