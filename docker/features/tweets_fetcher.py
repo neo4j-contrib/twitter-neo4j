@@ -36,8 +36,8 @@ from config.load_config import load_config
 config_file_name = 'tweet_env.py'
 load_config(config_file_name)
 
-dep_check = os.getenv("DEPENDENCY_CHECK", True)
-if dep_check:
+dep_check = os.getenv("DEPENDENCY_CHECK", "True")
+if dep_check.lower() == "true":
     from installer import dependency_check
 
 from libs.cypher_store import TweetCypherStoreIntf
@@ -62,7 +62,39 @@ class TweetsFetcher:
         self.database = database
         self.tweetStoreIntf = TweetCypherStoreIntf()
         self.grandtotal = 0 #Tracks the count of total tweets stored in DB
+        self.filters_dict = {"retweeted_status_screen_name":self.retweeted_status_screen_name}
         pass
+
+    def retweeted_status_screen_name(self, tweet, filter_param):
+        #print("Applying filter retweeted_status_screen_name on {}".format(tweet))
+        status = False
+        desired_screen_name = filter_param
+        retweet_user_name = tweet['user']['screen_name']
+        if 'retweeted_status' in tweet and 'user' in tweet['retweeted_status']:
+            orig_user = tweet['retweeted_status']['user']
+            if 'screen_name' in orig_user:
+                orig_user_screen_name = orig_user['screen_name']
+                if retweet_user_name == orig_user_screen_name:
+                    logger.info("skipping {} tweet as it is self retweet".format(tweet['id']))
+                elif orig_user_screen_name == desired_screen_name:
+                    status = True
+            else:
+                logger.error("Couldn't find screen name for {} Tweet".fromat(tweet.id))
+        return status
+
+    def apply_filters(self, tweets, filters):
+        print("applying filters {} on {} tweets".format(filters, len(tweets)))
+        filtered_tweets = tweets
+        for filter_str, filter_params in filters.items():
+            print("Processing filter [{}], param {}".format(filter_str, filter_params))
+            filtered = filter(lambda seq: self.filters_dict[filter_str](seq, filter_params), filtered_tweets) 
+            accepted_tweets = []
+            for tweet in filtered:
+                accepted_tweets.append(tweet)
+            filtered_tweets =  accepted_tweets
+            print("after filter [{}] tweet count is [{}]".format(filter_str, len(filtered_tweets)))
+        print("Final count of tweets after applying all filters is {}".format(len(filtered_tweets)))
+        return filtered_tweets
 
     def __process_tweet_fetch_cmd(self, cmd_args):
         print('Processing Tweet fetch command [{}]'.format(cmd_args))
@@ -84,6 +116,7 @@ class TweetsFetcher:
         print('Processing Tweet fetch command [{}]'.format(cmd_args))
         catgories_list = []
         sync_with_store = False
+        tweet_filter = {}
         if 'categories_list' in cmd_args:
             catgories_list = cmd_args['categories_list']
         if 'sync_with_store' in cmd_args and cmd_args['sync_with_store'].lower() == "true":
@@ -92,8 +125,10 @@ class TweetsFetcher:
         if 'search_term' not in cmd_args:
             logger.error("Invalid input file format for {} tweets cmd".format(cmd_args))
             return
+        if 'tweet_filter' in cmd_args:
+            tweet_filter = cmd_args['tweet_filter']
         search_term = cmd_args['search_term']
-        self.import_tweets_search(search_term, catgories_list, sync_with_store)
+        self.import_tweets_search(search_term, catgories_list, sync_with_store, tweet_filter=tweet_filter)
 
 
     def __process_command(self, command_json):
@@ -257,7 +292,7 @@ class TweetsFetcher:
         logger.info("[stats] {} tweets for [{}]".format(total_count, tweet_id))
         self.grandtotal += total_count
 
-    def import_tweets_search(self, search_term, categories_list, sync_with_store):
+    def import_tweets_search(self, search_term, categories_list, sync_with_store, tweet_filter):
         print("Processing Tweets import for search key [{}]".format(search_term))
         frequency = 100
         tweets_to_import = True
@@ -287,7 +322,6 @@ class TweetsFetcher:
                     print("Continuing after threshold reset")
 
                 tweets = self.__process_tweets_search(search_term=search_term, max_id=max_id, count=frequency)
-
                 if len(tweets) > 0:
                     tweets_to_import = True
                     plural = "s." if len(tweets) > 1 else "."
@@ -302,13 +336,21 @@ class TweetsFetcher:
                         max_id = min(max_id, tweet['id']) 
                     #decrement one less so that same tweet is not sent again in next call.
                     max_id = max_id - 1
-
-                    self.tweetStoreIntf.store_tweets_info(tweets, categories_list)
-                    print("Search tweets added to graph for %s !" % (search_term))
+                    if tweet_filter:
+                        filtered_tweets = self.apply_filters(tweets,tweet_filter)
+                    else:
+                        filtered_tweets = tweets
+                    print("{} Tweets to be stored out of {} tweets".format(len(filtered_tweets), len(tweets)))
+                    if(len(filtered_tweets)):
+                        pdb.set_trace()
+                        self.tweetStoreIntf.store_tweets_info(filtered_tweets, categories_list)
+                        print("{} Search tweets added to graph for {}!".format(len(filtered_tweets), search_term))
+                    else:
+                        print("skipping as none found from {} total tweets".format(len(tweets)))
                 else:
                     print("No search tweets found for %s." % (search_term))
                     if(not total_count):
-                        logger.warning("No search tweets found for -->> %s" % (search_term))
+                        logger.info("No search tweets found for -->> %s" % (search_term))
                     tweets_to_import = False
 
             except TwitterRateLimitError as e:

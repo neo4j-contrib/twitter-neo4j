@@ -30,7 +30,7 @@ config_file_name = 'env.py'
 load_config(config_file_name)
 
 dep_check = os.getenv("DEPENDENCY_CHECK", True)
-if dep_check:
+if dep_check.lower == "true":
     from installer import dependency_check
 
 store_type = os.getenv("DB_STORE_TYPE", "file_store")
