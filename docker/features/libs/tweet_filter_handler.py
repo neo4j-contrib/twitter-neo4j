@@ -8,7 +8,7 @@ class TweetFilterHandler:
     '''
 
     def __init__(self):
-        self.filters_dict = {"retweeted_status_screen_name":self.__retweeted_status_screen_name}
+        self.filters_dict = {"retweets_of":self.__retweeted_status_screen_name}
 
     def __retweeted_status_screen_name(self, tweet, filter_param):
         status = False
