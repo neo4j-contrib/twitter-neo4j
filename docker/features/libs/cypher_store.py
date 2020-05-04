@@ -17,6 +17,7 @@ EXEC_NEO4J_WAIT_SECS = 1
 # Neo4j URL
 NEO4J_HOST = (os.environ.get('NEO4J_HOST', os.environ.get('HOSTNAME', 'localhost')))
 NEO4J_PORT = int(os.environ.get('NEO4J_PORT',7474))
+NEO4J_BOLT_PORT = int(os.environ.get('NEO4J_BOLT_PORT',7687))
 NEO4J_AUTH = os.environ["NEO4J_AUTH"]
 
 @retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))
@@ -38,9 +39,10 @@ def get_graph():
     
     global NEO4J_URL,NEO4J_HOST,NEO4J_PORT,NEO4J_AUTH
 
+    pdb.set_trace()
     # Connect to graph
     creds = NEO4J_AUTH.split('/')
-    graph = Graph(user=creds[0], password=creds[1], host=NEO4J_HOST)
+    graph = Graph(user=creds[0], password=creds[1], host=NEO4J_HOST, port=NEO4J_BOLT_PORT)
 
     graph.run('match (t:Tweet) return COUNT(t)')
     return graph
