@@ -28,14 +28,12 @@ class TweetFilterHandler:
 
     def apply_filters(self, tweets, filters):
         print("applying filters {} on {} tweets".format(filters, len(tweets)))
-        pdb.set_trace()
         filtered_tweets = tweets
         for filter_str, filter_params in filters.items():
             print("Processing filter [{}], param {}".format(filter_str, filter_params))
             if filter_str not in self.filters_dict:
                 logger.error("{} is invalid tweet filter".format(filter_str))
                 print("Skipping filter {} as it is invalid tweet filter".format(filter_str))
-                pdb.set_trace()
                 continue
             filtered = filter(lambda seq: self.filters_dict[filter_str](seq, filter_params), filtered_tweets) 
             accepted_tweets = []

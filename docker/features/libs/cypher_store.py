@@ -16,7 +16,7 @@ EXEC_NEO4J_WAIT_SECS = 1
 
 # Neo4j URL
 NEO4J_HOST = (os.environ.get('NEO4J_HOST', os.environ.get('HOSTNAME', 'localhost')))
-NEO4J_PORT = 7474
+NEO4J_PORT = int(os.environ.get('NEO4J_PORT',7474))
 NEO4J_AUTH = os.environ["NEO4J_AUTH"]
 
 @retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))

@@ -3,6 +3,7 @@ TWITTER_CONSUMER_SECRET=<Consumer Secret>
 TWITTER_USER_KEY=<User key>
 TWITTER_USER_SECRET=<User Secret>
 TWITTER_USER=<Twitter screen name>
+NEO4J_HOST=localhost
 NEO4J_AUTH=neo4j/deepak
 TWITTER_AUTH_TYPE=oauth
 DB_STORE_TYPE=file_store
