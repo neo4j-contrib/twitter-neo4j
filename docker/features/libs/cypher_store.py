@@ -5,6 +5,7 @@ import os
 from retrying import retry
 
 from libs.twitter_logging import logger
+import common
 
 #Global variables
 # Number of times to retry connecting to Neo4j upon failure
@@ -18,7 +19,9 @@ EXEC_NEO4J_WAIT_SECS = 1
 NEO4J_HOST = (os.environ.get('NEO4J_HOST', os.environ.get('HOSTNAME', 'localhost')))
 NEO4J_PORT = int(os.environ.get('NEO4J_PORT',7474))
 NEO4J_BOLT_PORT = int(os.environ.get('NEO4J_BOLT_PORT',7687))
+NEO4J_BOLT_SECURE=common.isTrue(os.environ.get('NEO4J_BOLT_SECURE', "False"))
 NEO4J_AUTH = os.environ["NEO4J_AUTH"]
+
 
 @retry(stop_max_attempt_number=CONNECT_NEO4J_RETRIES, wait_fixed=(CONNECT_NEO4J_WAIT_SECS * 1000))
 def try_connecting_neo4j():
@@ -42,7 +45,7 @@ def get_graph():
     pdb.set_trace()
     # Connect to graph
     creds = NEO4J_AUTH.split('/')
-    graph = Graph(user=creds[0], password=creds[1], host=NEO4J_HOST, port=NEO4J_BOLT_PORT)
+    graph = Graph(user=creds[0], password=creds[1], host=NEO4J_HOST, port=NEO4J_BOLT_PORT, secure=NEO4J_BOLT_SECURE)
 
     graph.run('match (t:Tweet) return COUNT(t)')
     return graph

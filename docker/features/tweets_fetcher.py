@@ -48,8 +48,6 @@ from libs.twitter_access import fetch_tweet_info, get_reponse_header
 from libs.twitter_logging import logger
 from libs.tweet_filter_handler import TweetFilterHandler
 
-isTrue = lambda  v : True if val.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'certainly', 'uh-huh'] else False
-
 class TweetsFetcher:
     """
     This class uses expert pattern. 
