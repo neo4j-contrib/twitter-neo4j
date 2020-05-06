@@ -1,5 +1,5 @@
 import pdb
-import pip
+import pip3
 print("checking dependency and performing installation")
 def install(package):
     if hasattr(pip, 'main'):
@@ -9,3 +9,4 @@ def install(package):
 
 install('python-dotenv')
 install('oauth2')
+install('py2neo')

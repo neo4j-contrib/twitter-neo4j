@@ -2111,3 +2111,4 @@ docker/features/tweet_env.py
 docker/features/test.cap
 docker/features/working_httponly.pcap
 docker/features/certificates_sarvat.tar.gz
+docker/features/config/.dm_env.py.swp
