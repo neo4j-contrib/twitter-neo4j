@@ -42,7 +42,6 @@ def get_graph():
     
     global NEO4J_URL,NEO4J_HOST,NEO4J_PORT,NEO4J_AUTH
 
-    pdb.set_trace()
     # Connect to graph
     creds = NEO4J_AUTH.split('/')
     graph = Graph(user=creds[0], password=creds[1], host=NEO4J_HOST, port=NEO4J_BOLT_PORT, secure=NEO4J_BOLT_SECURE)
