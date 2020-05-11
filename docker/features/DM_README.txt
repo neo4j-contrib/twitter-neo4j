@@ -3,7 +3,8 @@
 
 
 Recommendations for PC Platform(Skip for QPython):
-It’s recommended that you install it into a Python virtual environment. You can use either Python’s built-in venv library or the virtualenv package. If you’ve never used a Python virtual environment before, then check out https://sites.google.com/site/jbsakabffoi12449ujkn/home/software-programming/python-virtual-environment-a-means-for-using-multiple-python-versions-concurrently.
+Using a virtual environment avoids installing libraries into a global Python environment and gives you exact control over the libraries used in an application. 
+So, It’s recommended that you install it into a Python virtual environment. You can use either Python’s built-in venv library or the virtualenv package. If you’ve never used a Python virtual environment before, then check out https://sites.google.com/site/jbsakabffoi12449ujkn/home/software-programming/python-virtual-environment-a-means-for-using-multiple-python-versions-concurrently.
 
 Python virtual enviromnet helps in easily uninstalling the packages which are installed for this software.
 >>pip3 install virtualenv
