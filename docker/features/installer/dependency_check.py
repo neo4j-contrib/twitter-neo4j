@@ -10,3 +10,4 @@ def install(package):
 install('python-dotenv')
 install('oauth2')
 install('py2neo')
+install('retrying')
