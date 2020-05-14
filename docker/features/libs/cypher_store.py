@@ -3,6 +3,7 @@ from py2neo import Graph
 import socket
 import os
 from retrying import retry
+from datetime import datetime
 
 from libs.twitter_logging import logger
 import common
@@ -297,5 +298,59 @@ class TweetCypherStoreIntf:
         execute_query(query, tweets=tweets, categories=categories)
         print("Tweets added to graph!")
     
+
+
+class TweetFetchQueryDBStore:
+    """
+    This class uses expert pattern. It provides API for tweets info management
+    """
+
+    class QueryState:
+        # CREATED={ 'state' : 'created' }
+        # UPDATED={ 'state' : 'updated' }
+        # DELETED={ 'state' : 'deleted' }
+        CREATED='created'
+        UPDATED='updated'
+        DELETED='deleted'
+
+    def __init__(self):
+        pass
+
+    def store_search_query(self, queries, user, state):
+        print("storing {} count of queries to DB".format(len(queries)))
+        if len(queries) < 1:
+            print("Skipping as no Query to store in DB")
+            return
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'state':state, 'datetime': currtime, 'timestamp':currtime}
+        pdb.set_trace()
+        query = """
+        UNWIND $queries AS q
+
+        WITH q,
+             q.tweet_search AS s
+
+        MERGE (query:Query {id: $state.datetime})
+        SET query.edit_datetime = $state.timestamp, 
+            query.search_term = s.search_term,
+            query.categories = s.categories,
+            query.need_filter = s.need_filter,
+            query.retweets_of = s.retweets_of,
+            query.state = $state.state
+
+        MERGE (user:QueryUser {id: $user.username})
+        SET  user.email = $user.email
+
+        MERGE (query)-[:SEARCHBY]->(user)
+
+
+        """
+
+        # Send Cypher query.
+        execute_query(query, queries=queries, state=state, user=user)
+        print("Tweets added to graph!")
+    
+
+
 
 
