@@ -36,4 +36,6 @@ def main():
 	user = {'username':'test', 'email':'test@test.com'}
 	tweetFetchQueryIntf.add_new_query(queries=queries, user=user)
 
+	queries = tweetFetchQueryIntf.fetch_all_queries_by_user(user)
+	print("{}".format(queries))
 if __name__ == "__main__": main()

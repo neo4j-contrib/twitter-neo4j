@@ -322,14 +322,13 @@ class TweetFetchQueryDBStore:
             print("Skipping as no Query to store in DB")
             return
         currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
-        state = {'state':state, 'datetime': currtime, 'timestamp':currtime}
-        pdb.set_trace()
+        state = {'state':state, 'datetime': currtime, 'timestamp':currtime, 'type':'search-query'}
         query = """
         UNWIND $queries AS q
 
         WITH q,
              q.tweet_search AS s
-             
+
         WITH s,
              s.tweet_filter AS filter
 
@@ -339,7 +338,8 @@ class TweetFetchQueryDBStore:
             query.categories_list = s.categories_list,
             query.need_filter = s.need_filter,
             query.retweets_of = filter.retweets_of,
-            query.state = $state.state
+            query.state = $state.state,
+            query.type = $state.type
 
         MERGE (user:QueryUser {id: $user.username})
         SET  user.email = $user.email
@@ -351,9 +351,17 @@ class TweetFetchQueryDBStore:
 
         # Send Cypher query.
         execute_query(query, queries=queries, state=state, user=user)
-        print("Tweets added to graph!")
+        print("Queries added to graph!")
     
 
-
+    def fetch_all_queries_by_user(self, user):
+        print("Finding queries for {} user".format(user))
+        query = """
+            MATCH (query:Query) -[:SEARCHBY]->(user:QueryUser) where user.id=$user.username return query
+        """
+        response_json = execute_query_with_result(query, user=user)
+        queries = [ query for query in response_json]
+        return queries
+    
 
 
