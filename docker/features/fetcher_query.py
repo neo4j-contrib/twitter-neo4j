@@ -32,7 +32,7 @@ tweetFetchQueryIntf = TweetFetchQueryIntf()
 
 def main():
 	pdb.set_trace()
-	queries= [{"tweet_search":{"search_term":"testing", "categories_list": "ProHinduHindi"}}]
+	queries= [{"tweet_search":{"search_term":"@vyasnitesh19", "categories_list": ["Testing"], "need_filter":"true", "tweet_filter":{"retweets_of":"vyasnitesh19"}}}]
 	user = {'username':'test', 'email':'test@test.com'}
 	tweetFetchQueryIntf.add_new_query(queries=queries, user=user)
 
