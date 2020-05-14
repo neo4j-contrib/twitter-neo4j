@@ -2113,3 +2113,7 @@ docker/features/working_httponly.pcap
 docker/features/certificates_sarvat.tar.gz
 docker/features/config/.dm_env.py.swp
 docker/features/libs/__pycache__/cypher_store.cpython-37.pyc
+docker/features/tweet_ids.txt_pending
+docker/features/libs/__pycache__/tweet_filter_handler.cpython-37.pyc
+docker/features/tweet_ids.txt
+docker/features/libs/authhandler/__pycache__/appauth_handler.cpython-37.pyc

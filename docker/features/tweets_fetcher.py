@@ -309,7 +309,6 @@ class TweetsFetcher:
                         filtered_tweets = tweets
                     print("{} Tweets to be stored out of {} tweets".format(len(filtered_tweets), len(tweets)))
                     if(len(filtered_tweets)):
-                        pdb.set_trace()
                         self.tweetStoreIntf.store_tweets_info(filtered_tweets, categories_list)
                         print("{} Search tweets added to graph for {}!".format(len(filtered_tweets), search_term))
                     else:
