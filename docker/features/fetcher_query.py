@@ -30,12 +30,25 @@ from libs.fetcher_query_db_intf import TweetFetchQueryIntf
 
 tweetFetchQueryIntf = TweetFetchQueryIntf()
 
+class fetcher_query_store:
+	'''
+		This uses Facade design pattern.
+		It provides interface for fetcher query store
+	'''
+
+	def add_new_query(queries, user):
+		tweetFetchQueryIntf.add_new_query(queries=queries, user=user)
+		return True
+
+	def fetch_all_queries_by_user(user):
+		return tweetFetchQueryIntf.fetch_all_queries_by_user(user)
+
 def main():
 	pdb.set_trace()
 	queries= [{"tweet_search":{"search_term":"@vyasnitesh19", "categories_list": ["Testing"], "need_filter":"true", "tweet_filter":{"retweets_of":"vyasnitesh19"}}}]
 	user = {'username':'test', 'email':'test@test.com'}
-	tweetFetchQueryIntf.add_new_query(queries=queries, user=user)
+	fetcher_query_store.add_new_query(queries=queries, user=user)
 
-	queries = tweetFetchQueryIntf.fetch_all_queries_by_user(user)
+	queries = fetcher_query_store.fetch_all_queries_by_user(user)
 	print("{}".format(queries))
 if __name__ == "__main__": main()
