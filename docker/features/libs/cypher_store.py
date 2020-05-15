@@ -332,11 +332,11 @@ class TweetFetchQueryDBStore:
         WITH s,
              s.tweet_filter AS filter
 
-        MERGE (query:Query {id: $state.datetime})
+        MERGE (query:Query {timestamp: $state.datetime})
         SET query.edit_datetime = $state.timestamp, 
             query.search_term = s.search_term,
             query.categories = s.categories,
-            query.need_filter = s.need_filter,
+            query.filter = s.filter,
             query.retweets_of = filter.retweets_of,
             query.state = $state.state,
             query.type = $state.type

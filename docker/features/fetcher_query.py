@@ -44,10 +44,11 @@ class fetcher_query_store:
 
 def main():
 	pdb.set_trace()
-	#queries= [{"tweet_search":{"search_term":"@vyasnitesh19", "categories_list": ["Testing"], "need_filter":"true", "tweet_filter":{"retweets_of":"vyasnitesh19"}}}]
-	#queries = [{"tweet_search":{'categories': 'test123', 'need_filter': 'no', 'search_term': 'test', "need_filter":"false"}}]
 	user = {'username':'dkreal', 'email':'dpkumar@gmail.com'}
-	#fetcher_query_store.add_new_query(queries=queries, user=user)
+	queries= [{"tweet_search":{"search_term":"@vyasnitesh19", "categories_list": ["Testing"], "filter":"on", "tweet_filter":{"retweets_of":"vyasnitesh19"}}}]
+	fetcher_query_store.add_new_query(queries=queries, user=user)
+	queries = [{"tweet_search":{'categories': 'test123', 'filter': 'off', 'search_term': 'test'}}]
+	fetcher_query_store.add_new_query(queries=queries, user=user)
 
 	queries = fetcher_query_store.fetch_all_queries_by_user(user)
 	print("{}".format(queries))
