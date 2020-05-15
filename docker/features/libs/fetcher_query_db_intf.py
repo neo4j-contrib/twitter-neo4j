@@ -1,5 +1,5 @@
 import pdb
-from libs.cypher_store import TweetFetchQueryDBStore
+from .cypher_store import TweetFetchQueryDBStore
 
 class TweetFetchQueryIntf:
 

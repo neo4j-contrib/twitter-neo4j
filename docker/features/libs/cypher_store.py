@@ -5,8 +5,8 @@ import os
 from retrying import retry
 from datetime import datetime
 
-from libs.twitter_logging import logger
-import common
+from .twitter_logging import logger
+from . import common
 
 #Global variables
 # Number of times to retry connecting to Neo4j upon failure

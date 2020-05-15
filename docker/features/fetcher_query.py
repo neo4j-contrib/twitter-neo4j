@@ -5,25 +5,24 @@ import time
 '''
 Initialization code
 '''
-def __init_program():
-    print("CWD is {}".format(os.getcwd()))
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    os.chdir(dname)
-    print("After change, CWD is {}".format(os.getcwd()))
+# def __init_program():
+#     print("CWD is {}".format(os.getcwd()))
+#     abspath = os.path.abspath(__file__)
+#     dname = os.path.dirname(abspath)
+#     os.chdir(dname)
+#     print("After change, CWD is {}".format(os.getcwd()))
 
-__init_program()
+# __init_program()
 
 '''
 User defined modules
 '''
 from config.load_config import load_config
-config_file_name = 'tweet_env.py'
-load_config(config_file_name)
+load_config()
 
-dep_check = os.getenv("DEPENDENCY_CHECK", "True")
-if dep_check.lower() == "true":
-    from installer import dependency_check
+# dep_check = os.getenv("DEPENDENCY_CHECK", "True")
+# if dep_check.lower() == "true":
+#     from installer import dependency_check
 
 from libs.fetcher_query_db_intf import TweetFetchQueryIntf
 
