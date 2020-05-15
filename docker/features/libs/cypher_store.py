@@ -309,9 +309,11 @@ class TweetFetchQueryDBStore:
         # CREATED={ 'state' : 'created' }
         # UPDATED={ 'state' : 'updated' }
         # DELETED={ 'state' : 'deleted' }
-        CREATED='created'
-        UPDATED='updated'
-        DELETED='deleted'
+        CREATED='CREATED'
+        UPDATED='UPDATED'
+        DELETED='DELETED'
+        PROCESSING='PROCESSING'
+        STARTED='STARTED'
 
     def __init__(self):
         pass
@@ -370,5 +372,28 @@ class TweetFetchQueryDBStore:
         print("Got {} queries".format(len(queries)))
         return queries
     
+    def query_state_change_by_user(self, user, curr_state, new_state, queries=[]):
+        print("Changing state {}->{} for {} user".format(curr_state, new_state, user))
+        state = {'curr_state':curr_state, 'new_state':new_state}
+        if not queries:
+            query = """
+                MATCH (query:Query {state:$state.curr_state}) set query.state=$state.new_state return query
+            """
+            response_json = execute_query_with_result(query, user=user, state=state)
+        else:
+            query = """
+                UNWIND $queries as q
 
+                MATCH (query:Query {state:$state.curr_state}) where query.timestamp=q.timestamp set query.state=$state.new_state return query
+            """
+            response_json = execute_query_with_result(query, user=user, state=state, queries=queries)
+        queries = []
+        for record in response_json :
+            for k,v in record.items() :
+                query = {}
+                for item in v:
+                    query[item] = v[item]
+            queries.append(query)
+        print("Got {} queries".format(len(queries)))
+        return queries
 

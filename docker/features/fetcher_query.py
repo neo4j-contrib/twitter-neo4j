@@ -42,14 +42,24 @@ class fetcher_query_store:
 	def fetch_all_queries_by_user(user):
 		return tweetFetchQueryIntf.fetch_all_queries_by_user(user)
 
+	def fetch_created_mark_processing_by_user(user):
+		return tweetFetchQueryIntf.fetch_created_mark_processing_by_user(user)
+
+	def mark_queries_as_started_by_user(user, queries):
+		return tweetFetchQueryIntf.mark_queries_as_started_by_user(user, queries)
+
 def main():
 	pdb.set_trace()
 	user = {'username':'dkreal', 'email':'dpkumar@gmail.com'}
-	queries= [{"tweet_search":{"search_term":"@vyasnitesh19", "categories_list": ["Testing"], "filter":"on", "tweet_filter":{"retweets_of":"vyasnitesh19"}}}]
-	fetcher_query_store.add_new_query(queries=queries, user=user)
-	queries = [{"tweet_search":{'categories': 'test123', 'filter': 'off', 'search_term': 'test'}}]
-	fetcher_query_store.add_new_query(queries=queries, user=user)
+	# queries= [{"tweet_search":{"search_term":"@vyasnitesh19", "categories_list": ["Testing"], "filter":"on", "tweet_filter":{"retweets_of":"vyasnitesh19"}}}]
+	# fetcher_query_store.add_new_query(queries=queries, user=user)
+	# queries = [{"tweet_search":{'categories': 'test123', 'filter': 'off', 'search_term': 'test'}}]
+	# fetcher_query_store.add_new_query(queries=queries, user=user)
 
 	queries = fetcher_query_store.fetch_all_queries_by_user(user)
+	print("{}".format(queries))
+	queries = fetcher_query_store.fetch_created_mark_processing_by_user(user)
+	print("{}".format(queries))
+	queries = fetcher_query_store.mark_queries_as_started_by_user(user=user, queries=queries)
 	print("{}".format(queries))
 if __name__ == "__main__": main()
