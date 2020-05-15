@@ -360,7 +360,14 @@ class TweetFetchQueryDBStore:
             MATCH (query:Query) -[:SEARCHBY]->(user:QueryUser) where user.id=$user.username return query
         """
         response_json = execute_query_with_result(query, user=user)
-        queries = [ query for query in response_json]
+        queries = []
+        for record in response_json :
+            for k,v in record.items() :
+                query = {}
+                for item in v:
+                    query[item] = v[item]
+            queries.append(query)
+        print("Got {} queries".format(len(queries)))
         return queries
     
 
