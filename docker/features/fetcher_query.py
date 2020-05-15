@@ -42,11 +42,11 @@ class fetcher_query_store:
 	def fetch_all_queries_by_user(user):
 		return tweetFetchQueryIntf.fetch_all_queries_by_user(user)
 
-	def fetch_created_mark_processing_by_user(user):
-		return tweetFetchQueryIntf.fetch_created_mark_processing_by_user(user)
+	def fetch_created_mark_processing():
+		return tweetFetchQueryIntf.fetch_created_mark_processing()
 
-	def mark_queries_as_started_by_user(user, queries):
-		return tweetFetchQueryIntf.mark_queries_as_started_by_user(user, queries)
+	def mark_queries_as_started(queries):
+		return tweetFetchQueryIntf.mark_queries_as_started(queries)
 
 def main():
 	pdb.set_trace()
@@ -58,8 +58,8 @@ def main():
 
 	queries = fetcher_query_store.fetch_all_queries_by_user(user)
 	print("{}".format(queries))
-	queries = fetcher_query_store.fetch_created_mark_processing_by_user(user)
+	queries = fetcher_query_store.fetch_created_mark_processing()
 	print("{}".format(queries))
-	queries = fetcher_query_store.mark_queries_as_started_by_user(user=user, queries=queries)
+	queries = fetcher_query_store.mark_queries_as_started(queries=queries)
 	print("{}".format(queries))
 if __name__ == "__main__": main()

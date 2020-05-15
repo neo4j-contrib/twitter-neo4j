@@ -15,12 +15,12 @@ class TweetFetchQueryIntf:
 		print("Fetching  query for {} user".format(user))
 		return self.store_intf.fetch_all_queries_by_user(user=user)
 
-	def fetch_created_mark_processing_by_user(self, user):
-		print("Fetching created state query and marking as processing for {} user".format(user))
-		return self.store_intf.query_state_change_by_user(user=user, 
+	def fetch_created_mark_processing(self):
+		print("Fetching created state query and marking as processing".format())
+		return self.store_intf.query_state_change( 
 			curr_state=TweetFetchQueryDBStore.QueryState.CREATED, new_state = TweetFetchQueryDBStore.QueryState.PROCESSING)
 
-	def mark_queries_as_started_by_user(self, user, queries):
-		print("marking as processing to started for {} queries of {} user".format(len(queries), user))
-		return self.store_intf.query_state_change_by_user(user=user, queries=queries,
+	def mark_queries_as_started(self, queries):
+		print("marking as processing to started for {} queries".format(len(queries)))
+		return self.store_intf.query_state_change(queries=queries,
 			curr_state=TweetFetchQueryDBStore.QueryState.PROCESSING, new_state = TweetFetchQueryDBStore.QueryState.STARTED)

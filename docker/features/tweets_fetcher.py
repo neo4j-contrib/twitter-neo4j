@@ -44,7 +44,6 @@ class ArgsHandler:
         results = parser.parse_args()
         self.filepath = results.filepath
         self.env = results.env
-        pdb.set_trace()
 
 argsHandler = ArgsHandler()
 argsHandler.get_args()
@@ -69,6 +68,8 @@ from libs.twitter_access import fetch_tweet_info, get_reponse_header
 from libs.twitter_logging import logger
 from libs.tweet_filter_handler import TweetFilterHandler
 
+from libs.fetcher_query_db_intf import TweetFetchQueryIntf
+
 class TweetsFetcher:
     """
     This class uses expert pattern. 
@@ -82,6 +83,7 @@ class TweetsFetcher:
         self.tweetStoreIntf = TweetCypherStoreIntf()
         self.grandtotal = 0 #Tracks the count of total tweets stored in DB
         self.filterhandler = TweetFilterHandler()
+        self.tweetFetchQueryIntf = TweetFetchQueryIntf() # Query fetcher from DB
         pass
 
     def __process_tweet_fetch_cmd(self, cmd_args):
@@ -129,14 +131,17 @@ class TweetsFetcher:
             self.__process_tweet_fetch_cmd(command_args)
             
     def handle_tweets_command(self):
-        pdb.set_trace()
         if self.filename:
             commands = self.import_tweets_command_from_file()
         else:
             commands = self.import_tweets_command_from_db()
 
     def import_tweets_command_from_db(self):
-        pass
+        queries = self.tweetFetchQueryIntf.fetch_created_mark_processing()
+        print("Processing {} new queries".format(len(queries)))
+        queries = self.tweetFetchQueryIntf.mark_queries_as_started(queries=queries)
+        print("started fetching {} queries".format(len(queries)))
+        pdb.set_trace()
 
     def import_tweets_command_from_file(self):
         print('Importing Tweets for IDs in file:{}'.format(self.filename))

@@ -372,21 +372,21 @@ class TweetFetchQueryDBStore:
         print("Got {} queries".format(len(queries)))
         return queries
     
-    def query_state_change_by_user(self, user, curr_state, new_state, queries=[]):
-        print("Changing state {}->{} for {} user".format(curr_state, new_state, user))
+    def query_state_change(self, curr_state, new_state, queries=[]):
+        print("Changing state {}->{}".format(curr_state, new_state))
         state = {'curr_state':curr_state, 'new_state':new_state}
         if not queries:
             query = """
                 MATCH (query:Query {state:$state.curr_state}) set query.state=$state.new_state return query
             """
-            response_json = execute_query_with_result(query, user=user, state=state)
+            response_json = execute_query_with_result(query, state=state)
         else:
             query = """
                 UNWIND $queries as q
 
                 MATCH (query:Query {state:$state.curr_state}) where query.timestamp=q.timestamp set query.state=$state.new_state return query
             """
-            response_json = execute_query_with_result(query, user=user, state=state, queries=queries)
+            response_json = execute_query_with_result(query, state=state, queries=queries)
         queries = []
         for record in response_json :
             for k,v in record.items() :
