@@ -324,7 +324,7 @@ class TweetFetchQueryDBStore:
             print("Skipping as no Query to store in DB")
             return
         currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
-        state = {'state':state, 'datetime': currtime, 'timestamp':currtime, 'type':'search-query'}
+        state = {'state':state, 'datetime': currtime, 'timestamp':currtime, 'type':'tweet_search'}
         query = """
         UNWIND $queries AS q
 

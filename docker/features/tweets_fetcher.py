@@ -149,12 +149,12 @@ class TweetsFetcher:
         self.execute_cmds(commands)
 
     def import_tweets_command_from_db(self):
+        pdb.set_trace()
         queries = self.tweetFetchQueryIntf.fetch_created_mark_processing()
         print("Processing {} new queries".format(len(queries)))
         return queries
 
     def import_tweets_command_from_file(self):
-        pdb.set_trace()
         print('Importing Tweets for IDs in file:{}'.format(self.filename))
         try:
             wkg_filename = self.filename+'.wkg'
