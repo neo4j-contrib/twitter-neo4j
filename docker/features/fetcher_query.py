@@ -17,14 +17,14 @@ Initialization code
 '''
 User defined modules
 '''
-from config.load_config import load_config
+from .config.load_config import load_config
 load_config()
 
 # dep_check = os.getenv("DEPENDENCY_CHECK", "True")
 # if dep_check.lower() == "true":
 #     from installer import dependency_check
 
-from libs.fetcher_query_db_intf import TweetFetchQueryIntf
+from .libs.fetcher_query_db_intf import TweetFetchQueryIntf
 
 
 tweetFetchQueryIntf = TweetFetchQueryIntf()
