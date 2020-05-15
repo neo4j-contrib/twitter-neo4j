@@ -129,21 +129,32 @@ class TweetsFetcher:
         elif 'tweet_fetch' in command_json:
             command_args = command_json['tweet_fetch']
             self.__process_tweet_fetch_cmd(command_args)
-            
+    
+    def execute_cmds(self, cmds):
+        for command_json in cmds:
+            self.__process_command(command_json)
+            pdb.set_trace()
+
+    def validate_cmds(self, queries):
+        queries = self.tweetFetchQueryIntf.mark_queries_as_started(queries=queries)
+        print("started fetching {} queries".format(len(queries)))
+        pdb.set_trace()
+
     def handle_tweets_command(self):
         if self.filename:
             commands = self.import_tweets_command_from_file()
         else:
             commands = self.import_tweets_command_from_db()
+            self.validate_cmds(commands)
+        self.execute_cmds(commands)
 
     def import_tweets_command_from_db(self):
         queries = self.tweetFetchQueryIntf.fetch_created_mark_processing()
         print("Processing {} new queries".format(len(queries)))
-        queries = self.tweetFetchQueryIntf.mark_queries_as_started(queries=queries)
-        print("started fetching {} queries".format(len(queries)))
-        pdb.set_trace()
+        return queries
 
     def import_tweets_command_from_file(self):
+        pdb.set_trace()
         print('Importing Tweets for IDs in file:{}'.format(self.filename))
         try:
             wkg_filename = self.filename+'.wkg'
@@ -151,10 +162,11 @@ class TweetsFetcher:
             json_data = []
             with open(wkg_filename) as f:
                 json_data = [json.loads(line) for line in f]
-            for command_json in json_data:
-                self.__process_command(command_json)
+            command_json = [command for command in json_data]
+            return command_json
         except FileNotFoundError as e:
             print("Skipping Tweet IDs import since there is no file with {}".format(self.filename))
+            return []
 
     def __process_tweets_fetch(self, tweet_id):
         print("Processing {}  Tweet".format(tweet_id))
