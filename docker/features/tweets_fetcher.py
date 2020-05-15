@@ -16,6 +16,7 @@ import time
 from datetime import datetime
 import json
 import time
+import argparse
 
 '''
 Initialization code
@@ -29,14 +30,34 @@ def __init_program():
 
 __init_program()
 
+class ArgsHandler:
+    def __init__(self):
+        self.filepath = None
+        self.env = None
+
+    def get_args(self):
+        parser = argparse.ArgumentParser(description='Process some integers.')
+        parser.add_argument('--filepath', metavar='N', type=str,
+                            help='search query file path', default=None)
+        parser.add_argument('--env', metavar='N', type=str,
+                           help='env file path', default='tweet_env.py')
+        results = parser.parse_args()
+        self.filepath = results.filepath
+        self.env = results.env
+        pdb.set_trace()
+
+argsHandler = ArgsHandler()
+argsHandler.get_args()
+
+
+
 '''
 User defined modules
 '''
 from config.load_config import load_config
-config_file_name = 'tweet_env.py'
-load_config(config_file_name)
+load_config(argsHandler.env)
 
-dep_check = os.getenv("DEPENDENCY_CHECK", "True")
+dep_check = os.getenv("DEPENDENCY_CHECK", "False")
 if dep_check.lower() == "true":
     from installer import dependency_check
 
@@ -54,7 +75,7 @@ class TweetsFetcher:
     It provides functioanlity for fetching Tweets and related info
     It stores Tweets info to Graph Database
     """
-    def __init__(self, filename='tweet_ids.txt', database='neo4j'):
+    def __init__(self, filename=argsHandler.filepath, database='neo4j'):
         print("Initializing TweetsFetcher object")
         self.filename = filename
         self.database = database
@@ -107,8 +128,17 @@ class TweetsFetcher:
             command_args = command_json['tweet_fetch']
             self.__process_tweet_fetch_cmd(command_args)
             
-
     def handle_tweets_command(self):
+        pdb.set_trace()
+        if self.filename:
+            commands = self.import_tweets_command_from_file()
+        else:
+            commands = self.import_tweets_command_from_db()
+
+    def import_tweets_command_from_db(self):
+        pass
+
+    def import_tweets_command_from_file(self):
         print('Importing Tweets for IDs in file:{}'.format(self.filename))
         try:
             wkg_filename = self.filename+'.wkg'
@@ -339,7 +369,7 @@ class TweetsFetcher:
 
 
 def main():
-    print("Starting Tweet fetcher. \nConfig file should be [config/{}]\n".format(config_file_name))
+    print("Starting Tweet fetcher. \nConfig file should be [{}]\n".format(argsHandler.env))
     tweets_fetch_stats = {'processed': 0}
     tweetsFetcher = TweetsFetcher()
     try:
