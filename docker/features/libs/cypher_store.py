@@ -314,6 +314,7 @@ class TweetFetchQueryDBStore:
         DELETED='DELETED'
         PROCESSING='PROCESSING'
         STARTED='STARTED'
+        INVALID='INVALID'
 
     def __init__(self):
         pass

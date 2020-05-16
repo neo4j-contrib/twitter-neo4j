@@ -17,6 +17,7 @@ from datetime import datetime
 import json
 import time
 import argparse
+from libs import common
 
 '''
 Initialization code
@@ -131,25 +132,67 @@ class TweetsFetcher:
             self.__process_tweet_fetch_cmd(command_args)
     
     def execute_cmds(self, cmds):
+        pdb.set_trace()
         for command_json in cmds:
             self.__process_command(command_json)
             pdb.set_trace()
 
+    def __validate_query(self, query):
+        if common.isTrue(query['filter']):
+            if 'retweets_of' in query and query['retweets_of']:
+                return True
+            else:
+                print("Marked as invalid query since filter is not proper[{}]".format(query))
+                return False
+        elif 'retweets_of' in query and query['retweets_of']:
+            print("Marked as invalid query since filter is not proper[{}]".format(query))
+            return False
+        return True
+
     def validate_cmds(self, queries):
+        filtered = filter(self.__validate_query, queries)
+        valid_queries = []
+        for query in filtered:
+            valid_queries.append(query)
+        print("Found {} valid queries out of {} queries".format(len(valid_queries), len(queries)))
+        invalid_queries = [query for query in queries if query not in valid_queries]
+        print("Found {} invalid queries out of {} queries".format(len(invalid_queries), len(queries)))
+        self.tweetFetchQueryIntf.mark_queries_as_invalid(queries=invalid_queries)
+        return valid_queries
+
+    def __get_filters_info(self, query, filters):
+        filter_info = {}
+        for key, value in query.items():
+            if key in filters:
+                filter_info[key] = value
+        return filter_info
+
+
+    def __reformat_db_query(self, queries):
+        filters = self.filterhandler.get_filters()
+        queries_with_filters = [query for query in queries if common.isTrue(query['filter'])]
+        for query in queries_with_filters:
+            query["tweet_filter"] = self.__get_filters_info(query, filters)
+
+        structured_queries = [{"tweet_search":query} for query in queries]
+        return structured_queries
+
+    def __mark_query_as_started(self, queries):
         queries = self.tweetFetchQueryIntf.mark_queries_as_started(queries=queries)
-        print("started fetching {} queries".format(len(queries)))
-        pdb.set_trace()
+        print("Marked {} queries as started".format(len(queries)))
+        return
 
     def handle_tweets_command(self):
         if self.filename:
             commands = self.import_tweets_command_from_file()
         else:
-            commands = self.import_tweets_command_from_db()
-            self.validate_cmds(commands)
+            db_commands = self.import_tweets_command_from_db()
+            valid_cmds = self.validate_cmds(db_commands)
+            commands = self.__reformat_db_query(valid_cmds)
+            self.__mark_query_as_started(valid_cmds)
         self.execute_cmds(commands)
 
     def import_tweets_command_from_db(self):
-        pdb.set_trace()
         queries = self.tweetFetchQueryIntf.fetch_created_mark_processing()
         print("Processing {} new queries".format(len(queries)))
         return queries

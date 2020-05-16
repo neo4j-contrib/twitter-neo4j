@@ -8,7 +8,9 @@ class TweetFilterHandler:
     '''
 
     def __init__(self):
+        # TODO: make generic
         self.filters_dict = {"retweets_of":self.__retweeted_status_screen_name}
+        self.allowed_filters = ["retweets_of"]
 
     def __retweeted_status_screen_name(self, tweet, filter_param):
         status = False
@@ -25,6 +27,9 @@ class TweetFilterHandler:
             else:
                 logger.error("Couldn't find screen name for {} Tweet".fromat(tweet.id))
         return status
+
+    def get_filters(self):
+        return self.allowed_filters
 
     def apply_filters(self, tweets, filters):
         print("applying filters {} on {} tweets".format(filters, len(tweets)))
