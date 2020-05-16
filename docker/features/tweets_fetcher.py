@@ -41,7 +41,7 @@ class ArgsHandler:
         parser.add_argument('--filepath', metavar='N', type=str,
                             help='search query file path', default=None)
         parser.add_argument('--env', metavar='N', type=str,
-                           help='env file path', default='tweet_env.py')
+                           help='env file path', default=None)
         results = parser.parse_args()
         self.filepath = results.filepath
         self.env = results.env
