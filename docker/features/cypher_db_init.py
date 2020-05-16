@@ -7,8 +7,7 @@ import os
 
 
 from config.load_config import load_config
-config_file_name = 'env.py'
-load_config(config_file_name)
+load_config()
 
 from libs.cypher_store import DMCypherDBInit
 
