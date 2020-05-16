@@ -16,6 +16,8 @@ import time
 from datetime import datetime
 import json
 import time
+import argparse
+from libs import common
 
 '''
 Initialization code
@@ -29,14 +31,33 @@ def __init_program():
 
 __init_program()
 
+class ArgsHandler:
+    def __init__(self):
+        self.filepath = None
+        self.env = None
+
+    def get_args(self):
+        parser = argparse.ArgumentParser(description='Process some integers.')
+        parser.add_argument('--filepath', metavar='N', type=str,
+                            help='search query file path', default=None)
+        parser.add_argument('--env', metavar='N', type=str,
+                           help='env file path', default='tweet_env.py')
+        results = parser.parse_args()
+        self.filepath = results.filepath
+        self.env = results.env
+
+argsHandler = ArgsHandler()
+argsHandler.get_args()
+
+
+
 '''
 User defined modules
 '''
 from config.load_config import load_config
-config_file_name = 'tweet_env.py'
-load_config(config_file_name)
+load_config(argsHandler.env)
 
-dep_check = os.getenv("DEPENDENCY_CHECK", "True")
+dep_check = os.getenv("DEPENDENCY_CHECK", "False")
 if dep_check.lower() == "true":
     from installer import dependency_check
 
@@ -48,19 +69,22 @@ from libs.twitter_access import fetch_tweet_info, get_reponse_header
 from libs.twitter_logging import logger
 from libs.tweet_filter_handler import TweetFilterHandler
 
+from libs.fetcher_query_db_intf import TweetFetchQueryIntf
+
 class TweetsFetcher:
     """
     This class uses expert pattern. 
     It provides functioanlity for fetching Tweets and related info
     It stores Tweets info to Graph Database
     """
-    def __init__(self, filename='tweet_ids.txt', database='neo4j'):
+    def __init__(self, filename=argsHandler.filepath, database='neo4j'):
         print("Initializing TweetsFetcher object")
         self.filename = filename
         self.database = database
         self.tweetStoreIntf = TweetCypherStoreIntf()
         self.grandtotal = 0 #Tracks the count of total tweets stored in DB
         self.filterhandler = TweetFilterHandler()
+        self.tweetFetchQueryIntf = TweetFetchQueryIntf() # Query fetcher from DB
         pass
 
     def __process_tweet_fetch_cmd(self, cmd_args):
@@ -106,9 +130,77 @@ class TweetsFetcher:
         elif 'tweet_fetch' in command_json:
             command_args = command_json['tweet_fetch']
             self.__process_tweet_fetch_cmd(command_args)
-            
+    
+    def execute_cmds(self, cmds):
+        for command_json in cmds:
+            self.__process_command(command_json)
+            if not self.filename:
+                print("Marking command as done for [{}] query".format(command_json))
+                commands_to_be_done = [command for command in command_json.values()]
+                self.tweetFetchQueryIntf.mark_queries_as_done(queries=commands_to_be_done)
+
+    def __validate_query(self, query):
+        if common.isTrue(query['filter']):
+            if 'retweets_of' in query and query['retweets_of']:
+                return True
+            else:
+                print("Marked as invalid query since filter is not proper[{}]".format(query))
+                return False
+        elif 'retweets_of' in query and query['retweets_of']:
+            print("Marked as invalid query since filter is not proper[{}]".format(query))
+            return False
+        return True
+
+    def __validate_cmds(self, queries):
+        filtered = filter(self.__validate_query, queries)
+        valid_queries = []
+        for query in filtered:
+            valid_queries.append(query)
+        print("Found {} valid queries out of {} queries".format(len(valid_queries), len(queries)))
+        invalid_queries = [query for query in queries if query not in valid_queries]
+        if (len(invalid_queries)):
+            print("Found {} invalid queries out of {} queries".format(len(invalid_queries), len(queries)))
+            self.tweetFetchQueryIntf.mark_queries_as_invalid(queries=invalid_queries)
+        return valid_queries
+
+    def __get_filters_info(self, query, filters):
+        filter_info = {}
+        for key, value in query.items():
+            if key in filters:
+                filter_info[key] = value
+        return filter_info
+
+
+    def __reformat_db_query(self, queries):
+        filters = self.filterhandler.get_filters()
+        queries_with_filters = [query for query in queries if common.isTrue(query['filter'])]
+        for query in queries_with_filters:
+            query["tweet_filter"] = self.__get_filters_info(query, filters)
+
+        structured_queries = [{"tweet_search":query} for query in queries]
+        return structured_queries
+
+    def __mark_query_as_started(self, queries):
+        queries = self.tweetFetchQueryIntf.mark_queries_as_started(queries=queries)
+        print("Marked {} queries as started".format(len(queries)))
+        return
 
     def handle_tweets_command(self):
+        if self.filename:
+            commands = self.import_tweets_command_from_file()
+        else:
+            db_commands = self.import_tweets_command_from_db()
+            valid_cmds = self.__validate_cmds(db_commands)
+            commands = self.__reformat_db_query(valid_cmds)
+            self.__mark_query_as_started(valid_cmds)
+        self.execute_cmds(commands)
+
+    def import_tweets_command_from_db(self):
+        queries = self.tweetFetchQueryIntf.fetch_created_mark_processing()
+        print("Processing {} new queries".format(len(queries)))
+        return queries
+
+    def import_tweets_command_from_file(self):
         print('Importing Tweets for IDs in file:{}'.format(self.filename))
         try:
             wkg_filename = self.filename+'.wkg'
@@ -116,10 +208,11 @@ class TweetsFetcher:
             json_data = []
             with open(wkg_filename) as f:
                 json_data = [json.loads(line) for line in f]
-            for command_json in json_data:
-                self.__process_command(command_json)
+            command_json = [command for command in json_data]
+            return command_json
         except FileNotFoundError as e:
             print("Skipping Tweet IDs import since there is no file with {}".format(self.filename))
+            return []
 
     def __process_tweets_fetch(self, tweet_id):
         print("Processing {}  Tweet".format(tweet_id))
@@ -339,7 +432,7 @@ class TweetsFetcher:
 
 
 def main():
-    print("Starting Tweet fetcher. \nConfig file should be [config/{}]\n".format(config_file_name))
+    print("Starting Tweet fetcher. \nConfig file should be [{}]\n".format(argsHandler.env))
     tweets_fetch_stats = {'processed': 0}
     tweetsFetcher = TweetsFetcher()
     try:

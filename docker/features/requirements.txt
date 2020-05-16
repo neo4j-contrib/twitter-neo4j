@@ -1,0 +1,5 @@
+python-dotenv
+oauth2
+py2neo
+retrying
+requests

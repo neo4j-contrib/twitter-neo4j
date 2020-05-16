@@ -13,7 +13,7 @@ except:
 # The name of file must be .env file and .env file should be in the current folder of this code
 def load_config(filename=None):
     if filename:
-        env_path = Path('./config') / filename
+        env_path = filename
         load_dotenv(dotenv_path=env_path)
     else:
         load_dotenv()

@@ -14,3 +14,23 @@ class TweetFetchQueryIntf:
 	def fetch_all_queries_by_user(self, user):
 		print("Fetching  query for {} user".format(user))
 		return self.store_intf.fetch_all_queries_by_user(user=user)
+
+	def fetch_created_mark_processing(self):
+		print("Fetching created state query and marking as processing".format())
+		return self.store_intf.query_state_change( 
+			curr_state=TweetFetchQueryDBStore.QueryState.CREATED, new_state = TweetFetchQueryDBStore.QueryState.PROCESSING)
+
+	def mark_queries_as_started(self, queries):
+		print("marking as processing to started for {} queries".format(len(queries)))
+		return self.store_intf.query_state_change(queries=queries,
+			curr_state=TweetFetchQueryDBStore.QueryState.PROCESSING, new_state = TweetFetchQueryDBStore.QueryState.STARTED)
+
+	def mark_queries_as_invalid(self, queries):
+		print("marking as processing to invalid for {} queries".format(len(queries)))
+		return self.store_intf.query_state_change(queries=queries,
+			curr_state=TweetFetchQueryDBStore.QueryState.PROCESSING, new_state = TweetFetchQueryDBStore.QueryState.INVALID)
+
+	def mark_queries_as_done(self, queries):
+		print("marking as started to done for {} queries".format(len(queries)))
+		return self.store_intf.query_state_change(queries=queries,
+			curr_state=TweetFetchQueryDBStore.QueryState.STARTED, new_state = TweetFetchQueryDBStore.QueryState.DONE)
