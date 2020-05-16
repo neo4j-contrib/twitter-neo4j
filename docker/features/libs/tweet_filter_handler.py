@@ -14,7 +14,7 @@ class TweetFilterHandler:
 
     def __retweeted_status_screen_name(self, tweet, filter_param):
         status = False
-        desired_screen_name = filter_param
+        desired_screen_names = filter_param
         retweet_user_name = tweet['user']['screen_name']
         if 'retweeted_status' in tweet and 'user' in tweet['retweeted_status']:
             orig_user = tweet['retweeted_status']['user']
@@ -22,7 +22,7 @@ class TweetFilterHandler:
                 orig_user_screen_name = orig_user['screen_name']
                 if retweet_user_name == orig_user_screen_name:
                     logger.info("skipping {} tweet as it is self retweet".format(tweet['id']))
-                elif orig_user_screen_name == desired_screen_name:
+                elif orig_user_screen_name in desired_screen_names:
                     status = True
             else:
                 logger.error("Couldn't find screen name for {} Tweet".fromat(tweet.id))
