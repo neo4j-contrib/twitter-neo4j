@@ -29,3 +29,8 @@ class TweetFetchQueryIntf:
 		print("marking as processing to invalid for {} queries".format(len(queries)))
 		return self.store_intf.query_state_change(queries=queries,
 			curr_state=TweetFetchQueryDBStore.QueryState.PROCESSING, new_state = TweetFetchQueryDBStore.QueryState.INVALID)
+
+	def mark_queries_as_done(self, queries):
+		print("marking as started to done for {} queries".format(len(queries)))
+		return self.store_intf.query_state_change(queries=queries,
+			curr_state=TweetFetchQueryDBStore.QueryState.STARTED, new_state = TweetFetchQueryDBStore.QueryState.DONE)

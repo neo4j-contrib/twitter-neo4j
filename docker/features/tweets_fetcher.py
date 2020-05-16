@@ -132,10 +132,12 @@ class TweetsFetcher:
             self.__process_tweet_fetch_cmd(command_args)
     
     def execute_cmds(self, cmds):
-        pdb.set_trace()
         for command_json in cmds:
             self.__process_command(command_json)
-            pdb.set_trace()
+            if not self.filename:
+                print("Marking command as done for [{}] query".format(command_json))
+                commands_to_be_done = [command for command in command_json.values()]
+                self.tweetFetchQueryIntf.mark_queries_as_done(queries=commands_to_be_done)
 
     def __validate_query(self, query):
         if common.isTrue(query['filter']):
@@ -149,15 +151,16 @@ class TweetsFetcher:
             return False
         return True
 
-    def validate_cmds(self, queries):
+    def __validate_cmds(self, queries):
         filtered = filter(self.__validate_query, queries)
         valid_queries = []
         for query in filtered:
             valid_queries.append(query)
         print("Found {} valid queries out of {} queries".format(len(valid_queries), len(queries)))
         invalid_queries = [query for query in queries if query not in valid_queries]
-        print("Found {} invalid queries out of {} queries".format(len(invalid_queries), len(queries)))
-        self.tweetFetchQueryIntf.mark_queries_as_invalid(queries=invalid_queries)
+        if (len(invalid_queries)):
+            print("Found {} invalid queries out of {} queries".format(len(invalid_queries), len(queries)))
+            self.tweetFetchQueryIntf.mark_queries_as_invalid(queries=invalid_queries)
         return valid_queries
 
     def __get_filters_info(self, query, filters):
@@ -187,7 +190,7 @@ class TweetsFetcher:
             commands = self.import_tweets_command_from_file()
         else:
             db_commands = self.import_tweets_command_from_db()
-            valid_cmds = self.validate_cmds(db_commands)
+            valid_cmds = self.__validate_cmds(db_commands)
             commands = self.__reformat_db_query(valid_cmds)
             self.__mark_query_as_started(valid_cmds)
         self.execute_cmds(commands)

@@ -315,6 +315,7 @@ class TweetFetchQueryDBStore:
         PROCESSING='PROCESSING'
         STARTED='STARTED'
         INVALID='INVALID'
+        DONE='DONE'
 
     def __init__(self):
         pass
@@ -375,17 +376,18 @@ class TweetFetchQueryDBStore:
     
     def query_state_change(self, curr_state, new_state, queries=[]):
         print("Changing state {}->{}".format(curr_state, new_state))
-        state = {'curr_state':curr_state, 'new_state':new_state}
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'curr_state':curr_state, 'new_state':new_state, 'datetime': currtime}
         if not queries:
             query = """
-                MATCH (query:Query {state:$state.curr_state}) set query.state=$state.new_state return query
+                MATCH (query:Query {state:$state.curr_state}) set query.state=$state.new_state, query.edit_datetime=$state.datetime return query
             """
             response_json = execute_query_with_result(query, state=state)
         else:
             query = """
                 UNWIND $queries as q
 
-                MATCH (query:Query {state:$state.curr_state}) where query.timestamp=q.timestamp set query.state=$state.new_state return query
+                MATCH (query:Query {state:$state.curr_state}) where query.timestamp=q.timestamp set query.state=$state.new_state, query.edit_datetime=$state.datetime return query
             """
             response_json = execute_query_with_result(query, state=state, queries=queries)
         queries = []
