@@ -440,16 +440,19 @@ def main():
     tweets_fetch_stats = {'processed': 0}
     tweetsFetcher = TweetsFetcher()
     i = 0
-    sleeptime = 30
+    sleeptime = 60
     try:
         while  True:
             i = i + 1
             logger.info("[tweets_fetcher] I-{} at {}".format(i, datetime.now()))
+            print("[tweets_fetcher] I-{} at {}".format(i, datetime.now()))
             tweetsFetcher.handle_tweets_command()
             if not argsHandler.daemon:
                 logger.info("[tweets_fetcher]Exiting the program gracefuly")
+                print("[tweets_fetcher]Exiting the program gracefuly")
                 break
             logger.info("[tweets_fetcher] next iterat {} minutes from {}".format(sleeptime, datetime.now()))
+            print("[tweets_fetcher] next iterat {} minutes from {}".format(sleeptime, datetime.now()))
             time.sleep(sleeptime)
     except Exception as e:
         logger.exception("[tweets_fetcher]Caught exception {}".format(e))
