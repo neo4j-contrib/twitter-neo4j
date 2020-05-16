@@ -13,7 +13,7 @@ import os
 import traceback
 import urllib.parse
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import time
 import argparse
@@ -42,9 +42,12 @@ class ArgsHandler:
                             help='search query file path', default=None)
         parser.add_argument('--env', metavar='N', type=str,
                            help='env file path', default=None)
+        parser.add_argument('--daemon', metavar='N', type=str,
+                           help='daemon mode', default='yes')
         results = parser.parse_args()
         self.filepath = results.filepath
         self.env = results.env
+        self.daemon = common.isTrue(results.daemon)
 
 argsHandler = ArgsHandler()
 argsHandler.get_args()
@@ -433,13 +436,27 @@ class TweetsFetcher:
 
 def main():
     print("Starting Tweet fetcher. \nConfig file should be [{}]\n".format(argsHandler.env))
+    logger.info("[tweets_fetcher] started at {}".format(datetime.now()))
     tweets_fetch_stats = {'processed': 0}
     tweetsFetcher = TweetsFetcher()
+    i = 0
+    sleeptime = 30
     try:
-        tweetsFetcher.handle_tweets_command()
-        #tweetsFetcher.import_tweets_search('RT @actormanojjoshi: काग़ज़ मिले की')
+        while  True:
+            i = i + 1
+            logger.info("[tweets_fetcher] I-{} at {}".format(i, datetime.now()))
+            tweetsFetcher.handle_tweets_command()
+            if not argsHandler.daemon:
+                logger.info("[tweets_fetcher]Exiting the program gracefuly")
+                break
+            logger.info("[tweets_fetcher] next iterat {} minutes from {}".format(sleeptime, datetime.now()))
+            time.sleep(sleeptime)
+    except Exception as e:
+        logger.exception("[tweets_fetcher]Caught exception {}".format(e))
+        print("[tweets_fetcher]Caught exception {}".format(e))
     finally:
         tweets_fetch_stats['processed'] = tweetsFetcher.grandtotal
         logger.info("[tweets_fetcher stats] {}".format(tweets_fetch_stats))
+        logger.info("[tweets_fetcher] Ends at {}".format(datetime.now()))
 
 if __name__ == "__main__": main()
