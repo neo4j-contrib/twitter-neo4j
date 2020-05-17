@@ -3,3 +3,4 @@ oauth2
 py2neo
 retrying
 requests
+requests-oauthlib

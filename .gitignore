@@ -2125,3 +2125,6 @@ docker/features/config/env.py
 docker/features/config/env.py_orig
 docker/features/.env
 docker/features/config/.env
+docker/features/libs/authhandler/__pycache__/interactive_oauth_handler.cpython-37.pyc
+docker/features/libs/authhandler/__pycache__/requests_oauth_handler.cpython-37.pyc
+docker/features/config/.env

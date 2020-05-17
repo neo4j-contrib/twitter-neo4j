@@ -13,9 +13,11 @@ from libs.twitter_errors import TwitterRateLimitError, TwitterUserNotFoundError
 
 auth_type = os.getenv("TWITTER_AUTH_TYPE", "oauth")
 if auth_type.lower() == "appauth":
-  from libs.authhandler.appauth_handler import make_api_request
+    from libs.authhandler.appauth_handler import make_api_request
+elif auth_type.lower() == "interactive_oauth":
+    from libs.authhandler.interactive_oauth_handler import make_api_request
 else:
-  from libs.authhandler.oauth_handler import make_api_request
+    from libs.authhandler.oauth_handler import make_api_request
 
 g_headers = None
 
