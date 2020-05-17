@@ -37,7 +37,7 @@ class ArgsHandler:
         self.env = None
 
     def get_args(self):
-        parser = argparse.ArgumentParser(description='Process some integers.')
+        parser = argparse.ArgumentParser(description='Process Tweet fetch')
         parser.add_argument('--filepath', metavar='N', type=str,
                             help='search query file path', default=None)
         parser.add_argument('--env', metavar='N', type=str,
@@ -451,8 +451,8 @@ def main():
                 logger.info("[tweets_fetcher]Exiting the program gracefuly")
                 print("[tweets_fetcher]Exiting the program gracefuly")
                 break
-            logger.info("[tweets_fetcher] next iterat {} minutes from {}".format(sleeptime, datetime.now()))
-            print("[tweets_fetcher] next iterat {} minutes from {}".format(sleeptime, datetime.now()))
+            logger.info("[tweets_fetcher] next iterat {} seconds from {}".format(sleeptime, datetime.now()))
+            print("[tweets_fetcher] next iterat {} seconds from {}".format(sleeptime, datetime.now()))
             time.sleep(sleeptime)
     except Exception as e:
         logger.exception("[tweets_fetcher]Caught exception {}".format(e))
