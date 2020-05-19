@@ -2129,3 +2129,4 @@ docker/features/libs/authhandler/__pycache__/interactive_oauth_handler.cpython-3
 docker/features/libs/authhandler/__pycache__/requests_oauth_handler.cpython-37.pyc
 docker/features/config/.env
 docker/features/libs/authhandler/__pycache__/requests_oauth2_handler.cpython-37.pyc
+.vscode/settings.json
