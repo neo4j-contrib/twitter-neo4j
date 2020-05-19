@@ -51,10 +51,15 @@ class fetcher_query_store:
 		return tweetFetchQueryIntf.mark_queries_as_started(queries)
 
 def test_query_insert():
-	user = {'username':'dkreal', 'email':'dpkumar@gmail.com'}
-	queries= [{"tweet_search":{"search_term":"@invalidquerytest", "categories_list": ["Testing"], "filter":"off", "tweet_filter":{"retweets_of":["invalidquerytest"]}}}]
-	fetcher_query_store.add_new_query(queries=queries, user=user)
-	return True	
+	try:
+		user = {'username':'dkreal', 'email':'dpkumar@gmail.com'}
+		queries= [{"tweet_search":{"search_term":"@invalidquerytest", "categories_list": ["Testing"], "filter":"off", "tweet_filter":{"retweets_of":["invalidquerytest"]}}}]
+		fetcher_query_store.add_new_query(queries=queries, user=user)
+		print("Test is successful")
+		return True	
+	except Exception as e:
+		print("Test failed with error {}".format(e))
+		return False
 
 def main():
 	pdb.set_trace()
