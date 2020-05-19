@@ -1,18 +1,20 @@
 import pdb
 import os
 import time
+import sys
 
 '''
 Initialization code
 '''
-# def __init_program():
-#     print("CWD is {}".format(os.getcwd()))
-#     abspath = os.path.abspath(__file__)
-#     dname = os.path.dirname(abspath)
-#     os.chdir(dname)
-#     print("After change, CWD is {}".format(os.getcwd()))
+def __init_program():
+    print("CWD is {}".format(os.getcwd()))
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    print("adding {} to sys.path".format(dname))
+    sys.path.append(dname)
+    print("After change, sys path is {}".format(sys.path))
 
-# __init_program()
+__init_program()
 
 '''
 User defined modules
