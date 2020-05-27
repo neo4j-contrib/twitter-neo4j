@@ -29,7 +29,7 @@ from config.load_config import load_config
 config_file_name = 'dm_env.py'
 load_config(config_file_name)
 
-dep_check = os.getenv("DEPENDENCY_CHECK", "True")
+dep_check = os.getenv("DEPENDENCY_CHECK", "False")
 if dep_check.lower() == "true":
     from installer import dependency_check
 
