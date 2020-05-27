@@ -1,7 +1,7 @@
 version: '3'
   
 services:
-    featuretool:
+    tweetfetcher:
         build: .
         image: neo4j-twittertools
         command: bash -c "python tweets_fetcher.py"
