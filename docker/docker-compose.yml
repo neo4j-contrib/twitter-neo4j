@@ -12,4 +12,4 @@ services:
         image: neo4j-twittertools
         command: bash -c "python user_friendship.py"
         volumes:
-            - .env:/features/config/.env
+            - .env_dmcheck:/features/config/.env
