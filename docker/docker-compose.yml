@@ -4,8 +4,6 @@ services:
   featuretool:
     build: .
     image: neo4j-twittertools
-    environment:
-      - DJANGO_ALLOWED_HOSTS='*'
     command: bash -c "python tweets_fetcher.py"
     volumes:
-        - ./.env:${HOME}/config/
+        - ./.env:/features/config/
