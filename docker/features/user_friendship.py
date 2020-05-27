@@ -58,7 +58,7 @@ class UserRelations():
         print("User friendship init finished")
     
     def __process_friendship_fetch(self, user):
-        print("Processing friendship fetch for {}  user".format(user))
+        #print("Processing friendship fetch for {}  user".format(user))
         base_url = 'https://api.twitter.com/1.1/friendships/show.json'
     
         params = {
