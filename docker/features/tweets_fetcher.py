@@ -440,20 +440,24 @@ def main():
     tweets_fetch_stats = {'processed': 0}
     tweetsFetcher = TweetsFetcher()
     i = 0
-    sleeptime = 60
+    sleeptime = 300
+    start_time= time.time()
     try:
         while  True:
             i = i + 1
-            logger.info("[tweets_fetcher] I-{} at {}".format(i, datetime.now()))
-            print("[tweets_fetcher] I-{} at {}".format(i, datetime.now()))
+            #logger.info("[tweets_fetcher] I-{} at {}".format(i, datetime.now()))
+            #print("[tweets_fetcher] I-{} at {}".format(i, datetime.now()))
             tweetsFetcher.handle_tweets_command()
             if not argsHandler.daemon:
                 logger.info("[tweets_fetcher]Exiting the program gracefuly")
                 print("[tweets_fetcher]Exiting the program gracefuly")
                 break
-            logger.info("[tweets_fetcher] next iterat {} seconds from {}".format(sleeptime, datetime.now()))
-            print("[tweets_fetcher] next iterat {} seconds from {}".format(sleeptime, datetime.now()))
-            time.sleep(sleeptime)
+            elapsed_time = time.time() - start_time
+            if(elapsed_time < sleeptime):
+                remaining_time = sleeptime - elapsed_time
+                logger.info("[tweets_fetcher] next iterat {} seconds from {}".format(remaining_time, datetime.now()))
+                print("[tweets_fetcher] next iterat {} seconds from {}".format(remaining_time, datetime.now()))
+                time.sleep(remaining_time)
     except Exception as e:
         logger.exception("[tweets_fetcher]Caught exception {}".format(e))
         print("[tweets_fetcher]Caught exception {}".format(e))
