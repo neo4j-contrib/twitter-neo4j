@@ -6,4 +6,4 @@ services:
     image: neo4j-twittertools
     command: bash -c "python tweets_fetcher.py"
     volumes:
-        - .env:/features/config/
+        - .env:/features/config/.env
