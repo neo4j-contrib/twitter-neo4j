@@ -1,0 +1,11 @@
+version: '3'
+  
+services:
+  featuretool:
+    build: .
+    image: neo4j-twittertools
+    environment:
+      - DJANGO_ALLOWED_HOSTS='*'
+    command: bash -c "python feature_query.py"
+    volumes:
+        - .env:config/.env
