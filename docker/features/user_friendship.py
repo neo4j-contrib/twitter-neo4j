@@ -68,7 +68,7 @@ class UserRelations():
         url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
  
         response_json = fetch_tweet_info(url)
-        print(type(response_json))
+        #print(type(response_json))
 
         friendship = response_json
         return friendship
