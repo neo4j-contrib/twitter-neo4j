@@ -26,8 +26,7 @@ User defined modules
 '''
 
 from config.load_config import load_config
-config_file_name = 'dm_env.py'
-load_config(config_file_name)
+load_config()
 
 dep_check = os.getenv("DEPENDENCY_CHECK", "False")
 if dep_check.lower() == "true":
@@ -174,7 +173,7 @@ class UserRelations():
                 continue
 
 def main():
-    print("Starting DM lookup. \nConfig file should be [config/{}]\n".format(config_file_name))
+    print("Starting DM lookup. \nConfig file should be [config/{}]\n".format('.env'))
     stats_tracker = {'processed': 0}
     userRelations = UserRelations(os.environ["TWITTER_USER"])
     try:
