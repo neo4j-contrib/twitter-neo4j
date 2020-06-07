@@ -238,9 +238,10 @@ class TweetCypherStoreIntf:
             tweet.favorites = t.favorite_count,
             tweet.retweet_count = t.retweet_count
 
-        MERGE (user:User {id:u.id, id_str: u.id_str})
+        MERGE (user:User {id:u.id})
         SET user.name = u.name,
             user.screen_name = u.screen_name,
+            user.id_str = u.id_str,
             user.created_at = u.created_at,
             user.statuses_count = u.statuses_count,
             user.location = u.location,
