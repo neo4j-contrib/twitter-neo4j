@@ -300,7 +300,7 @@ class TweetCypherStoreIntf:
         execute_query(query, tweets=tweets, categories=categories)
         print("Tweets added to graph!")
         te = time.perf_counter()
-        print('func:%r took: %2.4f sec' % ('store_tweets_info', te-ts))
+        print('perfdata: func:%r took: %2.4f sec' % ('store_tweets_info', te-ts))
 
 class TweetFetchQueryDBStore:
     """
