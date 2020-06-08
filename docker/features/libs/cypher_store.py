@@ -4,7 +4,7 @@ import socket
 import os
 from retrying import retry
 from datetime import datetime
-
+import time
 
 from .twitter_logging import logger
 from . import common
@@ -214,11 +214,10 @@ class TweetCypherStoreIntf:
           except AttributeError:
             pass
         return result
-
     
     def store_tweets_info(self, tweets, categories=[]):
         print("storing {} count of tweets to DB".format(len(tweets)))
-        pdb.set_trace()
+        ts = time.perf_counter()
         if len(tweets) < 1:
             print("Skipping as no tweet to store in DB")
             return
@@ -300,8 +299,8 @@ class TweetCypherStoreIntf:
         # Send Cypher query.
         execute_query(query, tweets=tweets, categories=categories)
         print("Tweets added to graph!")
-    
-
+        te = time.perf_counter()
+        print('func:%r took: %2.4f sec' % ('store_tweets_info', te-ts))
 
 class TweetFetchQueryDBStore:
     """
