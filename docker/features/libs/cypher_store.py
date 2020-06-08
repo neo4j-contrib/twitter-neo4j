@@ -8,7 +8,6 @@ from datetime import datetime
 
 from .twitter_logging import logger
 from . import common
-from . import timing
 
 #Global variables
 # Number of times to retry connecting to Neo4j upon failure
