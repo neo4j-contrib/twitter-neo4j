@@ -441,12 +441,12 @@ def main():
     tweetsFetcher = TweetsFetcher()
     i = 0
     sleeptime = 300
-    start_time= time.time()
     try:
         while  True:
             i = i + 1
             #logger.info("[tweets_fetcher] I-{} at {}".format(i, datetime.now()))
             #print("[tweets_fetcher] I-{} at {}".format(i, datetime.now()))
+            start_time= time.time()
             tweetsFetcher.handle_tweets_command()
             if not argsHandler.daemon:
                 logger.info("[tweets_fetcher]Exiting the program gracefuly")
