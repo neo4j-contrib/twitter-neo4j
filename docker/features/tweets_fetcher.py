@@ -111,8 +111,8 @@ class TweetsFetcher:
         catgories_list = []
         sync_with_store = False
         tweet_filter = {}
-        if 'categories_list' in cmd_args:
-            catgories_list = cmd_args['categories_list']
+        if 'categories' in cmd_args:
+            catgories_list = cmd_args['categories']
         if 'sync_with_store' in cmd_args and cmd_args['sync_with_store'].lower() == "true":
             sync_with_store = True
 
@@ -361,6 +361,7 @@ class TweetsFetcher:
         tweets_to_import = True
         max_id = None
         total_count = 0
+        total_db_count = 0
         start_time = datetime.now()
         search_term_query = self.tweetStoreIntf.util_get_search_term_query(search_term)
         if sync_with_store:
@@ -406,9 +407,11 @@ class TweetsFetcher:
                     print("{} Tweets to be stored out of {} tweets".format(len(filtered_tweets), len(tweets)))
                     if(len(filtered_tweets)):
                         self.tweetStoreIntf.store_tweets_info(filtered_tweets, categories_list)
-                        print("{} Search tweets added to graph for {}!".format(len(filtered_tweets), search_term))
+                        total_db_count += len(filtered_tweets)
+                        print("{} Search tweets added to graph for [{}]!".format(len(filtered_tweets), search_term))
+                        print(" total {} tweets added to database for [{}] search\n".format(total_db_count, search_term))
                     else:
-                        print("skipping as none found from {} total tweets".format(len(tweets)))
+                        print("skipping adding to database as none found from {} total tweets".format(len(tweets)))
                 else:
                     print("No search tweets found for %s." % (search_term))
                     if(not total_count):

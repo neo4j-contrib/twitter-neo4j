@@ -5,8 +5,10 @@ import os
 from retrying import retry
 from datetime import datetime
 
+
 from .twitter_logging import logger
 from . import common
+from . import timing
 
 #Global variables
 # Number of times to retry connecting to Neo4j upon failure
@@ -214,8 +216,10 @@ class TweetCypherStoreIntf:
             pass
         return result
 
+    
     def store_tweets_info(self, tweets, categories=[]):
         print("storing {} count of tweets to DB".format(len(tweets)))
+        pdb.set_trace()
         if len(tweets) < 1:
             print("Skipping as no tweet to store in DB")
             return
@@ -238,9 +242,9 @@ class TweetCypherStoreIntf:
             tweet.favorites = t.favorite_count,
             tweet.retweet_count = t.retweet_count
 
-        MERGE (user:User {id:u.id})
+        MERGE (user:User {screen_name:u.screen_name})
         SET user.name = u.name,
-            user.screen_name = u.screen_name,
+            user.id = u.id,
             user.id_str = u.id_str,
             user.created_at = u.created_at,
             user.statuses_count = u.statuses_count,
