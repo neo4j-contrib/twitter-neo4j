@@ -1,4 +1,4 @@
-# Instruction for docker-compose.yml
+#Instruction for docker-compose.yml
 ##Pre-requisite for docker-compose.yml
 ####Create a .env file which will be used for tweets fetcher docker container This will be mounted by the docker-compose.yml
 ### create a .env_dmcheck file which will be used for DM check docker container
