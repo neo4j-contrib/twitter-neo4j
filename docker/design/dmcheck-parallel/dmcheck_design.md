@@ -79,11 +79,14 @@ Below diagram depicts various building blocks of this system
 * A background process keeps on making buckets of users for OpenDM check
 * User wants a set of users to be processed at higher priority
     * This user will immediately be put as bucket
-    * If user is already in a bucket with lower priority, then to solve
-        * One approach is to add in new bucket with higher priority 
-            *  Keep it in lower priority bucket as well to make the simple design and implementation
-            *  Delete from Lower priority bucket , but then take care of case when bucket is already picked for processing
-        * Another approach is to process buckets fast enough so that there is no need of adding user in another bucket. In this case,number of buckets must be short enough so that a bucket pool can’t take more than multiple hours.
+    * If user is already in a bucket with lower priority, then it results in multiple processing
+
+#### Approch-1
+    * One approach is to add in new bucket with higher priority 
+        *  Keep it in lower priority bucket as well to make the simple design and implementation
+        *  Delete from Lower priority bucket , but then take care of case when bucket is already picked for processing
+#### Approach-2
+    * Another approach is to process buckets fast enough so that there is no need of adding user in another bucket. In this case,number of buckets must be short enough so that a bucket pool can’t take more than multiple hours.
 
 ###  5.2. <a name='Casewheresystemunlocksdeadbucketwhenclientisupdatingatthesametime'></a>Case where system unlocks dead bucket when client is updating at the same time
 Below condition results in race condition
