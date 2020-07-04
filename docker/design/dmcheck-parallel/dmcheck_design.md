@@ -17,6 +17,10 @@
 	* 5.2. [Case where system unlocks dead bucket when client is updating at the same time](#Casewheresystemunlocksdeadbucketwhenclientisupdatingatthesametime)
 		* 5.2.1. [Approch-1](#Approch-1-1)
 		* 5.2.2. [Approach-2](#Approach-2-1)
+* 6. [Component design](#Componentdesign)
+	* 6.1. [Client Manager component](#ClientManagercomponent)
+		* 6.1.1. [Class Diagram](#ClassDiagram)
+		* 6.1.2. [Sequence diagram](#Sequencediagram)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -102,3 +106,10 @@ Below condition results in race condition
 As an approach, we can allow client to update and then delete the bucket. If another processor picks, then it will be extra processing. But It will update the info. 
 ####  5.2.2. <a name='Approach-2-1'></a>Approach-2
 To avoid this condition at all, we can first mark the bucket as dead and after sometime we can unlock, This way, race condition will not happen
+
+##  6. <a name='Componentdesign'></a>Component design
+###  6.1. <a name='ClientManagercomponent'></a>Client Manager component
+####  6.1.1. <a name='ClassDiagram'></a>Class Diagram
+![image info](./data/dmcheck_client_manager.jpg)
+####  6.1.2. <a name='Sequencediagram'></a>Sequence diagram
+![image info](./data/client_registration_flow.jpg)
