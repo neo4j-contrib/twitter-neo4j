@@ -12,6 +12,9 @@
 	* 4.4. [Below use-case captures various software exceptions](#Belowuse-casecapturesvarioussoftwareexceptions)
 * 5. [Important scenrios](#Importantscenrios)
 	* 5.1. [User wants to process a user with higher priority and user is already picked for processing with lower priority](#Userwantstoprocessauserwithhigherpriorityanduserisalreadypickedforprocessingwithlowerpriority)
+	* 5.2. [Case where system unlocks dead bucket when client is updating at the same time](#Casewheresystemunlocksdeadbucketwhenclientisupdatingatthesametime)
+		* 5.2.1. [Approch-1](#Approch-1)
+		* 5.2.2. [Approach-2](#Approach-2)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -82,14 +85,14 @@ Below diagram depicts various building blocks of this system
             *  Delete from Lower priority bucket , but then take care of case when bucket is already picked for processing
         * Another approach is to process buckets fast enough so that there is no need of adding user in another bucket. In this case,number of buckets must be short enough so that a bucket pool can’t take more than multiple hours.
 
-### Case where system unlocks dead bucket when client is updating at the same time
+###  5.2. <a name='Casewheresystemunlocksdeadbucketwhenclientisupdatingatthesametime'></a>Case where system unlocks dead bucket when client is updating at the same time
 Below condition results in race condition
 * System detects a dead bucket (bucket whose client is dead)
 * System unlocks the bucket and allocates the bucket to new client
 * At the same time, old client tries to update openDM info for  the bucket. System is unaware of this.
 
 
-#### Approch-1
+####  5.2.1. <a name='Approch-1'></a>Approch-1
 As an approach, we can allow client to update and then delete the bucket. If another processor picks, then it will be extra processing. But It will update the info. 
-#### Approach-2
+####  5.2.2. <a name='Approach-2'></a>Approach-2
 To avoid this condition at all, we can first mark the bucket as dead and after sometime we can unlock, This way, race condition will not happen
