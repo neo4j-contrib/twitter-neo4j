@@ -60,3 +60,14 @@ This problem can be mapped to public distribution system(PDS). Note that PDS sho
 ###  4.4. <a name='Belowuse-casecapturesvarioussoftwareexceptions'></a>Below use-case captures various software exceptions
 ![image info](./data/usecases_for_software_exceptions.jpg)
 
+## Important scenrios
+### User wants to process a user with higher priority and user is already picked for processing with lower priority
+
+* A background process keeps on making buckets of users for OpenDM check
+* User wants a set of users to be processed at higher priority
+    * This user will immediately be put as bucket
+    * If user is already in a bucket with lower priority, then to solve
+        * One approach is to add in new bucket with higher priority 
+**** Keep it in lower priority bucket as well to make the simple design and implementation
+**** delete from Lower priority bucket , but then take care of case when bucket is already picked for processing
+**** Another approach is to process buckets fast enough so that there is no need of adding user in another bucket. In this case,number of buckets must be short enough so that a bucket pool can’t take more than multiple hours.
