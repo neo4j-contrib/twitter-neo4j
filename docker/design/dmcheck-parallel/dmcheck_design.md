@@ -3,15 +3,15 @@
 * 2. [Requirements break-down](#Requirementsbreak-down)
 	* 2.1. [Functional requirements](#Functionalrequirements)
 	* 2.2. [Non-functional requirements](#Non-functionalrequirements)
-* 3. [Use cases walkthrough](#Usecaseswalkthrough)
-	* 3.1. [Below use-case talks about how the users are divided in buckets.](#Belowuse-casetalksabouthowtheusersaredividedinbuckets.)
-	* 3.2. [Below use-case talks how multiple clients takes items and update. Also, it talks about challenges](#Belowuse-casetalkshowmultipleclientstakesitemsandupdate.Alsoittalksaboutchallenges)
-	* 3.3. [Below use-case talks about error conditions which can happen in this system](#Belowuse-casetalksabouterrorconditionswhichcanhappeninthissystem)
-	* 3.4. [Below use-case captures various software exceptions](#Belowuse-casecapturesvarioussoftwareexceptions)
-* 4. [Important scenrios](#Importantscenrios)
-	* 4.1. [User wants to process a user with higher priority and user is already picked for processing with lower priority](#Userwantstoprocessauserwithhigherpriorityanduserisalreadypickedforprocessingwithlowerpriority)
-* 5. [Architecture](#Architecture)
-	* 5.1. [Architecture diagram](#Architecturediagram)
+* 3. [Architecture](#Architecture)
+	* 3.1. [Architecture diagram](#Architecturediagram)
+* 4. [Use cases walkthrough](#Usecaseswalkthrough)
+	* 4.1. [Below use-case talks about how the users are divided in buckets.](#Belowuse-casetalksabouthowtheusersaredividedinbuckets.)
+	* 4.2. [Below use-case talks how multiple clients takes items and update. Also, it talks about challenges](#Belowuse-casetalkshowmultipleclientstakesitemsandupdate.Alsoittalksaboutchallenges)
+	* 4.3. [Below use-case talks about error conditions which can happen in this system](#Belowuse-casetalksabouterrorconditionswhichcanhappeninthissystem)
+	* 4.4. [Below use-case captures various software exceptions](#Belowuse-casecapturesvarioussoftwareexceptions)
+* 5. [Important scenrios](#Importantscenrios)
+	* 5.1. [User wants to process a user with higher priority and user is already picked for processing with lower priority](#Userwantstoprocessauserwithhigherpriorityanduserisalreadypickedforprocessingwithlowerpriority)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -47,21 +47,28 @@ Multiple clients like to contribute in checking openDM. These clients can come a
 
 
 
-##  3. <a name='Usecaseswalkthrough'></a>Use cases walkthrough
-###  3.1. <a name='Belowuse-casetalksabouthowtheusersaredividedinbuckets.'></a>Below use-case talks about how the users are divided in buckets.
+##  3. <a name='Architecture'></a>Architecture
+This problem can be mapped to public distribution system(PDS). Note that PDS shops gives the fix amount of groceriers to multiple card holders. Card holder can be anyone who has government approval. Generally on distribution day, there will be queue. To speedize, this shop owner makes bucket of rations as pre-processing. This helps shop owner to distribute ration in parallel.
+
+###  3.1. <a name='Architecturediagram'></a>Architecture diagram
+Below diagram depicts various building blocks of this system
+![image info](./data/architecture_diagram.jpg)
+
+##  4. <a name='Usecaseswalkthrough'></a>Use cases walkthrough
+###  4.1. <a name='Belowuse-casetalksabouthowtheusersaredividedinbuckets.'></a>Below use-case talks about how the users are divided in buckets.
 ![image info](./data/usecases_for_bucket_creation.jpg)
 
-###  3.2. <a name='Belowuse-casetalkshowmultipleclientstakesitemsandupdate.Alsoittalksaboutchallenges'></a>Below use-case talks how multiple clients takes items and update. Also, it talks about challenges
+###  4.2. <a name='Belowuse-casetalkshowmultipleclientstakesitemsandupdate.Alsoittalksaboutchallenges'></a>Below use-case talks how multiple clients takes items and update. Also, it talks about challenges
 ![image info](./data/usecase_multi_client_processing.jpg)
 
-###  3.3. <a name='Belowuse-casetalksabouterrorconditionswhichcanhappeninthissystem'></a>Below use-case talks about error conditions which can happen in this system
+###  4.3. <a name='Belowuse-casetalksabouterrorconditionswhichcanhappeninthissystem'></a>Below use-case talks about error conditions which can happen in this system
 ![image info](./data/usecase_error_Conditons_handling.jpg)
 
-###  3.4. <a name='Belowuse-casecapturesvarioussoftwareexceptions'></a>Below use-case captures various software exceptions
+###  4.4. <a name='Belowuse-casecapturesvarioussoftwareexceptions'></a>Below use-case captures various software exceptions
 ![image info](./data/usecases_for_software_exceptions.jpg)
 
-##  4. <a name='Importantscenrios'></a>Important scenrios
-###  4.1. <a name='Userwantstoprocessauserwithhigherpriorityanduserisalreadypickedforprocessingwithlowerpriority'></a>User wants to process a user with higher priority and user is already picked for processing with lower priority
+##  5. <a name='Importantscenrios'></a>Important scenrios
+###  5.1. <a name='Userwantstoprocessauserwithhigherpriorityanduserisalreadypickedforprocessingwithlowerpriority'></a>User wants to process a user with higher priority and user is already picked for processing with lower priority
 
 * A background process keeps on making buckets of users for OpenDM check
 * User wants a set of users to be processed at higher priority
@@ -71,10 +78,3 @@ Multiple clients like to contribute in checking openDM. These clients can come a
             *  Keep it in lower priority bucket as well to make the simple design and implementation
             *  Delete from Lower priority bucket , but then take care of case when bucket is already picked for processing
         * Another approach is to process buckets fast enough so that there is no need of adding user in another bucket. In this case,number of buckets must be short enough so that a bucket pool can’t take more than multiple hours.
-
-##  5. <a name='Architecture'></a>Architecture
-This problem can be mapped to public distribution system(PDS). Note that PDS shops gives the fix amount of groceriers to multiple card holders. Card holder can be anyone who has government approval. Generally on distribution day, there will be queue. To speedize, this shop owner makes bucket of rations as pre-processing. This helps shop owner to distribute ration in parallel.
-
-###  5.1. <a name='Architecturediagram'></a>Architecture diagram
-Below diagram depicts various building blocks of this system
-![image info](./data/architecture_diagram.jpg)
