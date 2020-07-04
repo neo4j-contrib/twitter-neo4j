@@ -15,3 +15,8 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 syslog.setFormatter(formatter)
 logger.addHandler(syslog)
+
+
+# Console logger
+console_logger = logging.getLogger()
+console_logger.setLevel(logging.DEBUG)

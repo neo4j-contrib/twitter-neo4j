@@ -78,11 +78,54 @@ class DMCypherStoreIntf():
     def __init__(self, source_screen_name=None):
         print("Initializing Cypher Store")
         self.source_screen_name = source_screen_name
+        self.source_id = None
         try_connecting_neo4j()
         print("Cypher Store init finished")
+    
+    def dmcheck_client_valid(self, client_id):
+        print("Checking existing of  client with id={}".format(client_id))
+        user = [{'id':client_id}]
+        query = """
+            UNWIND $user AS u
+
+            MATCH (client:DMCheckClient {id:u.id}) return u.id
+        """
+        response_json = execute_query_with_result(query, user=user)
+        if response_json:
+            return True
+        else:
+            return False
+
+    def add_dmcheck_client(self, client_id, screen_name):
+        print("Adding client with id={}, screen name={}".format(client_id, screen_name))
+        user = [{'screen_name':screen_name, 'id':client_id}]
+        query = """
+            UNWIND $user AS u
+
+            MERGE (client:DMCheckClient {id:u.id})
+                SET client.screen_name = u.screen_name
+                SET client.state = "CREATED"
+        """
+        execute_query(query, user=user)
+        return
+
+    def change_state_dmcheck_client(self, client_id, state):
+        print("Changing state to {} for client with id={}".format(state, client_id))
+        user = [{'id':client_id, 'state':state}]
+        query = """
+            UNWIND $user AS u
+
+            MATCH (client:DMCheckClient {id:u.id})
+                SET client.state = u.state
+        """
+        execute_query(query, user=user)
+        return
 
     def set_source_screen_name(self, source_screen_name):
         self.source_screen_name = source_screen_name
+
+    def set_source_id(self, source_id):
+        self.source_id = source_id
 
     def get_all_users_list(self):
         print("Finding users from DB")

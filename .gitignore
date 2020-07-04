@@ -7938,3 +7938,15 @@ docker/features/libs/__pycache__/timing.cpython-37.pyc
 docker/features/libs/cypher_store.py
 docker/features/libs/timing.py
 docker/features/tweets_fetcher.py
+docker/features/config/__pycache__/__init__.cpython-38.pyc
+docker/features/config/__pycache__/load_config.cpython-38.pyc
+docker/features/libs/__pycache__/__init__.cpython-38.pyc
+docker/features/libs/__pycache__/common.cpython-38.pyc
+docker/features/libs/__pycache__/cypher_store.cpython-38.pyc
+docker/features/libs/__pycache__/dmcheck_client_manager.cpython-38.pyc
+docker/features/libs/__pycache__/dmcheck_user_manager.cpython-38.pyc
+docker/features/libs/__pycache__/twitter_access.cpython-38.pyc
+docker/features/libs/__pycache__/twitter_errors.cpython-38.pyc
+docker/features/libs/__pycache__/twitter_logging.cpython-38.pyc
+docker/features/libs/authhandler/__pycache__/__init__.cpython-38.pyc
+docker/features/libs/authhandler/__pycache__/oauth_handler.cpython-38.pyc

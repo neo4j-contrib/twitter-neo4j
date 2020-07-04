@@ -42,7 +42,7 @@ from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
 from libs.twitter_access import fetch_tweet_info, get_reponse_header
 from libs.twitter_logging import logger
 
-
+from libs.dmcheck_client_manager import DMCheckClientManager
 
 
 class UserRelations():
@@ -50,13 +50,26 @@ class UserRelations():
     This class uses expert pattern. 
     It provides API to 
     """
-    def __init__(self, source_screen_name, outfile=None):
+    def __init__(self, source_id, source_screen_name, outfile=None):
         print("Initializing user friendship")
+        self.source_id = source_id
         self.source_screen_name = source_screen_name
-        self.dataStoreIntf = DMStoreIntf(source_screen_name)
+        self.dataStoreIntf = DMStoreIntf()
+        self.dmcheck_client_manager = DMCheckClientManager()
         self.grandtotal = 0 #Tracks the count of total friendship stored in DB
         print("User friendship init finished")
     
+    def register_as_dmcheck_client(self):
+        print("Registering DM check client as {} Id and {} screen.name".format(self.source_id, self.source_screen_name))
+        self.dmcheck_client_manager.register_client(self.source_id, self.source_screen_name)
+        self.dataStoreIntf.set_source_id(self.source_id)
+        print("Successfully registered DM check client as {} Id and {} screen.name".format(self.source_id, self.source_screen_name))
+
+    def unregister_client(self):
+        print("Unregistering DM check client as {} Id and {} screen.name".format(self.source_id, self.source_screen_name))
+        self.dmcheck_client_manager.unregister_client(self.source_id, self.source_screen_name)
+        print("Successfully unregistered DM check client as {} Id and {} screen.name".format(self.source_id, self.source_screen_name))
+
     def __process_friendship_fetch(self, user):
         #print("Processing friendship fetch for {}  user".format(user))
         base_url = 'https://api.twitter.com/1.1/friendships/show.json'
@@ -175,7 +188,8 @@ class UserRelations():
 def main():
     print("Starting DM lookup. \nConfig file should be [config/{}]\n".format('.env'))
     stats_tracker = {'processed': 0}
-    userRelations = UserRelations(os.environ["TWITTER_USER"])
+    userRelations = UserRelations(os.environ["TWITTER_ID"],os.environ["TWITTER_USER"])
+    userRelations.register_as_dmcheck_client()
     try:
         userRelations.findDMForUsersInStore()
     except Exception as e:
