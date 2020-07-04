@@ -39,6 +39,7 @@ Multiple clients like to contribute in checking openDM. These clients can come a
 * User should be able to view list of users which are not yet marked for processing.
 * If user is deleted, then system should silently discard any update of OpenDM for this user
 * On user deletion, system should delete corresponding OpenDM info as well
+* Multiple clients should be able to proxy using same Tweeter ID. However, in this case, its  the client responsibility to maintain harmony among themselves. System will treat all such clients as identical
 
 ###  2.2. <a name='Non-functionalrequirements'></a>Non-functional requirements
 * Clients should not wait for getting user list
