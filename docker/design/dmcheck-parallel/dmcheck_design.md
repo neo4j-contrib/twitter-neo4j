@@ -4,6 +4,7 @@
 	* 2.1. [Functional requirements](#Functionalrequirements)
 	* 2.2. [Non-functional requirements](#Non-functionalrequirements)
 * 3. [Architecture](#Architecture)
+	* 3.1. [Architecture diagram](#Architecturediagram)
 * 4. [Use cases walkthrough](#Usecaseswalkthrough)
 	* 4.1. [Below use-case talks about how the users are divided in buckets.](#Belowuse-casetalksabouthowtheusersaredividedinbuckets.)
 	* 4.2. [Below use-case talks how multiple clients takes items and update. Also, it talks about challenges](#Belowuse-casetalkshowmultipleclientstakesitemsandupdate.Alsoittalksaboutchallenges)
@@ -48,6 +49,10 @@ Multiple clients like to contribute in checking openDM. These clients can come a
 
 ##  3. <a name='Architecture'></a>Architecture
 This problem can be mapped to public distribution system(PDS). Note that PDS shops gives the fix amount of groceriers to multiple card holders. Card holder can be anyone who has government approval. Generally on distribution day, there will be queue. To speedize, this shop owner makes bucket of rations as pre-processing. This helps shop owner to distribute ration in parallel.
+
+###  3.1. <a name='Architecturediagram'></a>Architecture diagram
+Below diagram depicts various building blocks of this system
+![image info](./data/architecture_diagram.jpg)
 
 ##  4. <a name='Usecaseswalkthrough'></a>Use cases walkthrough
 ###  4.1. <a name='Belowuse-casetalksabouthowtheusersaredividedinbuckets.'></a>Below use-case talks about how the users are divided in buckets.
