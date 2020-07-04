@@ -25,9 +25,12 @@ Multiple clients like to contribute in checking openDM. These clients can come a
 * Multiple clients should be able to fetch user list for checking
 * Only the client who got the user list should be able to update
 * Only registered client should be able to interact with system
+* Client can be able to specify its capability and system should be able to provide number of user lists accordingly
 * In case of any difficulyt(Crash for example), Client should be able to recollect its owned user list with the help of system
 * User should be able to give list of users which needs high priority for processing OpenDM
 * User should be able to view list of users which are not yet marked for processing.
+* If user is deleted, then system should silently discard any update of OpenDM for this user
+* On user deletion, system should delete corresponding OpenDM info as well
 
 ###  2.2. <a name='Non-functionalrequirements'></a>Non-functional requirements
 * Clients should not wait for getting user list
@@ -37,6 +40,8 @@ Multiple clients like to contribute in checking openDM. These clients can come a
 * System should have minimal load on DB while its processing
 * System should have a resonable maximum wait time for processing any user openDM once it marked for processing. For non-marked, user, its fine as user can assing if needed.
 * System should be able to scale with reasonable limit. Limit should be advertised
+* System should avoid giving same user list to multiple clients. However, for performance, it may be accepted, but should not be a practice.
+
 
 
 ##  3. <a name='Architecture'></a>Architecture
