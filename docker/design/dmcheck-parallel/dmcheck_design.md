@@ -9,14 +9,14 @@ This problem can be mapped to public distribution system(PDS). Note that PDS sho
 
 ## Use cases walkthrough
 ### Below use-case talks about how the users are divided in buckets.
-![image info](./usecases_for_bucket_creation.jpg)
+![image info](./data/usecases_for_bucket_creation.jpg)
 
 ### Below use-case talks how multiple clients takes items and update. Also, it talks about challenges
-![image info](./usecase_multi_client_processing.jpg)
+![image info](./data/usecase_multi_client_processing.jpg)
 
 ### Below use-case talks about error conditions which can happen in this system
-![image info](./usecase_error_Conditons_handling.jpg)
+![image info](./data/usecase_error_Conditons_handling.jpg)
 
 ### Below use-case captures various software exceptions
-![image info](./usecases_for_software_exceptions.jpg)
+![image info](./data/usecases_for_software_exceptions.jpg)
 
