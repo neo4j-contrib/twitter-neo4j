@@ -21,7 +21,7 @@
 # DM check subsystem
 
 ##  1. <a name='Vision'></a>Vision
-Multiple clients like to contribute in checking openDM. These clients can come and go anytime. System should provide fault tolerant and fast soltion for them to contribute.
+Multiple clients like to contribute in checking openDM. These clients can come and go anytime. System should provide fault tolerant and efficient solution for them to contribute.
 
 ##  2. <a name='Requirementsbreak-down'></a>Requirements break-down
 ###  2.1. <a name='Functionalrequirements'></a>Functional requirements
@@ -29,7 +29,7 @@ Multiple clients like to contribute in checking openDM. These clients can come a
 * Only the client who got the user list should be able to update
 * Only registered client should be able to interact with system
 * Client can be able to specify its capability and system should be able to provide number of user lists accordingly
-* In case of any difficulyt(Crash for example), Client should be able to recollect its owned user list with the help of system
+* In case of any difficulty(Crash for example), Client should be able to recollect its owned user list with the help of system
 * User should be able to give list of users which needs high priority for processing OpenDM
 * User should be able to view list of users which are not yet marked for processing.
 * If user is deleted, then system should silently discard any update of OpenDM for this user
@@ -37,13 +37,16 @@ Multiple clients like to contribute in checking openDM. These clients can come a
 
 ###  2.2. <a name='Non-functionalrequirements'></a>Non-functional requirements
 * Clients should not wait for getting user list
-* Client should not wait while updaing openDM info for user
+* Client should not wait while updaing openDM info for user list assigned to it
 * System should be fair to users for OpenDM check. It means that no user openDM check should be starved for ever
 * System should unlock user lists owned by dead clients and reassigns
-* System should have minimal load on DB while its processing
-* System should have a resonable maximum wait time for processing any user openDM once it marked for processing. For non-marked, user, its fine as user can assing if needed.
+* System should have minimal load on DB while its processing. This data should be instrumented and published.
+* System should have a resonable maximum wait time for processing any user openDM once it marked for processing. For non-marked, user, its fine as user can assing if needed. 
 * System should be able to scale with reasonable limit. Limit should be advertised
 * System should avoid giving same user list to multiple clients. However, for performance, it may be accepted, but should not be a practice.
+* System should be lock-free. Lock must be used only when it can't be avoided. Its requirement for scale. Lock will be bottleneck for any system with lock
+* Any client should not be able to predict its assigned user list or manipulate system to get user list of its choice. This requirement is related to privacy and security
+
 
 
 
@@ -78,3 +81,15 @@ Below diagram depicts various building blocks of this system
             *  Keep it in lower priority bucket as well to make the simple design and implementation
             *  Delete from Lower priority bucket , but then take care of case when bucket is already picked for processing
         * Another approach is to process buckets fast enough so that there is no need of adding user in another bucket. In this case,number of buckets must be short enough so that a bucket pool can’t take more than multiple hours.
+
+### Case where system unlocks dead bucket when client is updating at the same time
+Below condition results in race condition
+* System detects a dead bucket (bucket whose client is dead)
+* System unlocks the bucket and allocates the bucket to new client
+* At the same time, old client tries to update openDM info for  the bucket. System is unaware of this.
+
+
+#### Approch-1
+As an approach, we can allow client to update and then delete the bucket. If another processor picks, then it will be extra processing. But It will update the info. 
+#### Approach-2
+To avoid this condition at all, we can first mark the bucket as dead and after sometime we can unlock, This way, race condition will not happen
