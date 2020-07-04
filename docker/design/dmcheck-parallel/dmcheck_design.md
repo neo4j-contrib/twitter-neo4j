@@ -19,8 +19,8 @@
 ##  1. <a name='Vision'></a>Vision
 Multiple clients like to contribute in checking openDM. These clients can come and go anytime. System should provide fault tolerant and fast soltion for them to contribute.
 
-# Requirements break-down
-##  2. <a name='Functionalrequirements'></a>Functional requirements
+## Requirements break-down
+###  2. <a name='Functionalrequirements'></a>Functional requirements
 * Multiple clients should be able to fetch user list for checking
 * Only the client who got the user list should be able to update
 * Only registered client should be able to interact with system
@@ -28,7 +28,7 @@ Multiple clients like to contribute in checking openDM. These clients can come a
 * User should be able to give list of users which needs high priority for processing OpenDM
 * User should be able to view list of users which are not yet marked for processing.
 
-##  3. <a name='Non-functionalrequirements'></a>Non-functional requirements
+###  3. <a name='Non-functionalrequirements'></a>Non-functional requirements
 * Clients should not wait for getting user list
 * Client should not wait while updaing openDM info for user
 * System should be fair to users for OpenDM check. It means that no user openDM check should be starved for ever
