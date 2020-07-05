@@ -10,6 +10,7 @@
 	* 4.2. [Below use-case talks how multiple clients takes items and update. Also, it talks about challenges](#Belowuse-casetalkshowmultipleclientstakesitemsandupdate.Alsoittalksaboutchallenges)
 	* 4.3. [Below use-case talks about error conditions which can happen in this system](#Belowuse-casetalksabouterrorconditionswhichcanhappeninthissystem)
 	* 4.4. [Below use-case captures various software exceptions](#Belowuse-casecapturesvarioussoftwareexceptions)
+	* 4.5. [Visibility related use-case. It will be used for troubleshoot and monitoring](#Visibilityrelateduse-case.Itwillbeusedfortroubleshootandmonitoring)
 * 5. [Important scenrios](#Importantscenrios)
 	* 5.1. [User wants to process a user with higher priority and user is already picked for processing with lower priority](#Userwantstoprocessauserwithhigherpriorityanduserisalreadypickedforprocessingwithlowerpriority)
 		* 5.1.1. [Approch-1](#Approch-1)
@@ -56,7 +57,7 @@ Multiple clients like to contribute in checking openDM. These clients can come a
 * System should avoid giving same user list to multiple clients. However, for performance, it may be accepted, but should not be a practice.
 * System should be lock-free. Lock must be used only when it can't be avoided. Its requirement for scale. Lock will be bottleneck for any system with lock
 * Any client should not be able to predict its assigned user list or manipulate system to get user list of its choice. This requirement is related to privacy and security
-
+* System should facilitate enough data for monitoring and troubleshooting
 
 
 
@@ -79,6 +80,9 @@ Below diagram depicts various building blocks of this system
 
 ###  4.4. <a name='Belowuse-casecapturesvarioussoftwareexceptions'></a>Below use-case captures various software exceptions
 ![image info](./data/usecases_for_software_exceptions.jpg)
+
+###  4.5. <a name='Visibilityrelateduse-case.Itwillbeusedfortroubleshootandmonitoring'></a>Visibility related use-case. It will be used for troubleshoot and monitoring
+![image info](./data/visibility_usecases.jpg)
 
 ##  5. <a name='Importantscenrios'></a>Important scenrios
 ###  5.1. <a name='Userwantstoprocessauserwithhigherpriorityanduserisalreadypickedforprocessingwithlowerpriority'></a>User wants to process a user with higher priority and user is already picked for processing with lower priority
