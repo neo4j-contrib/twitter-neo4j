@@ -20,6 +20,7 @@ constraint_list = [
     "CREATE CONSTRAINT ON (c:Category) ASSERT c.name IS UNIQUE;",
     "CREATE CONSTRAINT ON (q:Query) ASSERT q.timestamp IS UNIQUE;",
     "CREATE CONSTRAINT ON (qu:QueryUser) ASSERT qu.id IS UNIQUE;",
+    "CREATE CONSTRAINT ON (c:DMCheckClient) ASSERT c.id IS UNIQUE;",
 ]
 
 if __name__ == "__main__":
