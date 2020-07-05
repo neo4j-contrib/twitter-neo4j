@@ -25,6 +25,8 @@ class DMCheckClientManager:
     """
     client_id : Twitter UID
     client_screen_name: Twitter screen name of user
+    #TODO: Validate existance of client ID in the twitter
+    #TODO: Fetch client ID if screen name alone is provided
     """
     def register_client(self, client_id, client_screen_name):
         logger.info("Processing registeration request for client with ID={} and screen_name={}".format(client_id, client_screen_name))

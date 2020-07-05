@@ -96,27 +96,34 @@ class DMCypherStoreIntf():
 
     def add_dmcheck_client(self, client_id, screen_name):
         print("Adding client with id={}, screen name={}".format(client_id, screen_name))
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'state':"CREATED", 'create_datetime': currtime, 'edit_datetime':currtime}
         user = [{'screen_name':screen_name, 'id':client_id}]
         query = """
             UNWIND $user AS u
-
+    
             MERGE (client:DMCheckClient {id:u.id})
-                SET client.screen_name = u.screen_name
-                SET client.state = "CREATED"
+                SET client.screen_name = u.screen_name,
+                    client.state = $state.state,
+                    client.create_datetime = $state.create_datetime,
+                    client.edit_datetime = $state.edit_datetime
         """
-        execute_query(query, user=user)
+        execute_query(query, user=user, state=state)
         return
 
     def change_state_dmcheck_client(self, client_id, state):
         print("Changing state to {} for client with id={}".format(state, client_id))
-        user = [{'id':client_id, 'state':state}]
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'state':state, 'edit_datetime':currtime}
+        user = [{'id':client_id}]
         query = """
             UNWIND $user AS u
 
             MATCH (client:DMCheckClient {id:u.id})
-                SET client.state = u.state
+                SET client.state = $state.state,
+                    client.edit_datetime = $state.edit_datetime
         """
-        execute_query(query, user=user)
+        execute_query(query, user=user, state=state)
         return
 
     def get_all_users_list(self):
@@ -172,34 +179,40 @@ class DMCypherStoreIntf():
 
     def store_dm_friends(self, friendship):
         print("storing {} count of friendship to DB".format(len(friendship)))
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'edit_datetime':currtime}
         query = """
         UNWIND $friendship AS dm
 
 
         MERGE (suser:DMCheckClient {screen_name:dm.source})
+            SET suser.edit_datetime = $state.edit_datetime
         MERGE (tuser:User {screen_name:dm.target})
 
         MERGE (suser)-[:DM]->(tuser)
         """
 
         # Send Cypher query.
-        execute_query(query, friendship=friendship)
+        execute_query(query, friendship=friendship, state=state)
         print("DM info added to graph!")
 
     def store_nondm_friends(self, friendship):
         print("storing {} count of non-DM friendship to DB".format(len(friendship)))
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'edit_datetime':currtime}
         query = """
         UNWIND $friendship AS nondm
 
 
         MERGE (suser:DMCheckClient {screen_name:nondm.source})
+               SET suser.edit_datetime = $state.edit_datetime
         MERGE (tuser:User {screen_name:nondm.target})
 
         MERGE (suser)-[:NonDM]->(tuser)
         """
 
         # Send Cypher query.
-        execute_query(query, friendship=friendship)
+        execute_query(query, friendship=friendship, state=state)
         print("DM info added to graph!")
 
 class TweetCypherStoreIntf:
