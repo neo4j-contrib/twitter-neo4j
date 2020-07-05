@@ -139,6 +139,17 @@ class DMCypherStoreIntf():
         logger.debug("Got {} users".format(len(users)))
         return users      
 
+    def get_all_users_in_dmchech_buckets(self):
+        print("Finding all users from DB who is not put in DMCheck bucket")
+        query = """
+            match(u:User)-[:INBUCKET]->(b:DMCheckBucket)
+            return u.screen_name ORDER BY u.screen_name
+        """
+        response_json = execute_query_with_result(query)
+        users = [ user['u.screen_name'] for user in response_json]
+        logger.debug("Got {} users".format(len(users)))
+        return users   
+
     def add_dmcheck_buckets(self, buckets):
         print("Adding {} DMcheck buckets".format(len(buckets)))
         currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')

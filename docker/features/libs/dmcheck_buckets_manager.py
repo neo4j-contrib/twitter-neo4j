@@ -39,7 +39,7 @@ class DMCheckBucketManager:
 
     #TODO: provide capability to specify max number of buckets count
     def add_buckets(self):
-        buckets, users= self.__get_buckets()
+        buckets= self.__get_buckets()
         
         if len(buckets):
             db_buckets = self.__make_db_buckets(buckets)
@@ -60,9 +60,13 @@ class DMCheckBucketManager:
 
     def __get_buckets(self, bucketsize = DMCHECK_DEFAULT_BUCKET_SIZE):
         logger.info("Making buckets with {} size".format(bucketsize))
+        #TODO: make single call for getting list as current code is not optimized
         users = self.dataStoreIntf.get_all_nonprocessed_list()
-        buckets = list(utils.chunks(users, bucketsize))
-        return buckets, users
+        bucket_users = self.dataStoreIntf.get_all_users_in_dmchech_buckets()
+        users_wkg = sorted(set(users) - set(bucket_users))
+        buckets = list(utils.chunks(users_wkg, bucketsize))
+        logger.info("Got {} buckets".format(len(buckets)))
+        return buckets
         
     def getBuckets(self, bucketscount):
         pass

@@ -171,7 +171,7 @@ class UserRelations():
                 # te = time.perf_counter()
                 # print('perfdata: func:%r took: %2.4f sec' % ('store_tweets_info', te-ts))
                 # pdb.set_trace()
-                # #print('Processing with unchecked {} users using single api'.format(len(nonprocessed_user)))
+                #print('Processing with unchecked {} users using single api'.format(len(nonprocessed_user)))
                 if(len(users_wkg)):
                     self.__process_dm(users_wkg, 10)
                 else:
