@@ -62,7 +62,6 @@ class UserRelations():
     def register_as_dmcheck_client(self):
         print("Registering DM check client as {} Id and {} screen.name".format(self.source_id, self.source_screen_name))
         self.dmcheck_client_manager.register_client(self.source_id, self.source_screen_name)
-        self.dataStoreIntf.set_source_id(self.source_id)
         print("Successfully registered DM check client as {} Id and {} screen.name".format(self.source_id, self.source_screen_name))
 
     def unregister_client(self):

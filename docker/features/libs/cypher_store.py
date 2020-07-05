@@ -75,10 +75,8 @@ class DMCypherDBInit:
                 print(e)
 
 class DMCypherStoreIntf():
-    def __init__(self, source_screen_name=None):
+    def __init__(self):
         print("Initializing Cypher Store")
-        self.source_screen_name = source_screen_name
-        self.source_id = None
         try_connecting_neo4j()
         print("Cypher Store init finished")
     
@@ -121,12 +119,6 @@ class DMCypherStoreIntf():
         execute_query(query, user=user)
         return
 
-    def set_source_screen_name(self, source_screen_name):
-        self.source_screen_name = source_screen_name
-
-    def set_source_id(self, source_id):
-        self.source_id = source_id
-
     def get_all_users_list(self):
         print("Finding users from DB")
         query = """
@@ -139,27 +131,21 @@ class DMCypherStoreIntf():
     
     def get_dm_users_list(self):
         print("Finding DM users from DB")
-        source = [{'screen_name':self.source_screen_name}]
         query = """
-            UNWIND $source AS source
-            WITH source
-                match(s:User {screen_name: source.screen_name})-[:DM]->(u:User) 
-                return u.screen_name
+            match(s:DMCheckClient)-[:DM]->(u:User) 
+            return u.screen_name
         """
-        response_json = execute_query_with_result(query, source=source)
+        response_json = execute_query_with_result(query)
         users = [ user['u.screen_name'] for user in response_json]
         return users
 
     def get_nondm_users_list(self):
         print("Finding NonDM users from DB")
-        source = [{'screen_name':self.source_screen_name}]
         query = """
-            UNWIND $source AS source
-            WITH source
-                match(s:User {screen_name: source.screen_name})-[:NonDM]->(u:User) 
-                return u.screen_name
+            match(s:DMCheckClient)-[:NonDM]->(u:User) 
+            return u.screen_name
         """
-        response_json = execute_query_with_result(query, source=source)
+        response_json = execute_query_with_result(query)
         users = [ user['u.screen_name'] for user in response_json]
         return users
 
@@ -190,7 +176,7 @@ class DMCypherStoreIntf():
         UNWIND $friendship AS dm
 
 
-        MERGE (suser:User {screen_name:dm.source})
+        MERGE (suser:DMCheckClient {screen_name:dm.source})
         MERGE (tuser:User {screen_name:dm.target})
 
         MERGE (suser)-[:DM]->(tuser)
@@ -206,7 +192,7 @@ class DMCypherStoreIntf():
         UNWIND $friendship AS nondm
 
 
-        MERGE (suser:User {screen_name:nondm.source})
+        MERGE (suser:DMCheckClient {screen_name:nondm.source})
         MERGE (tuser:User {screen_name:nondm.target})
 
         MERGE (suser)-[:NonDM]->(tuser)
