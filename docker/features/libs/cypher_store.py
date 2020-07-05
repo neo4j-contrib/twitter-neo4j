@@ -154,6 +154,7 @@ class DMCypherStoreIntf():
         print("Adding {} DMcheck buckets".format(len(buckets)))
         currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
         state = {'edit_datetime':currtime}
+        #TODO: Replace MERGE with MATCH for user
         query = """
             UNWIND $buckets AS bs
 
@@ -169,44 +170,6 @@ class DMCypherStoreIntf():
         execute_query(query, buckets=buckets, state=state)
         return 
 
-    def add_dmcheck_buckets_1(self, buckets):
-        print("Adding {} DMcheck buckets".format(len(buckets)))
-        pdb.set_trace()
-        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
-        state = {'edit_datetime':currtime}
-        query = """
-            UNWIND $buckets AS bs
-
-            MERGE(bucket:DMCheckBucket {id:bs.bucket_id})
-                SET bucket.edit_datetime = $state.edit_datetime
-
-            FOREACH (u IN bs.bucket |
-                MERGE(user:User {screen_name:u.name})
-                MERGE (user)<-[:INBUCKET]-(bucket)
-            )
-        """
-        execute_query(query, buckets=buckets, state=state)
-        return        
-
-    def add_dmcheck_buckets_0(self, buckets):
-        print("Adding {} DMcheck buckets".format(len(buckets)))
-        pdb.set_trace()
-        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
-        state = {'edit_datetime':currtime}
-        query = """
-            UNWIND $buckets AS bs
-
-            WITH bs
-            ORDER BY bs.name
-
-            MATCH(u:User {screen_name:bs.name})
-            MERGE(bucket:DMCheckBucket {id:1})
-                SET bucket.edit_datetime = $state.edit_datetime
-            
-            MERGE (u)<-[:INBUCKET]-(bucket)
-        """
-        execute_query(query, buckets=buckets, state=state)
-        return        
     def get_all_users_list(self):
         print("Finding users from DB")
         query = """
