@@ -126,6 +126,76 @@ class DMCypherStoreIntf():
         execute_query(query, user=user, state=state)
         return
 
+    def get_all_nonprocessed_list(self):
+        print("Finding all users from DB who is not processed")
+        query = """
+            match(u:User)
+            match(c:DMCheckClient)
+            where not (c)-[:NonDM]->(u) and not(c)-[:DM]->(u)
+            return u.screen_name ORDER BY u.screen_name
+        """
+        response_json = execute_query_with_result(query)
+        users = [ user['u.screen_name'] for user in response_json]
+        logger.debug("Got {} users".format(len(users)))
+        return users      
+
+    def add_dmcheck_buckets(self, buckets):
+        print("Adding {} DMcheck buckets".format(len(buckets)))
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'edit_datetime':currtime}
+        query = """
+            UNWIND $buckets AS bs
+
+            MERGE(bucket:DMCheckBucket {id:bs.bucket_id})
+                SET bucket.edit_datetime = $state.edit_datetime,
+                    bucket.priority = bs.bucket_priority
+
+            FOREACH (u IN bs.bucket |
+                MERGE(user:User {screen_name:u.name})
+                MERGE (user)-[:INBUCKET]->(bucket)
+            )
+        """
+        execute_query(query, buckets=buckets, state=state)
+        return 
+
+    def add_dmcheck_buckets_1(self, buckets):
+        print("Adding {} DMcheck buckets".format(len(buckets)))
+        pdb.set_trace()
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'edit_datetime':currtime}
+        query = """
+            UNWIND $buckets AS bs
+
+            MERGE(bucket:DMCheckBucket {id:bs.bucket_id})
+                SET bucket.edit_datetime = $state.edit_datetime
+
+            FOREACH (u IN bs.bucket |
+                MERGE(user:User {screen_name:u.name})
+                MERGE (user)<-[:INBUCKET]-(bucket)
+            )
+        """
+        execute_query(query, buckets=buckets, state=state)
+        return        
+
+    def add_dmcheck_buckets_0(self, buckets):
+        print("Adding {} DMcheck buckets".format(len(buckets)))
+        pdb.set_trace()
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'edit_datetime':currtime}
+        query = """
+            UNWIND $buckets AS bs
+
+            WITH bs
+            ORDER BY bs.name
+
+            MATCH(u:User {screen_name:bs.name})
+            MERGE(bucket:DMCheckBucket {id:1})
+                SET bucket.edit_datetime = $state.edit_datetime
+            
+            MERGE (u)<-[:INBUCKET]-(bucket)
+        """
+        execute_query(query, buckets=buckets, state=state)
+        return        
     def get_all_users_list(self):
         print("Finding users from DB")
         query = """
@@ -179,6 +249,7 @@ class DMCypherStoreIntf():
 
     def store_dm_friends(self, friendship):
         print("storing {} count of friendship to DB".format(len(friendship)))
+        pdb.set_trace()
         currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
         state = {'edit_datetime':currtime}
         query = """
@@ -198,6 +269,7 @@ class DMCypherStoreIntf():
 
     def store_nondm_friends(self, friendship):
         print("storing {} count of non-DM friendship to DB".format(len(friendship)))
+        pdb.set_trace()
         currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
         state = {'edit_datetime':currtime}
         query = """

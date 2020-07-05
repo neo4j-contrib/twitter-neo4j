@@ -1,0 +1,68 @@
+"""
+This file is responsible to manage buckets
+"""
+
+'''
+Built-in modules
+'''
+import pdb
+import os
+
+'''
+User defined modules
+'''
+from libs.twitter_logging import console_logger as logger
+
+store_type = os.getenv("DB_STORE_TYPE", "file_store")
+if store_type.lower() == "file_store":
+    from libs.file_store import DMFileStoreIntf as DMStoreIntf
+else:
+    from libs.cypher_store import DMCypherStoreIntf as DMStoreIntf
+
+'''
+Constants
+'''
+DMCHECK_DEFAULT_BUCKET_SIZE = 180
+DMCHECK_BUCKET_DEFAULT_PRIORITY = 100
+
+class utils:
+    @staticmethod
+    def chunks(lst, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
+
+class DMCheckBucketManager:
+
+    def __init__(self):
+        self.dataStoreIntf = DMStoreIntf()
+
+    #TODO: provide capability to specify max number of buckets count
+    def add_buckets(self):
+        buckets, users= self.__get_buckets()
+        
+        if len(buckets):
+            db_buckets = self.__make_db_buckets(buckets)
+            self.dataStoreIntf.add_dmcheck_buckets(db_buckets)
+            pass
+        else:
+            logger.info("No users found")
+        return
+
+    def __make_db_buckets(self, buckets, priority=DMCHECK_BUCKET_DEFAULT_PRIORITY):
+        db_buckets = []
+        bucket_id = 0
+        for bucket in buckets:
+            db_bucket=[{'name': user} for user in bucket]
+            bucket_id += 1
+            db_buckets.append({'bucket_id':bucket_id, 'bucket_priority': priority, 'bucket':db_bucket})
+        return db_buckets
+
+    def __get_buckets(self, bucketsize = DMCHECK_DEFAULT_BUCKET_SIZE):
+        logger.info("Making buckets with {} size".format(bucketsize))
+        users = self.dataStoreIntf.get_all_nonprocessed_list()
+        buckets = list(utils.chunks(users, bucketsize))
+        return buckets, users
+        
+    def getBuckets(self, bucketscount):
+        pass
