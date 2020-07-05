@@ -160,7 +160,8 @@ class DMCypherStoreIntf():
 
             MERGE(bucket:DMCheckBucket {id:bs.bucket_id})
                 SET bucket.edit_datetime = $state.edit_datetime,
-                    bucket.priority = bs.bucket_priority
+                    bucket.priority = bs.bucket_priority,
+                    bucket.uuid = bs.bucket_uuid
 
             FOREACH (u IN bs.bucket |
                 MERGE(user:User {screen_name:u.name})
