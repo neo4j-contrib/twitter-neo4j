@@ -21,10 +21,11 @@
 * 6. [Component design](#Componentdesign)
 	* 6.1. [Client Manager component](#ClientManagercomponent)
 		* 6.1.1. [Class Diagram](#ClassDiagram)
-		* 6.1.2. [Sequence diagram](#Sequencediagram)
+		* 6.1.2. [Sequence diagram for client registration flow](#Sequencediagramforclientregistrationflow)
 	* 6.2. [Bucket manager component](#Bucketmanagercomponent)
 		* 6.2.1. [Class diagram](#Classdiagram)
-		* 6.2.2. [Sequence diagram](#Sequencediagram-1)
+		* 6.2.2. [Sequence diagram for making buckets](#Sequencediagramformakingbuckets)
+		* 6.2.3. [Sequence diagram for  Assigning buckets to client](#SequencediagramforAssigningbucketstoclient)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -118,15 +119,13 @@ To avoid this condition at all, we can first mark the bucket as dead and after s
 ###  6.1. <a name='ClientManagercomponent'></a>Client Manager component
 ####  6.1.1. <a name='ClassDiagram'></a>Class Diagram
 ![image info](./data/dmcheck_client_manager.jpg)
-####  6.1.2. <a name='Sequencediagram'></a>Sequence diagram
+####  6.1.2. <a name='Sequencediagramforclientregistrationflow'></a>Sequence diagram for client registration flow
 ![image info](./data/client_registration_flow.jpg)
 
 ###  6.2. <a name='Bucketmanagercomponent'></a>Bucket manager component
 ####  6.2.1. <a name='Classdiagram'></a>Class diagram
 ![image info](./data/DMCheckBucketManagerClasses.jpg)
-####  6.2.2. <a name='Sequencediagram-1'></a>Sequence diagram
-
-##### Making bucket
+####  6.2.2. <a name='Sequencediagramformakingbuckets'></a>Sequence diagram for making buckets
 ![image info](./data/dmcheck_make_buckets.jpg)
-##### Assigning buckets to client
+####  6.2.3. <a name='SequencediagramforAssigningbucketstoclient'></a>Sequence diagram for  Assigning buckets to client
 ![image info](./data/AssignBucketsToClients.jpg)
