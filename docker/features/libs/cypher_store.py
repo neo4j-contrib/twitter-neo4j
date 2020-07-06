@@ -176,10 +176,8 @@ class DMCypherStoreIntf():
             MERGE(bucket:DMCheckBucket {id:bs.bucket_id})
                 SET bucket.edit_datetime = $state.edit_datetime,
                     bucket.priority = bs.bucket_priority,
-                    bucket.uuid = bs.bucket_uuid
-
-            MERGE(bucket_state:DMCheckBucketState {state:bs.bucket_state})
-            MERGE (bucket)-[:STATE]->(bucket_state)
+                    bucket.uuid = bs.bucket_uuid,
+                    bucket.state = bs.bucket_state
 
             FOREACH (u IN bs.bucket |
                 MERGE(user:User {screen_name:u.name})
@@ -190,18 +188,18 @@ class DMCypherStoreIntf():
         return 
 
 
-    def get_dmcheck_buckets(self, buckets, curr_state, new_state, bucket_cnt=1):
+    def get_dmcheck_buckets(self, client_id, buckets, curr_state, new_state, bucket_cnt=1):
         print("Adding {} DMcheck buckets".format(len(buckets)))
         pdb.set_trace()
         currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
         if curr_state == new_state:
             return
-        state = {'edit_datetime':currtime, 'curr_state':curr_state, 'new_state':new_state, 'bucket_cnt':bucket_cnt}
+        state = {'edit_datetime':currtime, 'client_id':client_id, 'curr_state':curr_state, 'new_state':new_state, 'bucket_cnt':bucket_cnt}
         #TODO: Replace MERGE with MATCH for user
         query = """
             MATCH (bucket:DMCheckBucket)-[:STATE]->(bs:DMCheckBucketState {state: $state.curr_state})
-            MERGE(bucket_state:DMCheckBucketState {state:bs.new_state})
-            MERGE(bucket)-[:STATE]->(bucket_state)
+            MATCH(client:DMCheckClient {id:$state.client_id})
+            MERGE(bucket)-[:DMCHECKCLIENT]->(client)
             return bucket LIMIT $state.bucket_cnt
         """
         response_json = execute_query_with_result(query)
