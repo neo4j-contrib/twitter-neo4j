@@ -116,15 +116,15 @@ class UserRelations():
                 friendship = self.__process_friendship_fetch(user)
             except TwitterUserNotFoundError as unf:
                 logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
-                user['candm'] = "NONEXIST"
+                user['candm'] = "UNKNOWN"
                 self.grandtotal += 1
                 continue
             count = count + 1
             status = friendship['relationship']['source']['can_dm']
             if status:
-                user['candm'] = "TRUE"
+                user['candm'] = "DM"
             else:
-                user['candm'] = "FALSE"
+                user['candm'] = "NON_DM"
         print("Processed {} out of {} users for DM Check".format(count, len(users)))
         if count != len(users):
             logger.info("Unable to fetch DM status for {} users".format(len(users)-count))
@@ -133,9 +133,8 @@ class UserRelations():
         print("Processing bucket with ID={}".format(bucket['bucket_id']))
         bucket_id = bucket['bucket_id']
         users = bucket['users']
-        pdb.set_trace()
         self.__check_dm_status(users)
-        #TODO: Update dm status to DB
+        return
 
     def findDMForUsersInStore(self):
         print("Finding DM between the users")
@@ -150,9 +149,12 @@ class UserRelations():
                 while buckets:
                     for bucket in buckets:
                         self.__process_bucket(bucket)
+                        pdb.set_trace()
+                        self.dmcheck_bucket_mgr.storeDMCheckInfoForBucket(self.source_id, bucket)
                     buckets = self.dmcheck_bucket_mgr.assignBuckets(os.environ["TWITTER_ID"], bucketscount=buckets_batch_cnt)
-                print("Not Found any bucket for processing. So sleeping for 15 mins")
-                time.sleep(900)
+                print("Not Found any bucket for processing. So trying to add more buckets")
+                time.sleep(30)
+                self.dmcheck_bucket_mgr.add_buckets()
             except TwitterRateLimitError as e:
                 logger.exception(e)
                 print(traceback.format_exc())

@@ -25,7 +25,8 @@ from libs.dmcheck_client_manager import DMCheckClientManager
 '''
 Constants
 '''
-DMCHECK_DEFAULT_BUCKET_SIZE = 180
+#TODO: Restore size to 180 after testing
+DMCHECK_DEFAULT_BUCKET_SIZE = 10
 DMCHECK_BUCKET_DEFAULT_PRIORITY = 100
 
 
@@ -66,8 +67,31 @@ class DMCheckBucketManager:
             users = self.dataStoreIntf.get_all_users_for_bucket(id)
             buckets_for_client.append({'bucket_id':id, 'users':users})
         return buckets_for_client
+
+    def __store_dmcheck_status_for_bucket(self, client_id, bucket_id, users):
+        candm_users = [user for user in users if user['candm'].upper()=="DM"]
+        cantdm_users = [user for user in users if user['candm'].upper()=="NON_DM"]
+        unknown_users = [user for user in users if user['candm'].upper()=="UNKNOWN"]
+        #TODO: Try to make atomic for each bucket
+        pdb.set_trace()
+        self.dataStoreIntf.store_dm_friends(client_id, bucket_id, candm_users)
+        self.dataStoreIntf.store_nondm_friends(client_id, bucket_id, cantdm_users)
+        self.dataStoreIntf.store_dmcheck_unknown_friends(client_id, bucket_id, unknown_users)
         
-        
+    def storeDMCheckInfoForBucket(self, client_id, bucket):
+        logger.info("Got {} bucket from the client".format(len(bucket['bucket_id']), client_id))
+        if not self.dmcheck_client_manager.client_registered(client_id):
+            logger.error("Unregistered client {} is trying to update DM Check for buckets".format(client_id))
+            return
+        bucket_id = bucket['bucket_id']
+        print("Processing bucket with ID [{}]".format(bucket_id))
+        if not  self.dataStoreIntf.valid_bucket_owner(bucket_id, client_id):
+            logger.error("[{}] client is trying to update DM Check for [{}] bucket not owned by itself".format(bucket_id, client_id))
+            return
+        users = bucket['users']
+        self.__store_dmcheck_status_for_bucket(client_id, bucket_id, users)
+        print("Successfully processed {} bucket".format(bucket['bucket_id']))
+        return       
 
     def __make_db_buckets(self, buckets, priority=DMCHECK_BUCKET_DEFAULT_PRIORITY):
         db_buckets = []

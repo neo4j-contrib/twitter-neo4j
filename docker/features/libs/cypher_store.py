@@ -146,7 +146,7 @@ class DMCypherStoreIntf():
         query = """
             match(u:User)
             match(c:DMCheckClient)
-            where not (c)-[:NonDM]->(u) and not(c)-[:DM]->(u)
+            where not (c)-[:NON_DM]->(u) and not(c)-[:DM]->(u)
             return u.screen_name ORDER BY u.screen_name
         """
         response_json = execute_query_with_result(query)
@@ -202,6 +202,20 @@ class DMCypherStoreIntf():
         logger.debug("Got {} buckets".format(len(buckets)))
         return buckets
 
+    def valid_bucket_owner(self, bucket_id, client_id):
+        print("Getting users for {} bucket".format(bucket_id))
+        state = {'client_id':client_id, 'bucket_id':bucket_id}
+        query = """
+            MATCH(bucket:DMCheckBucket {uuid:$state.bucket_id})-[:DMCHECKCLIENT]->(client:DMCheckClient)
+            WHERE client.id = $state.client_id
+            return client.id
+        """
+        response_json = execute_query_with_result(query, state=state)
+        if response_json:
+            return True
+        else:
+            return False
+
     def get_all_users_for_bucket(self, bucket_id):
         print("Getting users for {} bucket".format(bucket_id))
         currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
@@ -215,6 +229,60 @@ class DMCypherStoreIntf():
         users = [ {'screen_name':user['u.screen_name'], 'id':user['u.id']} for user in response_json]
         logger.debug("Got {} buckets".format(len(users)))
         return users
+
+    def store_dm_friends(self, client_id, bucket_id, users):
+        print("Store DM users for {} bucket".format(bucket_id))
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'client_id':client_id, 'bucket_id':bucket_id}
+        query = """
+            UNWIND $users AS user
+
+            MATCH(client:DMCheckClient {id:$state.client_id})
+            MATCH(b:DMCheckBucket {uuid:$state.bucket_id})
+            MATCH(u:User {screen_name: user.screen_name})
+            MATCH (u)-[r:INDMCHECKBUCKET]->()
+            DELETE r
+            MERGE(u)<-[:DM]-(client)
+        """
+        execute_query(query, users=users, state=state)
+        return True
+
+    def store_nondm_friends(self, client_id, bucket_id, users):
+        print("Store NON_DM users for {} bucket".format(bucket_id))
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'client_id':client_id, 'bucket_id':bucket_id}
+        query = """
+            UNWIND $users AS user
+
+            MATCH(client:DMCheckClient {id:$state.client_id})
+            MATCH(b:DMCheckBucket {uuid:$state.bucket_id})
+            MATCH(u:User {screen_name: user.screen_name})
+            MERGE(u)<-[:NON_DM]-(client)
+            WITH u
+            MATCH (u)-[r:INDMCHECKBUCKET]->()
+            DELETE r
+        """
+        execute_query(query, users=users, state=state)
+        return True
+
+    def store_dmcheck_unknown_friends(self, client_id, bucket_id, users):
+        #TODO:Not Tested
+        print("Store NON_DM users for {} bucket".format(bucket_id))
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'client_id':client_id, 'bucket_id':bucket_id}
+        query = """
+            UNWIND $users AS user
+
+            MATCH(client:DMCheckClient {id:$state.client_id})
+            MATCH(b:DMCheckBucket {uuid:$state.bucket_id})
+            MATCH(u:User {screen_name: user.screen_name})
+            MERGE(u)<-[:UNKNOWN]-(client)
+            WITH u
+            MATCH (u)-[r:INDMCHECKBUCKET]->()
+            DELETE r
+        """
+        execute_query(query, users=users, state=state)
+        return True
 
     def get_all_users_list(self):
         print("Finding users from DB")
@@ -237,75 +305,25 @@ class DMCypherStoreIntf():
         return users
 
     def get_nondm_users_list(self):
-        print("Finding NonDM users from DB")
+        print("Finding NON_DM users from DB")
         query = """
-            match(s:DMCheckClient)-[:NonDM]->(u:User) 
+            match(s:DMCheckClient)-[:NON_DM]->(u:User) 
             return u.screen_name
         """
         response_json = execute_query_with_result(query)
         users = [ user['u.screen_name'] for user in response_json]
         return users
 
-    def get_nonexists_users_list(self):
+    def get_dmcheck_unknown_users_list(self):
         print("Finding users from DB")
         query = """
-            MATCH (u:User) where  (u.exists=0) return u.screen_name
+             match(s:DMCheckClient)-[:UNKNOWN]->(u:User) 
+            return u.screen_name
         """
         response_json = execute_query_with_result(query)
         users = [ user['u.screen_name'] for user in response_json]
         return users
 
-    def mark_nonexists_users(self, screen_name):
-        print("Marking non exists users in DB")
-        user = [{'screen_name':screen_name, 'exists':0}]
-        query = """
-            UNWIND $user AS u
-
-            MERGE (user:User {screen_name:u.screen_name})
-            SET user.exists = u.exists
-        """
-        execute_query(query, user=user)
-        return True
-
-    def store_dm_friends(self, friendship):
-        print("storing {} count of friendship to DB".format(len(friendship)))
-        pdb.set_trace()
-        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
-        state = {'edit_datetime':currtime}
-        query = """
-        UNWIND $friendship AS dm
-
-
-        MERGE (suser:DMCheckClient {screen_name:dm.source})
-            SET suser.edit_datetime = $state.edit_datetime
-        MERGE (tuser:User {screen_name:dm.target})
-
-        MERGE (suser)-[:DM]->(tuser)
-        """
-
-        # Send Cypher query.
-        execute_query(query, friendship=friendship, state=state)
-        print("DM info added to graph!")
-
-    def store_nondm_friends(self, friendship):
-        print("storing {} count of non-DM friendship to DB".format(len(friendship)))
-        pdb.set_trace()
-        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
-        state = {'edit_datetime':currtime}
-        query = """
-        UNWIND $friendship AS nondm
-
-
-        MERGE (suser:DMCheckClient {screen_name:nondm.source})
-               SET suser.edit_datetime = $state.edit_datetime
-        MERGE (tuser:User {screen_name:nondm.target})
-
-        MERGE (suser)-[:NonDM]->(tuser)
-        """
-
-        # Send Cypher query.
-        execute_query(query, friendship=friendship, state=state)
-        print("DM info added to graph!")
 
 class TweetCypherStoreIntf:
     """
