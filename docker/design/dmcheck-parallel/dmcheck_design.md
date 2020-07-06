@@ -92,6 +92,9 @@ Below diagram depicts various building blocks of this system
 ###  4.5. <a name='Visibilityrelateduse-case.Itwillbeusedfortroubleshootandmonitoring'></a>Visibility related use-case. It will be used for troubleshoot and monitoring
 ![image info](./data/visibility_usecases.jpg)
 
+### Security use-cases
+![image info](./data/usecases_for_security.jpg)
+
 ##  5. <a name='Importantscenrios'></a>Important scenrios
 ###  5.1. <a name='Userwantstoprocessauserwithhigherpriorityanduserisalreadypickedforprocessingwithlowerpriority'></a>User wants to process a user with higher priority and user is already picked for processing with lower priority
 
