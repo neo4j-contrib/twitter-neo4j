@@ -80,7 +80,7 @@ class DMCypherStoreIntf():
         try_connecting_neo4j()
         print("Cypher Store init finished")
     
-    def dmcheck_client_valid(self, client_id):
+    def dmcheck_client_exists(self, client_id):
         print("Checking existing of  client with id={}".format(client_id))
         user = [{'id':client_id}]
         query = """
@@ -93,6 +93,21 @@ class DMCypherStoreIntf():
             return True
         else:
             return False
+
+    def dmcheck_client_valid(self, client_id):
+        print("Checking validity of  client with id={}".format(client_id))
+        user = [{'id':client_id}]
+        query = """
+            UNWIND $user AS u
+
+            MATCH (client:DMCheckClient {id:u.id}) where client.state="ACTIVE" return u.id
+        """
+        response_json = execute_query_with_result(query, user=user)
+        if response_json:
+            return True
+        else:
+            return False
+
 
     def add_dmcheck_client(self, client_id, screen_name):
         print("Adding client with id={}, screen name={}".format(client_id, screen_name))

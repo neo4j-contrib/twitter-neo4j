@@ -20,11 +20,14 @@ if store_type.lower() == "file_store":
 else:
     from libs.cypher_store import DMCypherStoreIntf as DMStoreIntf
 
+from libs.dmcheck_client_manager import DMCheckClientManager
+
 '''
 Constants
 '''
 DMCHECK_DEFAULT_BUCKET_SIZE = 180
 DMCHECK_BUCKET_DEFAULT_PRIORITY = 100
+
 
 class utils:
     @staticmethod
@@ -37,6 +40,7 @@ class DMCheckBucketManager:
 
     def __init__(self):
         self.dataStoreIntf = DMStoreIntf()
+        self.dmcheck_client_manager = DMCheckClientManager()
 
     #TODO: provide capability to specify max number of buckets count
     def add_buckets(self):
@@ -49,6 +53,15 @@ class DMCheckBucketManager:
         else:
             logger.info("No users found")
         return
+
+    def assignBuckets(self, client_id, bucketscount=1):
+        logger.info("Assigning {} bucket(s) to the client".format(bucketscount, client_id))
+        pdb.set_trace()
+        if not self.dmcheck_client_manager.client_registered(client_id):
+            logger.error("Unregistered client {} is trying to get buckets".format(client_id))
+            return None
+        
+        
 
     def __make_db_buckets(self, buckets, priority=DMCHECK_BUCKET_DEFAULT_PRIORITY):
         db_buckets = []
@@ -68,6 +81,3 @@ class DMCheckBucketManager:
         buckets = list(utils.chunks(users_wkg, bucketsize))
         logger.info("Got {} buckets".format(len(buckets)))
         return buckets
-        
-    def getBuckets(self, bucketscount):
-        pass

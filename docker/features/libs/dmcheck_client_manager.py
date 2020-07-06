@@ -30,8 +30,8 @@ class DMCheckClientManager:
     """
     def register_client(self, client_id, client_screen_name):
         logger.info("Processing registeration request for client with ID={} and screen_name={}".format(client_id, client_screen_name))
-        valid_client = self.dataStoreIntf.dmcheck_client_valid(client_id)
-        if not valid_client:
+        client_exists = self.dataStoreIntf.dmcheck_client_exists(client_id)
+        if not client_exists:
             self.dataStoreIntf.add_dmcheck_client(client_id, client_screen_name)
         else:
             logger.info("client with ID={} and screen_name={} has registered earlier as well".format(client_id, client_screen_name))
@@ -45,11 +45,21 @@ class DMCheckClientManager:
     """
     def unregister_client(self, client_id, client_screen_name):
         logger.info("Processing registeration request for client with ID={} and screen_name={}".format(client_id, client_screen_name))
-        valid_client = self.dataStoreIntf.dmcheck_client_valid(client_id)
-        if not valid_client:
+        client_exists = self.dataStoreIntf.dmcheck_client_exists(client_id)
+        if not client_exists:
             logger.error("Ignoring as {} is not a registered DM check user".format(client_id))
             return False
         self.dataStoreIntf.change_state_dmcheck_client(client_id, "DEACTIVE")
         logger.info("Successfully unregistered client with ID={} and screen_name={}".format(client_id, client_screen_name))
         return True
+    
+    def client_registered(self, client_id):
+        logger.debug("Checking registration status for {} client".format(client_id))
+        status = self.dataStoreIntf.dmcheck_client_valid(client_id)
+        if status:
+            return True
+        else:
+            logger.warn("{} client is not registered ".format(client_id))
+            return False
+
 
