@@ -125,4 +125,8 @@ To avoid this condition at all, we can first mark the bucket as dead and after s
 ####  6.2.1. <a name='Classdiagram'></a>Class diagram
 ![image info](./data/DMCheckBucketManagerClasses.jpg)
 ####  6.2.2. <a name='Sequencediagram-1'></a>Sequence diagram
+
+##### Making bucket
 ![image info](./data/dmcheck_make_buckets.jpg)
+##### Assigning buckets to client
+![image info](./data/AssignBucketsToClients.jpg)
