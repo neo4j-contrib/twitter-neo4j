@@ -26,6 +26,7 @@
 		* 6.2.1. [Class diagram](#Classdiagram)
 		* 6.2.2. [Sequence diagram for making buckets](#Sequencediagramformakingbuckets)
 		* 6.2.3. [Sequence diagram for  Assigning buckets to client](#SequencediagramforAssigningbucketstoclient)
+		* 6.2.4. [Sequence diagram for store DM Check info for bucket](#SequencediagramforstoreDMCheckinfoforbucket)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -132,3 +133,6 @@ To avoid this condition at all, we can first mark the bucket as dead and after s
 ![image info](./data/dmcheck_make_buckets.jpg)
 ####  6.2.3. <a name='SequencediagramforAssigningbucketstoclient'></a>Sequence diagram for  Assigning buckets to client
 ![image info](./data/AssignBucketsToClients.jpg)
+
+####  6.2.4. <a name='SequencediagramforstoreDMCheckinfoforbucket'></a>Sequence diagram for store DM Check info for bucket
+![image info](./data/StoreClientProvidedDMInfo.jpg)
