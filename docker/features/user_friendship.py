@@ -149,7 +149,6 @@ class UserRelations():
                 while buckets:
                     for bucket in buckets:
                         self.__process_bucket(bucket)
-                        pdb.set_trace()
                         self.dmcheck_bucket_mgr.storeDMCheckInfoForBucket(self.source_id, bucket)
                     buckets = self.dmcheck_bucket_mgr.assignBuckets(os.environ["TWITTER_ID"], bucketscount=buckets_batch_cnt)
                 print("Not Found any bucket for processing. So trying to add more buckets")

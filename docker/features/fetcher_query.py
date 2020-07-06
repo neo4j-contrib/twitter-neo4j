@@ -62,7 +62,6 @@ def test_query_insert():
 		return False
 
 def main():
-	pdb.set_trace()
 	user = {'username':'dkreal', 'email':'dpkumar@gmail.com'}
 	# queries= [{"tweet_search":{"search_term":"@vyasnitesh19", "categories_list": ["Testing"], "filter":"on", "tweet_filter":{"retweets_of":["vyasnitesh19"]}}}]
 	# fetcher_query_store.add_new_query(queries=queries, user=user)

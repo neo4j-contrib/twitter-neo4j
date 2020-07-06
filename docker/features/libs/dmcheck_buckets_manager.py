@@ -25,8 +25,7 @@ from libs.dmcheck_client_manager import DMCheckClientManager
 '''
 Constants
 '''
-#TODO: Restore size to 180 after testing
-DMCHECK_DEFAULT_BUCKET_SIZE = 10
+DMCHECK_DEFAULT_BUCKET_SIZE = 180
 DMCHECK_BUCKET_DEFAULT_PRIORITY = 100
 
 
