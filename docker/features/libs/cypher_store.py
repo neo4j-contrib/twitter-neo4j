@@ -178,6 +178,9 @@ class DMCypherStoreIntf():
                     bucket.priority = bs.bucket_priority,
                     bucket.uuid = bs.bucket_uuid
 
+            MERGE(bucket_state:DMCheckBucketState {state:bs.bucket_state})
+            MERGE (bucket)-[:STATE]->(bucket_state)
+
             FOREACH (u IN bs.bucket |
                 MERGE(user:User {screen_name:u.name})
                 MERGE (user)-[:INBUCKET]->(bucket)
@@ -185,6 +188,28 @@ class DMCypherStoreIntf():
         """
         execute_query(query, buckets=buckets, state=state)
         return 
+
+
+    def get_dmcheck_buckets(self, buckets, curr_state, new_state, bucket_cnt=1):
+        print("Adding {} DMcheck buckets".format(len(buckets)))
+        pdb.set_trace()
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        if curr_state == new_state:
+            return
+        state = {'edit_datetime':currtime, 'curr_state':curr_state, 'new_state':new_state, 'bucket_cnt':bucket_cnt}
+        #TODO: Replace MERGE with MATCH for user
+        query = """
+            MATCH (bucket:DMCheckBucket)-[:STATE]->(bs:DMCheckBucketState {state: $state.curr_state})
+            MERGE(bucket_state:DMCheckBucketState {state:bs.new_state})
+            MERGE(bucket)-[:STATE]->(bucket_state)
+            return bucket LIMIT $state.bucket_cnt
+        """
+        response_json = execute_query_with_result(query)
+        users = [ user['u.screen_name'] for user in response_json]
+        logger.debug("Got {} users".format(len(users)))
+        return users
+        return 
+
 
     def get_all_users_list(self):
         print("Finding users from DB")

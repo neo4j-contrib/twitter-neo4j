@@ -56,7 +56,7 @@ class UserRelations():
         self.source_screen_name = source_screen_name
         self.dataStoreIntf = DMStoreIntf()
         self.dmcheck_client_manager = DMCheckClientManager()
-        self.dm_bucket_mgr = DMCheckBucketManager()
+        self.dmcheck_bucket_mgr = DMCheckBucketManager()
         self.grandtotal = 0 #Tracks the count of total friendship stored in DB
         print("User friendship init finished")
     
@@ -165,13 +165,14 @@ class UserRelations():
                 print("Total number of Non DM users are {}".format(len(nondmusers)))
                 users_wkg = sorted(set(users) - set(nonexists_users) - set(dmusers) - set(nondmusers))
                 print('Processing with unchecked {} users'.format(len(users_wkg)))
-                # pdb.set_trace()
-                # ts = time.perf_counter()
-                # buckets = self.dm_bucket_mgr.assignBuckets(os.environ["TWITTER_ID"])
-                # te = time.perf_counter()
-                # print('perfdata: func:%r took: %2.4f sec' % ('store_tweets_info', te-ts))
-                # pdb.set_trace()
-                # print('Processing with unchecked {} users using single api'.format(len(nonprocessed_user)))
+                pdb.set_trace()
+                ts = time.perf_counter()
+                buckets = self.dmcheck_bucket_mgr.add_buckets()
+                #buckets = self.dmcheck_bucket_mgr.assignBuckets(os.environ["TWITTER_ID"])
+                te = time.perf_counter()
+                print('perfdata: func:%r took: %2.4f sec' % ('store_tweets_info', te-ts))
+                pdb.set_trace()
+                print('Processing with unchecked {} users using single api'.format(len(nonprocessed_user)))
                 if(len(users_wkg)):
                     self.__process_dm(users_wkg, 10)
                 else:
