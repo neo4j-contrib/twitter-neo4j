@@ -22,6 +22,8 @@
 	* 6.1. [Client Manager component](#ClientManagercomponent)
 		* 6.1.1. [Class Diagram](#ClassDiagram)
 		* 6.1.2. [Sequence diagram](#Sequencediagram)
+	* 6.2. [Bucket manager component](#Bucketmanagercomponent)
+		* 6.2.1. [Class diagram](#Classdiagram)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -117,3 +119,7 @@ To avoid this condition at all, we can first mark the bucket as dead and after s
 ![image info](./data/dmcheck_client_manager.jpg)
 ####  6.1.2. <a name='Sequencediagram'></a>Sequence diagram
 ![image info](./data/client_registration_flow.jpg)
+
+###  6.2. <a name='Bucketmanagercomponent'></a>Bucket manager component
+####  6.2.1. <a name='Classdiagram'></a>Class diagram
+![image info](./data/DMCheckBucketManagerClasses.jpg)
