@@ -56,10 +56,12 @@ class DMCheckBucketManager:
 
     def assignBuckets(self, client_id, bucketscount=1):
         logger.info("Assigning {} bucket(s) to the client".format(bucketscount, client_id))
-        pdb.set_trace()
         if not self.dmcheck_client_manager.client_registered(client_id):
             logger.error("Unregistered client {} is trying to get buckets".format(client_id))
             return None
+        buckets = self.dataStoreIntf.assign_dmcheck_buckets(client_id, bucketscount)
+        #TODO: Fill each bucket and return the info
+        return buckets
         
         
 

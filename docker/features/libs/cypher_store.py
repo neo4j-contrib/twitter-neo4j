@@ -176,8 +176,7 @@ class DMCypherStoreIntf():
             MERGE(bucket:DMCheckBucket {id:bs.bucket_id})
                 SET bucket.edit_datetime = $state.edit_datetime,
                     bucket.priority = bs.bucket_priority,
-                    bucket.uuid = bs.bucket_uuid,
-                    bucket.state = bs.bucket_state
+                    bucket.uuid = bs.bucket_uuid
 
             FOREACH (u IN bs.bucket |
                 MERGE(user:User {screen_name:u.name})
@@ -188,25 +187,20 @@ class DMCypherStoreIntf():
         return 
 
 
-    def get_dmcheck_buckets(self, client_id, buckets, curr_state, new_state, bucket_cnt=1):
-        print("Adding {} DMcheck buckets".format(len(buckets)))
-        pdb.set_trace()
-        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
-        if curr_state == new_state:
-            return
-        state = {'edit_datetime':currtime, 'client_id':client_id, 'curr_state':curr_state, 'new_state':new_state, 'bucket_cnt':bucket_cnt}
-        #TODO: Replace MERGE with MATCH for user
+    def assign_dmcheck_buckets(self, client_id, bucket_cnt):
+        print("Assigning {} DMcheck buckets".format(bucket_cnt))
+        state = {'bucket_cnt':bucket_cnt, 'client_id':client_id}
         query = """
-            MATCH (bucket:DMCheckBucket)-[:STATE]->(bs:DMCheckBucketState {state: $state.curr_state})
+            MATCH(bucket:DMCheckBucket)WHERE NOT (bucket)-[:DMCHECKCLIENT]->()
+            WITH bucket LIMIT $state.bucket_cnt
             MATCH(client:DMCheckClient {id:$state.client_id})
             MERGE(bucket)-[:DMCHECKCLIENT]->(client)
-            return bucket LIMIT $state.bucket_cnt
+            return bucket
         """
-        response_json = execute_query_with_result(query)
-        users = [ user['u.screen_name'] for user in response_json]
-        logger.debug("Got {} users".format(len(users)))
-        return users
-        return 
+        response_json = execute_query_with_result(query, state=state)
+        buckets = [ bucket['bucket']['uuid'] for bucket in response_json]
+        logger.debug("Got {} buckets".format(len(buckets)))
+        return buckets
 
 
     def get_all_users_list(self):
