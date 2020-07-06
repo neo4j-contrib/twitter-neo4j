@@ -96,6 +96,7 @@ class DMCheckBucketManager:
         if not  self.dataStoreIntf.valid_bucket_owner(bucket_id, client_id):
             logger.error("[{}] client is trying to update DM Check for [{}] bucket not owned by itself".format(bucket_id, client_id))
             return
+        #TODO: Sanity check user info
         users = bucket['users']
         self.__store_dmcheck_status_for_bucket(client_id, bucket_id, users)
         self.__release_bucket(bucket_id)
