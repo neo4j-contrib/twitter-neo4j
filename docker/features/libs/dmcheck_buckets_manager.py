@@ -67,13 +67,22 @@ class DMCheckBucketManager:
             users = self.dataStoreIntf.get_all_users_for_bucket(id)
             buckets_for_client.append({'bucket_id':id, 'users':users})
         return buckets_for_client
+    
+    def __release_bucket(self, bucket_id):
+        #Assumption: It assumes that bucket exists
+        print("Releasing [{}] bucket".format(bucket_id))
+        users = self.dataStoreIntf.get_all_users_for_bucket(bucket_id)
+        if len(users):
+            logger.warn("{}Bucket still has {} unprocessed users".format(bucket_id, len(users)))
+            self.dataStoreIntf.empty_dmcheck_bucket(bucket_id)
+        self.dataStoreIntf.remove_bucket(bucket_id)
+        print("Successfully released [{}] bucket".format(bucket_id))
 
     def __store_dmcheck_status_for_bucket(self, client_id, bucket_id, users):
         candm_users = [user for user in users if user['candm'].upper()=="DM"]
         cantdm_users = [user for user in users if user['candm'].upper()=="NON_DM"]
         unknown_users = [user for user in users if user['candm'].upper()=="UNKNOWN"]
         #TODO: Try to make atomic for each bucket
-        pdb.set_trace()
         self.dataStoreIntf.store_dm_friends(client_id, bucket_id, candm_users)
         self.dataStoreIntf.store_nondm_friends(client_id, bucket_id, cantdm_users)
         self.dataStoreIntf.store_dmcheck_unknown_friends(client_id, bucket_id, unknown_users)
@@ -90,6 +99,7 @@ class DMCheckBucketManager:
             return
         users = bucket['users']
         self.__store_dmcheck_status_for_bucket(client_id, bucket_id, users)
+        self.__release_bucket(bucket_id)
         print("Successfully processed {} bucket".format(bucket['bucket_id']))
         return       
 

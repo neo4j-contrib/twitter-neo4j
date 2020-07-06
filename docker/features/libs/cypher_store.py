@@ -216,6 +216,26 @@ class DMCypherStoreIntf():
         else:
             return False
 
+    def empty_dmcheck_bucket(self, bucket_id):
+        print("Releaseing users for {} bucket".format(bucket_id))
+        state = {'uuid':bucket_id}
+        query = """
+            MATCH(u:User)-[r:INDMCHECKBUCKET]->(b:DMCheckBucket {uuid:$state.uuid})
+            DELETE r
+        """
+        execute_query(query, state=state)
+        return True
+
+    def remove_bucket(self, bucket_id):
+        print("Releaseing users for {} bucket".format(bucket_id))
+        state = {'uuid':bucket_id}
+        query = """
+            MATCH(b:DMCheckBucket {uuid:$state.uuid})-[r:DMCHECKCLIENT]->(client:DMCheckClient)
+            DELETE r,b
+        """
+        execute_query(query, state=state)
+        return True
+
     def get_all_users_for_bucket(self, bucket_id):
         print("Getting users for {} bucket".format(bucket_id))
         currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
