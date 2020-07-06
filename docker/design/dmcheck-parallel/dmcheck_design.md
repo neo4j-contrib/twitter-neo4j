@@ -134,5 +134,5 @@ To avoid this condition at all, we can first mark the bucket as dead and after s
 ####  6.2.3. <a name='SequencediagramforAssigningbucketstoclient'></a>Sequence diagram for  Assigning buckets to client
 ![image info](./data/AssignBucketsToClients.jpg)
 
-####  6.2.4. <a name='SequencediagramforstoreDMCheckinfoforbucket'></a>Sequence diagram for store DM Check info for bucket
+####  6.2.4. <a name='SequencediagramforstoreDMCheckinfoforbucket'></a>Sequence diagram for processing DM Check info update from client
 ![image info](./data/StoreClientProvidedDMInfo.jpg)
