@@ -60,8 +60,12 @@ class DMCheckBucketManager:
             logger.error("Unregistered client {} is trying to get buckets".format(client_id))
             return None
         buckets = self.dataStoreIntf.assign_dmcheck_buckets(client_id, bucketscount)
-        #TODO: Fill each bucket and return the info
-        return buckets
+        logger.debug("Assigned {} bucket(s) to the client".format(buckets))
+        buckets_for_client = []
+        for id in buckets:
+            users = self.dataStoreIntf.get_all_users_for_bucket(id)
+            buckets_for_client.append({'bucket_id':id, 'users':users})
+        return buckets_for_client
         
         
 

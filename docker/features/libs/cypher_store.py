@@ -157,7 +157,7 @@ class DMCypherStoreIntf():
     def get_all_users_in_dmchech_buckets(self):
         print("Finding all users from DB who is not put in DMCheck bucket")
         query = """
-            match(u:User)-[:INBUCKET]->(b:DMCheckBucket)
+            match(u:User)-[:INDMCHECKBUCKET]->(b:DMCheckBucket)
             return u.screen_name ORDER BY u.screen_name
         """
         response_json = execute_query_with_result(query)
@@ -180,7 +180,7 @@ class DMCypherStoreIntf():
 
             FOREACH (u IN bs.bucket |
                 MERGE(user:User {screen_name:u.name})
-                MERGE (user)-[:INBUCKET]->(bucket)
+                MERGE (user)-[:INDMCHECKBUCKET]->(bucket)
             )
         """
         execute_query(query, buckets=buckets, state=state)
@@ -202,6 +202,19 @@ class DMCypherStoreIntf():
         logger.debug("Got {} buckets".format(len(buckets)))
         return buckets
 
+    def get_all_users_for_bucket(self, bucket_id):
+        print("Getting users for {} bucket".format(bucket_id))
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'edit_datetime':currtime, 'uuid':bucket_id}
+        query = """
+            MATCH(u:User)-[:INDMCHECKBUCKET]->(b:DMCheckBucket {uuid:$state.uuid})
+            SET b.edit_datetime = $state.edit_datetime
+            return u.screen_name, u.id
+        """
+        response_json = execute_query_with_result(query, state=state)
+        users = [ {'screen_name':user['u.screen_name'], 'id':user['u.id']} for user in response_json]
+        logger.debug("Got {} buckets".format(len(users)))
+        return users
 
     def get_all_users_list(self):
         print("Finding users from DB")
