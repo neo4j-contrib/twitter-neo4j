@@ -11,6 +11,7 @@
 	* 4.3. [Below use-case talks about error conditions which can happen in this system](#Belowuse-casetalksabouterrorconditionswhichcanhappeninthissystem)
 	* 4.4. [Below use-case captures various software exceptions](#Belowuse-casecapturesvarioussoftwareexceptions)
 	* 4.5. [Visibility related use-case. It will be used for troubleshoot and monitoring](#Visibilityrelateduse-case.Itwillbeusedfortroubleshootandmonitoring)
+	* 4.6. [Security use-cases](#Securityuse-cases)
 * 5. [Important scenrios](#Importantscenrios)
 	* 5.1. [User wants to process a user with higher priority and user is already picked for processing with lower priority](#Userwantstoprocessauserwithhigherpriorityanduserisalreadypickedforprocessingwithlowerpriority)
 		* 5.1.1. [Approch-1](#Approch-1)
@@ -92,7 +93,7 @@ Below diagram depicts various building blocks of this system
 ###  4.5. <a name='Visibilityrelateduse-case.Itwillbeusedfortroubleshootandmonitoring'></a>Visibility related use-case. It will be used for troubleshoot and monitoring
 ![image info](./data/visibility_usecases.jpg)
 
-### Security use-cases
+###  4.6. <a name='Securityuse-cases'></a>Security use-cases
 ![image info](./data/usecases_for_security.jpg)
 
 ##  5. <a name='Importantscenrios'></a>Important scenrios
