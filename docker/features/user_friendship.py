@@ -73,11 +73,17 @@ class UserRelations():
     def __process_friendship_fetch(self, user):
         #print("Processing friendship fetch for {}  user".format(user))
         base_url = 'https://api.twitter.com/1.1/friendships/show.json'
-    
-        params = {
-              'source_screen_name': self.source_screen_name,
-              'target_screen_name': user
-            }
+        if user['id']:
+            params = {
+                'source_id': self.source_id,
+                'target_id': user['id']
+                }
+        else:
+            logger.info("User Id is missing and so using {} screen name".format(user['screen_name']))
+            params = {
+                'source_screen_name': self.source_screen_name,
+                'target_screen_name': user['screen_name']
+                }
         url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
  
         response_json = fetch_tweet_info(url)
@@ -86,21 +92,16 @@ class UserRelations():
         friendship = response_json
         return friendship
 
-    def __process_dm(self, users, batch=100):
+    def __check_dm_status(self, users):
         print("Finding relations between {} and {} users".format(self.source_screen_name, len(users)))
         friendships = []
-        can_dm_user = []
-        cant_dm_user = []
         count = 0
         start_time = datetime.now()
-        frequency = 1
+        remaining_threshold = 0
         for user in users:
-            if(user == self.source_screen_name):
-                print("skipping as user is same")
-                continue
             try:
                 curr_limit = get_reponse_header('x-rate-limit-remaining')
-                if(curr_limit and int(curr_limit) <= frequency+1):
+                if(curr_limit and int(curr_limit) <= remaining_threshold):
                     print("Sleeping as remaining x-rate-limit-remaining is {}".format(curr_limit))
                     time_diff = (datetime.now()-start_time).seconds
                     remaining_time = (15*60) - time_diff
@@ -114,69 +115,44 @@ class UserRelations():
                 print("Fetching friendship info for {} user".format(user))
                 friendship = self.__process_friendship_fetch(user)
             except TwitterUserNotFoundError as unf:
-                logger.warning("Twitter couldn't found user {} and so ignoring and setting in DB".format(user))
-                self.dataStoreIntf.mark_nonexists_users(user)
+                logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
+                user['candm'] = "NONEXIST"
                 self.grandtotal += 1
                 continue
             count = count + 1
-            if friendship['relationship']['source']['can_dm'] == True:
-                can_dm_user.append({'source':self.source_screen_name, 'target':user})
+            status = friendship['relationship']['source']['can_dm']
+            if status:
+                user['candm'] = "TRUE"
             else:
-                cant_dm_user.append({'source':self.source_screen_name, 'target':user})
-            if(count%batch == 0):
-                print("Storing batch upto {}".format(count))
-                print("Linking {} DM users".format(len(can_dm_user)))
-                self.dataStoreIntf.store_dm_friends(can_dm_user)
-                self.grandtotal += len(can_dm_user)
-                can_dm_user = []
-                print("Linking {} Non-DM users".format(len(cant_dm_user)))
-                self.dataStoreIntf.store_nondm_friends(cant_dm_user)
-                self.grandtotal += len(cant_dm_user)
-                cant_dm_user = []
-        print("Storing batch upto {}".format(count))
-        if(len(can_dm_user)):
-            print("Linking {} DM users".format(len(can_dm_user)))
-            self.dataStoreIntf.store_dm_friends(can_dm_user)
-            self.grandtotal += len(can_dm_user)
+                user['candm'] = "FALSE"
+        print("Processed {} out of {} users for DM Check".format(count, len(users)))
+        if count != len(users):
+            logger.info("Unable to fetch DM status for {} users".format(len(users)-count))
 
-        if(len(cant_dm_user)):
-            print("Linking {} Non-DM users".format(len(cant_dm_user)))
-            self.dataStoreIntf.store_nondm_friends(cant_dm_user)
-            self.grandtotal += len(cant_dm_user)
-            cant_dm_user = []
-
-
+    def __process_bucket(self, bucket):
+        print("Processing bucket with ID={}".format(bucket['bucket_id']))
+        bucket_id = bucket['bucket_id']
+        users = bucket['users']
+        pdb.set_trace()
+        self.__check_dm_status(users)
+        #TODO: Update dm status to DB
 
     def findDMForUsersInStore(self):
         print("Finding DM between the users")
         find_dm = True
         try_count = 0
+        buckets_batch_cnt = 2
         while find_dm:
             try:
                 try_count = try_count + 1
                 print("Retry count is {}".format(try_count))
-                users = self.dataStoreIntf.get_all_users_list()
-                print("Total number of users are {}".format(len(users)))
-                nonexists_users = self.dataStoreIntf.get_nonexists_users_list()
-                print("Total number of invalid users are {} and they are {}".format(len(nonexists_users), nonexists_users))
-                dmusers = self.dataStoreIntf.get_dm_users_list()
-                print("Total number of DM users are {}".format(len(dmusers)))
-                nondmusers = self.dataStoreIntf.get_nondm_users_list()
-                print("Total number of Non DM users are {}".format(len(nondmusers)))
-                users_wkg = sorted(set(users) - set(nonexists_users) - set(dmusers) - set(nondmusers))
-                print('Processing with unchecked {} users'.format(len(users_wkg)))
-                # pdb.set_trace()
-                # ts = time.perf_counter()
-                # #buckets = self.dmcheck_bucket_mgr.add_buckets()
-                # buckets = self.dmcheck_bucket_mgr.assignBuckets(os.environ["TWITTER_ID"], bucketscount=2)
-                # te = time.perf_counter()
-                # print('perfdata: func:%r took: %2.4f sec' % ('store_tweets_info', te-ts))
-                # pdb.set_trace()
-                # print('Processing with unchecked {} users using single api'.format(len(nonprocessed_user)))
-                if(len(users_wkg)):
-                    self.__process_dm(users_wkg, 10)
-                else:
-                    find_dm = False
+                buckets = self.dmcheck_bucket_mgr.assignBuckets(os.environ["TWITTER_ID"], bucketscount=buckets_batch_cnt)
+                while buckets:
+                    for bucket in buckets:
+                        self.__process_bucket(bucket)
+                    buckets = self.dmcheck_bucket_mgr.assignBuckets(os.environ["TWITTER_ID"], bucketscount=buckets_batch_cnt)
+                print("Not Found any bucket for processing. So sleeping for 15 mins")
+                time.sleep(900)
             except TwitterRateLimitError as e:
                 logger.exception(e)
                 print(traceback.format_exc())
