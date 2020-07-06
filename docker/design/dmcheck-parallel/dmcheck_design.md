@@ -49,6 +49,8 @@ Multiple clients like to contribute in checking openDM. These clients can come a
 * If user is deleted, then system should silently discard any update of OpenDM for this user
 * On user deletion, system should delete corresponding OpenDM info as well
 * Multiple clients should be able to proxy using same Tweeter ID. However, in this case, its  the client responsibility to maintain harmony among themselves. System will treat all such clients as identical
+* Faulty client can submit incorrect info. System should allow to recover in such case. As an approach, system can log client activity
+
 
 ###  2.2. <a name='Non-functionalrequirements'></a>Non-functional requirements
 * Clients should not wait for getting user list
@@ -62,6 +64,7 @@ Multiple clients like to contribute in checking openDM. These clients can come a
 * System should be lock-free. Lock must be used only when it can't be avoided. Its requirement for scale. Lock will be bottleneck for any system with lock
 * Any client should not be able to predict its assigned user list or manipulate system to get user list of its choice. This requirement is related to privacy and security
 * System should facilitate enough data for monitoring and troubleshooting
+* System should be able to minimize impact of erroneous DM info from client. A client may provide DM as True for user who is his/her follower and so it might be partially true info. System design should allow to troubleshoot such result and originating client.
 
 
 
