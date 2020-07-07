@@ -57,6 +57,7 @@ class DMCheckBucketMonitor():
             try:
                 print("Trying to add more buckets")
                 self.dmcheck_bucket_mgr.add_buckets()
+                print("Sleeping for 5 mins")
                 time.sleep(300)
 
             except Exception as e:
