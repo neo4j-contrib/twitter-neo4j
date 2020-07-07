@@ -69,7 +69,7 @@ class DMCheckBucketMonitor():
 
 def main():
     print("Starting DMCheck Bucket monitor. \nConfig file should be [config/{}]\n".format('.env'))
-    DMCheckBucketMonitor dmcheck_bucket_monitor = DMCheckBucketMonitor()
+    dmcheck_bucket_monitor = DMCheckBucketMonitor()
     try:
         dmcheck_bucket_monitor.findDMForUsersInStore()
     except Exception as e:
