@@ -151,9 +151,8 @@ class UserRelations():
                         self.__process_bucket(bucket)
                         self.dmcheck_bucket_mgr.storeDMCheckInfoForBucket(self.source_id, bucket)
                     buckets = self.dmcheck_bucket_mgr.assignBuckets(os.environ["TWITTER_ID"], bucketscount=buckets_batch_cnt)
-                print("Not Found any bucket for processing. So trying to add more buckets")
-                time.sleep(30)
-                self.dmcheck_bucket_mgr.add_buckets()
+                print("Not Found any bucket for processing. So waiting for more buckets to be added")
+                time.sleep(60)
             except TwitterRateLimitError as e:
                 logger.exception(e)
                 print(traceback.format_exc())
