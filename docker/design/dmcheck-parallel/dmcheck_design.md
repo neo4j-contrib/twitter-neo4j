@@ -28,6 +28,33 @@
 		* 6.2.2. [Sequence diagram for making buckets](#Sequencediagramformakingbuckets)
 		* 6.2.3. [Sequence diagram for  Assigning buckets to client](#SequencediagramforAssigningbucketstoclient)
 		* 6.2.4. [Sequence diagram for processing DM Check info update from client](#SequencediagramforprocessingDMCheckinfoupdatefromclient)
+* 7. [Test cases](#Testcases)
+	* 7.1. [Registration specific](#Registrationspecific)
+		* 7.1.1. [Client registring for first time using valid screen name and ID (+ve)](#ClientregistringforfirsttimeusingvalidscreennameandIDve)
+		* 7.1.2. [Client re-registering after unregistering (+ve)](#Clientre-registeringafterunregisteringve)
+		* 7.1.3. [Client re-registering without deregistering (-ve)](#Clientre-registeringwithoutderegistering-ve)
+		* 7.1.4. [Client registering without any detail (-ve)](#Clientregisteringwithoutanydetail-ve)
+		* 7.1.5. [Client registering with wrong detail (-ve)](#Clientregisteringwithwrongdetail-ve)
+		* 7.1.6. [Registration DOS attack(Security, -ve)](#RegistrationDOSattackSecurity-ve)
+		* 7.1.7. [Client unregistering with wrong detail (-ve)](#Clientunregisteringwithwrongdetail-ve)
+		* 7.1.8. [Client terminating before server responds (-ve)](#Clientterminatingbeforeserverresponds-ve)
+	* 7.2. [Bucket Fetch speciifc](#BucketFetchspeciifc)
+		* 7.2.1. [Registered client requesting for a bucket (+ve)](#Registeredclientrequestingforabucketve)
+		* 7.2.2. [Registered client requesting for multiple buckets (+ve)](#Registeredclientrequestingformultiplebucketsve)
+	* 7.3. [Registered client requesting for too many buckets (-ve)](#Registeredclientrequestingfortoomanybuckets-ve)
+	* 7.4. [Unregistered Client requesting for bucket (-ve)](#UnregisteredClientrequestingforbucket-ve)
+	* 7.5. [Bucket data update specific](#Bucketdataupdatespecific)
+		* 7.5.1. [Registered client updating for its owned bucket (+ve)](#Registeredclientupdatingforitsownedbucketve)
+		* 7.5.2. [Registered client updating for not owned bucket (-ve)](#Registeredclientupdatingfornotownedbucket-ve)
+		* 7.5.3. [Unregistered client updating for its owned bucket (-ve)](#Unregisteredclientupdatingforitsownedbucket-ve)
+		* 7.5.4. [Unregistered client updating for not owned bucket (-ve)](#Unregisteredclientupdatingfornotownedbucket-ve)
+		* 7.5.5. [Registered client updating partial info for bucket (+ve)](#Registeredclientupdatingpartialinfoforbucketve)
+		* 7.5.6. [Registered client updating for unassigned user in its own bucket (-ve)](#Registeredclientupdatingforunassigneduserinitsownbucket-ve)
+		* 7.5.7. [Client abrupt termination before server responds (-ve)](#Clientabruptterminationbeforeserverresponds-ve)
+		* 7.5.8. [Multiple clients using same ID](#MultipleclientsusingsameID)
+		* 7.5.9. [Two clients requesting for registration with same detail (+ve)](#Twoclientsrequestingforregistrationwithsamedetailve)
+		* 7.5.10. [Two clients updating for right bucket data (-ve)](#Twoclientsupdatingforrightbucketdata-ve)
+		* 7.5.11. [Two clients in which one sending unregistration and another trying to update (-ve)](#Twoclientsinwhichonesendingunregistrationandanothertryingtoupdate-ve)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -140,3 +167,38 @@ To avoid this condition at all, we can first mark the bucket as dead and after s
 
 ####  6.2.4. <a name='SequencediagramforprocessingDMCheckinfoupdatefromclient'></a>Sequence diagram for processing DM Check info update from client
 ![image info](./data/StoreClientProvidedDMInfo.jpg)
+
+
+##  7. <a name='Testcases'></a>Test cases
+
+###  7.1. <a name='Registrationspecific'></a>Registration specific
+####  7.1.1. <a name='ClientregistringforfirsttimeusingvalidscreennameandIDve'></a>Client registring for first time using valid screen name and ID (+ve)
+####  7.1.2. <a name='Clientre-registeringafterunregisteringve'></a>Client re-registering after unregistering (+ve)
+####  7.1.3. <a name='Clientre-registeringwithoutderegistering-ve'></a>Client re-registering without deregistering (-ve)
+####  7.1.4. <a name='Clientregisteringwithoutanydetail-ve'></a>Client registering without any detail (-ve)
+####  7.1.5. <a name='Clientregisteringwithwrongdetail-ve'></a>Client registering with wrong detail (-ve)
+####  7.1.6. <a name='RegistrationDOSattackSecurity-ve'></a>Registration DOS attack(Security, -ve)
+####  7.1.7. <a name='Clientunregisteringwithwrongdetail-ve'></a>Client unregistering with wrong detail (-ve)
+####  7.1.8. <a name='Clientterminatingbeforeserverresponds-ve'></a>Client terminating before server responds (-ve)
+
+###  7.2. <a name='BucketFetchspeciifc'></a>Bucket Fetch speciifc
+####  7.2.1. <a name='Registeredclientrequestingforabucketve'></a>Registered client requesting for a bucket (+ve)
+####  7.2.2. <a name='Registeredclientrequestingformultiplebucketsve'></a>Registered client requesting for multiple buckets (+ve)
+###  7.3. <a name='Registeredclientrequestingfortoomanybuckets-ve'></a>Registered client requesting for too many buckets (-ve)
+###  7.4. <a name='UnregisteredClientrequestingforbucket-ve'></a>Unregistered Client requesting for bucket (-ve)
+###  7.5. <a name='Bucketdataupdatespecific'></a>Bucket data update specific
+####  7.5.1. <a name='Registeredclientupdatingforitsownedbucketve'></a>Registered client updating for its owned bucket (+ve)
+####  7.5.2. <a name='Registeredclientupdatingfornotownedbucket-ve'></a>Registered client updating for not owned bucket (-ve)
+####  7.5.3. <a name='Unregisteredclientupdatingforitsownedbucket-ve'></a>Unregistered client updating for its owned bucket (-ve)
+####  7.5.4. <a name='Unregisteredclientupdatingfornotownedbucket-ve'></a>Unregistered client updating for not owned bucket (-ve)
+####  7.5.5. <a name='Registeredclientupdatingpartialinfoforbucketve'></a>Registered client updating partial info for bucket (+ve)
+####  7.5.6. <a name='Registeredclientupdatingforunassigneduserinitsownbucket-ve'></a>Registered client updating for unassigned user in its own bucket (-ve)
+####  7.5.7. <a name='Clientabruptterminationbeforeserverresponds-ve'></a>Client abrupt termination before server responds (-ve)
+
+####  7.5.8. <a name='MultipleclientsusingsameID'></a>Multiple clients using same ID
+####  7.5.9. <a name='Twoclientsrequestingforregistrationwithsamedetailve'></a>Two clients requesting for registration with same detail (+ve)
+####  7.5.10. <a name='Twoclientsupdatingforrightbucketdata-ve'></a>Two clients updating for right bucket data (-ve)
+####  7.5.11. <a name='Twoclientsinwhichonesendingunregistrationandanothertryingtoupdate-ve'></a>Two clients in which one sending unregistration and another trying to update (-ve)
+
+
+
