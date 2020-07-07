@@ -1,0 +1,79 @@
+
+'''
+Built-in modules
+'''
+import pdb
+import os
+import traceback
+import time
+
+'''
+Initialization code
+'''
+def __init_program():
+    print("CWD is {}".format(os.getcwd()))
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    os.chdir(dname)
+    print("After change, CWD is {}".format(os.getcwd()))
+
+__init_program()
+
+'''
+User defined modules
+'''
+
+from config.load_config import load_config
+load_config()
+
+store_type = os.getenv("DB_STORE_TYPE", "file_store")
+if store_type.lower() == "file_store":
+    from libs.file_store import DMFileStoreIntf as DMStoreIntf
+else:
+    from libs.cypher_store import DMCypherStoreIntf as DMStoreIntf
+from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
+
+from libs.twitter_logging import logger
+
+from libs.dmcheck_client_manager import DMCheckClientManager
+from libs.dmcheck_buckets_manager import DMCheckBucketManager
+
+class DMCheckBucketMonitor():
+    """
+    This class uses expert pattern. 
+    It provides API to 
+    """
+    def __init__(self, source_id, source_screen_name, outfile=None):
+        print("Initializing DM Check bucket monitor")
+        self.dataStoreIntf = DMStoreIntf()
+        self.dmcheck_client_manager = DMCheckClientManager()
+        self.dmcheck_bucket_mgr = DMCheckBucketManager()
+        self.grandtotal = 0 #Tracks the count of total friendship stored in DB
+        print("DM Check bucket monitor init finished")    
+
+    def RefillBucketPools(self):
+        print("Refilling buckets")
+        while True:
+            try:
+                print("Trying to add more buckets")
+                self.dmcheck_bucket_mgr.add_buckets()
+                time.sleep(300)
+
+            except Exception as e:
+                logger.exception(e)
+                print(traceback.format_exc())
+                print(e)
+                time.sleep(30)
+                continue
+
+def main():
+    print("Starting DMCheck Bucket monitor. \nConfig file should be [config/{}]\n".format('.env'))
+    try:
+        userRelations.findDMForUsersInStore()
+    except Exception as e:
+        pass
+    finally:
+        logger.info("[DMCheck Bucket monitor] {}".format(stats_tracker))
+        print("Exiting program")
+
+if __name__ == "__main__": main()
