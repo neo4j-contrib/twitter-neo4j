@@ -43,18 +43,18 @@
 		* 7.2.2. [Registered client requesting for multiple buckets (+ve)](#Registeredclientrequestingformultiplebucketsve)
 		* 7.2.3. [Registered client requesting for too many buckets (-ve)](#Registeredclientrequestingfortoomanybuckets-ve)
 		* 7.2.4. [Unregistered Client requesting for bucket (-ve)](#UnregisteredClientrequestingforbucket-ve)
-		* 7.2.5. [Bucket data update specific](#Bucketdataupdatespecific)
-		* 7.2.6. [Registered client updating for its owned bucket (+ve)](#Registeredclientupdatingforitsownedbucketve)
-		* 7.2.7. [Registered client updating for not owned bucket (-ve)](#Registeredclientupdatingfornotownedbucket-ve)
-		* 7.2.8. [Unregistered client updating for its owned bucket (-ve)](#Unregisteredclientupdatingforitsownedbucket-ve)
-		* 7.2.9. [Unregistered client updating for not owned bucket (-ve)](#Unregisteredclientupdatingfornotownedbucket-ve)
-		* 7.2.10. [Registered client updating partial info for bucket (+ve)](#Registeredclientupdatingpartialinfoforbucketve)
-		* 7.2.11. [Registered client updating for unassigned user in its own bucket (-ve)](#Registeredclientupdatingforunassigneduserinitsownbucket-ve)
-		* 7.2.12. [Client abrupt termination before server responds (-ve)](#Clientabruptterminationbeforeserverresponds-ve)
-		* 7.2.13. [Multiple clients using same ID](#MultipleclientsusingsameID)
-		* 7.2.14. [Two clients requesting for registration with same detail (+ve)](#Twoclientsrequestingforregistrationwithsamedetailve)
-		* 7.2.15. [Two clients updating for right bucket data (-ve)](#Twoclientsupdatingforrightbucketdata-ve)
-		* 7.2.16. [Two clients in which one sending unregistration and another trying to update (-ve)](#Twoclientsinwhichonesendingunregistrationandanothertryingtoupdate-ve)
+	* 7.3. [Bucket data update specific](#Bucketdataupdatespecific)
+		* 7.3.1. [Registered client updating for its owned bucket (+ve)](#Registeredclientupdatingforitsownedbucketve)
+		* 7.3.2. [Registered client updating for not owned bucket (-ve)](#Registeredclientupdatingfornotownedbucket-ve)
+		* 7.3.3. [Unregistered client updating for its owned bucket (-ve)](#Unregisteredclientupdatingforitsownedbucket-ve)
+		* 7.3.4. [Unregistered client updating for not owned bucket (-ve)](#Unregisteredclientupdatingfornotownedbucket-ve)
+		* 7.3.5. [Registered client updating partial info for bucket (+ve)](#Registeredclientupdatingpartialinfoforbucketve)
+		* 7.3.6. [Registered client updating for unassigned user in its own bucket (-ve)](#Registeredclientupdatingforunassigneduserinitsownbucket-ve)
+		* 7.3.7. [Client abrupt termination before server responds (-ve)](#Clientabruptterminationbeforeserverresponds-ve)
+	* 7.4. [Multiple clients using same ID](#MultipleclientsusingsameID)
+		* 7.4.1. [Two clients requesting for registration with same detail (+ve)](#Twoclientsrequestingforregistrationwithsamedetailve)
+		* 7.4.2. [Two clients updating for right bucket data (-ve)](#Twoclientsupdatingforrightbucketdata-ve)
+		* 7.4.3. [Two clients in which one sending unregistration and another trying to update (-ve)](#Twoclientsinwhichonesendingunregistrationandanothertryingtoupdate-ve)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -186,19 +186,19 @@ To avoid this condition at all, we can first mark the bucket as dead and after s
 ####  7.2.2. <a name='Registeredclientrequestingformultiplebucketsve'></a>Registered client requesting for multiple buckets (+ve)
 ####  7.2.3. <a name='Registeredclientrequestingfortoomanybuckets-ve'></a>Registered client requesting for too many buckets (-ve)
 ####  7.2.4. <a name='UnregisteredClientrequestingforbucket-ve'></a>Unregistered Client requesting for bucket (-ve)
-####  7.2.5. <a name='Bucketdataupdatespecific'></a>Bucket data update specific
-####  7.2.6. <a name='Registeredclientupdatingforitsownedbucketve'></a>Registered client updating for its owned bucket (+ve)
-####  7.2.7. <a name='Registeredclientupdatingfornotownedbucket-ve'></a>Registered client updating for not owned bucket (-ve)
-####  7.2.8. <a name='Unregisteredclientupdatingforitsownedbucket-ve'></a>Unregistered client updating for its owned bucket (-ve)
-####  7.2.9. <a name='Unregisteredclientupdatingfornotownedbucket-ve'></a>Unregistered client updating for not owned bucket (-ve)
-####  7.2.10. <a name='Registeredclientupdatingpartialinfoforbucketve'></a>Registered client updating partial info for bucket (+ve)
-####  7.2.11. <a name='Registeredclientupdatingforunassigneduserinitsownbucket-ve'></a>Registered client updating for unassigned user in its own bucket (-ve)
-####  7.2.12. <a name='Clientabruptterminationbeforeserverresponds-ve'></a>Client abrupt termination before server responds (-ve)
+###  7.3. <a name='Bucketdataupdatespecific'></a>Bucket data update specific
+####  7.3.1. <a name='Registeredclientupdatingforitsownedbucketve'></a>Registered client updating for its owned bucket (+ve)
+####  7.3.2. <a name='Registeredclientupdatingfornotownedbucket-ve'></a>Registered client updating for not owned bucket (-ve)
+####  7.3.3. <a name='Unregisteredclientupdatingforitsownedbucket-ve'></a>Unregistered client updating for its owned bucket (-ve)
+####  7.3.4. <a name='Unregisteredclientupdatingfornotownedbucket-ve'></a>Unregistered client updating for not owned bucket (-ve)
+####  7.3.5. <a name='Registeredclientupdatingpartialinfoforbucketve'></a>Registered client updating partial info for bucket (+ve)
+####  7.3.6. <a name='Registeredclientupdatingforunassigneduserinitsownbucket-ve'></a>Registered client updating for unassigned user in its own bucket (-ve)
+####  7.3.7. <a name='Clientabruptterminationbeforeserverresponds-ve'></a>Client abrupt termination before server responds (-ve)
 
-####  7.2.13. <a name='MultipleclientsusingsameID'></a>Multiple clients using same ID
-####  7.2.14. <a name='Twoclientsrequestingforregistrationwithsamedetailve'></a>Two clients requesting for registration with same detail (+ve)
-####  7.2.15. <a name='Twoclientsupdatingforrightbucketdata-ve'></a>Two clients updating for right bucket data (-ve)
-####  7.2.16. <a name='Twoclientsinwhichonesendingunregistrationandanothertryingtoupdate-ve'></a>Two clients in which one sending unregistration and another trying to update (-ve)
+###  7.4. <a name='MultipleclientsusingsameID'></a>Multiple clients using same ID
+####  7.4.1. <a name='Twoclientsrequestingforregistrationwithsamedetailve'></a>Two clients requesting for registration with same detail (+ve)
+####  7.4.2. <a name='Twoclientsupdatingforrightbucketdata-ve'></a>Two clients updating for right bucket data (-ve)
+####  7.4.3. <a name='Twoclientsinwhichonesendingunregistrationandanothertryingtoupdate-ve'></a>Two clients in which one sending unregistration and another trying to update (-ve)
 
 
 
