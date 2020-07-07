@@ -43,6 +43,7 @@
 		* 7.2.2. [Registered client requesting for multiple buckets (+ve)](#Registeredclientrequestingformultiplebucketsve)
 		* 7.2.3. [Registered client requesting for too many buckets (-ve)](#Registeredclientrequestingfortoomanybuckets-ve)
 		* 7.2.4. [Unregistered Client requesting for bucket (-ve)](#UnregisteredClientrequestingforbucket-ve)
+		* 7.2.5. [Client requesting for bucket and no bucket is available (+ve)](#Clientrequestingforbucketandnobucketisavailableve)
 	* 7.3. [Bucket data update specific](#Bucketdataupdatespecific)
 		* 7.3.1. [Registered client updating for its owned bucket (+ve)](#Registeredclientupdatingforitsownedbucketve)
 		* 7.3.2. [Registered client updating for not owned bucket (-ve)](#Registeredclientupdatingfornotownedbucket-ve)
@@ -51,10 +52,16 @@
 		* 7.3.5. [Registered client updating partial info for bucket (+ve)](#Registeredclientupdatingpartialinfoforbucketve)
 		* 7.3.6. [Registered client updating for unassigned user in its own bucket (-ve)](#Registeredclientupdatingforunassigneduserinitsownbucket-ve)
 		* 7.3.7. [Client abrupt termination before server responds (-ve)](#Clientabruptterminationbeforeserverresponds-ve)
+		* 7.3.8. [Client never updated about its assigned buckets (-ve)](#Clientneverupdatedaboutitsassignedbuckets-ve)
 	* 7.4. [Multiple clients using same ID](#MultipleclientsusingsameID)
 		* 7.4.1. [Two clients requesting for registration with same detail (+ve)](#Twoclientsrequestingforregistrationwithsamedetailve)
 		* 7.4.2. [Two clients updating for right bucket data (-ve)](#Twoclientsupdatingforrightbucketdata-ve)
 		* 7.4.3. [Two clients in which one sending unregistration and another trying to update (-ve)](#Twoclientsinwhichonesendingunregistrationandanothertryingtoupdate-ve)
+	* 7.5. [Multiple clients working for DM Check](#MultipleclientsworkingforDMCheck)
+		* 7.5.1. [Two clients joined almost same time](#Twoclientsjoinedalmostsametime)
+		* 7.5.2. [Two client joined at different time](#Twoclientjoinedatdifferenttime)
+	* 7.6. [Stats check](#Statscheck)
+		* 7.6.1. [Check if any client is not responsive for long then threshold and test the bucket status (-ve)](#Checkifanyclientisnotresponsiveforlongthenthresholdandtestthebucketstatus-ve)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -186,6 +193,9 @@ To avoid this condition at all, we can first mark the bucket as dead and after s
 ####  7.2.2. <a name='Registeredclientrequestingformultiplebucketsve'></a>Registered client requesting for multiple buckets (+ve)
 ####  7.2.3. <a name='Registeredclientrequestingfortoomanybuckets-ve'></a>Registered client requesting for too many buckets (-ve)
 ####  7.2.4. <a name='UnregisteredClientrequestingforbucket-ve'></a>Unregistered Client requesting for bucket (-ve)
+####  7.2.5. <a name='Clientrequestingforbucketandnobucketisavailableve'></a>Client requesting for bucket and no bucket is available (+ve)
+
+
 ###  7.3. <a name='Bucketdataupdatespecific'></a>Bucket data update specific
 ####  7.3.1. <a name='Registeredclientupdatingforitsownedbucketve'></a>Registered client updating for its owned bucket (+ve)
 ####  7.3.2. <a name='Registeredclientupdatingfornotownedbucket-ve'></a>Registered client updating for not owned bucket (-ve)
@@ -194,11 +204,21 @@ To avoid this condition at all, we can first mark the bucket as dead and after s
 ####  7.3.5. <a name='Registeredclientupdatingpartialinfoforbucketve'></a>Registered client updating partial info for bucket (+ve)
 ####  7.3.6. <a name='Registeredclientupdatingforunassigneduserinitsownbucket-ve'></a>Registered client updating for unassigned user in its own bucket (-ve)
 ####  7.3.7. <a name='Clientabruptterminationbeforeserverresponds-ve'></a>Client abrupt termination before server responds (-ve)
+####  7.3.8. <a name='Clientneverupdatedaboutitsassignedbuckets-ve'></a>Client never updated about its assigned buckets (-ve)
 
 ###  7.4. <a name='MultipleclientsusingsameID'></a>Multiple clients using same ID
 ####  7.4.1. <a name='Twoclientsrequestingforregistrationwithsamedetailve'></a>Two clients requesting for registration with same detail (+ve)
 ####  7.4.2. <a name='Twoclientsupdatingforrightbucketdata-ve'></a>Two clients updating for right bucket data (-ve)
 ####  7.4.3. <a name='Twoclientsinwhichonesendingunregistrationandanothertryingtoupdate-ve'></a>Two clients in which one sending unregistration and another trying to update (-ve)
+
+
+###  7.5. <a name='MultipleclientsworkingforDMCheck'></a>Multiple clients working for DM Check
+####  7.5.1. <a name='Twoclientsjoinedalmostsametime'></a>Two clients joined almost same time
+####  7.5.2. <a name='Twoclientjoinedatdifferenttime'></a>Two client joined at different time
+
+###  7.6. <a name='Statscheck'></a>Stats check
+##### Check if bucket processing took longer than threshold (-ve)
+####  7.6.1. <a name='Checkifanyclientisnotresponsiveforlongthenthresholdandtestthebucketstatus-ve'></a>Check if any client is not responsive for long then threshold and test the bucket status (-ve)
 
 
 
