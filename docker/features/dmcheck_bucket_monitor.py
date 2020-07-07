@@ -71,7 +71,7 @@ def main():
     print("Starting DMCheck Bucket monitor. \nConfig file should be [config/{}]\n".format('.env'))
     dmcheck_bucket_monitor = DMCheckBucketMonitor()
     try:
-        dmcheck_bucket_monitor.findDMForUsersInStore()
+        dmcheck_bucket_monitor.RefillBucketPools()
     except Exception as e:
         pass
     finally:
