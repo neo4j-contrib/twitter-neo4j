@@ -43,7 +43,7 @@ class DMCheckBucketMonitor():
     This class uses expert pattern. 
     It provides API to 
     """
-    def __init__(self, source_id, source_screen_name, outfile=None):
+    def __init__(self):
         print("Initializing DM Check bucket monitor")
         self.dataStoreIntf = DMStoreIntf()
         self.dmcheck_client_manager = DMCheckClientManager()
@@ -66,10 +66,12 @@ class DMCheckBucketMonitor():
                 time.sleep(30)
                 continue
 
+
 def main():
     print("Starting DMCheck Bucket monitor. \nConfig file should be [config/{}]\n".format('.env'))
+    DMCheckBucketMonitor dmcheck_bucket_monitor = DMCheckBucketMonitor()
     try:
-        userRelations.findDMForUsersInStore()
+        dmcheck_bucket_monitor.findDMForUsersInStore()
     except Exception as e:
         pass
     finally:
