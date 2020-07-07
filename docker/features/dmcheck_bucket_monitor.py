@@ -73,7 +73,6 @@ def main():
     except Exception as e:
         pass
     finally:
-        logger.info("[DMCheck Bucket monitor] {}".format(stats_tracker))
         print("Exiting program")
 
 if __name__ == "__main__": main()
