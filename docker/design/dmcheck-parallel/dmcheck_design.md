@@ -57,9 +57,11 @@
 		* 7.4.1. [Two clients requesting for registration with same detail (+ve)](#Twoclientsrequestingforregistrationwithsamedetailve)
 		* 7.4.2. [Two clients updating for right bucket data (-ve)](#Twoclientsupdatingforrightbucketdata-ve)
 		* 7.4.3. [Two clients in which one sending unregistration and another trying to update (-ve)](#Twoclientsinwhichonesendingunregistrationandanothertryingtoupdate-ve)
-	* 7.5. [Multiple clients working for DM Check](#MultipleclientsworkingforDMCheck)
-		* 7.5.1. [Two clients joined almost same time](#Twoclientsjoinedalmostsametime)
-		* 7.5.2. [Two client joined at different time](#Twoclientjoinedatdifferenttime)
+	* 7.5. [Concurrency test](#Concurrencytest)
+		* 7.5.1. [Two clients joined almost same time (+ve)](#Twoclientsjoinedalmostsametimeve)
+		* 7.5.2. [Two client joined at different time (+ve)](#Twoclientjoinedatdifferenttimeve)
+		* 7.5.3. [Bucket formation and bucket assignment is happening at the same time. Note that bucket assignment is from older pool (+ve)](#Bucketformationandbucketassignmentishappeningatthesametime.Notethatbucketassignmentisfromolderpoolve)
+		* 7.5.4. [Clients are coming and going at resonable short span of time (+ve)](#Clientsarecomingandgoingatresonableshortspanoftimeve)
 	* 7.6. [Stats check](#Statscheck)
 		* 7.6.1. [Check if any client is not responsive for long then threshold and test the bucket status (-ve)](#Checkifanyclientisnotresponsiveforlongthenthresholdandtestthebucketstatus-ve)
 
@@ -180,13 +182,22 @@ To avoid this condition at all, we can first mark the bucket as dead and after s
 
 ###  7.1. <a name='Registrationspecific'></a>Registration specific
 ####  7.1.1. <a name='ClientregistringforfirsttimeusingvalidscreennameandIDve'></a>Client registring for first time using valid screen name and ID (+ve)
+Expected behaviour -> Client should receive successful registration response
 ####  7.1.2. <a name='Clientre-registeringafterunregisteringve'></a>Client re-registering after unregistering (+ve)
+Expected behaviour -> Client should receive successful registration response
 ####  7.1.3. <a name='Clientre-registeringwithoutderegistering-ve'></a>Client re-registering without deregistering (-ve)
+Expected behaviour -> Client should receive successful registration response
 ####  7.1.4. <a name='Clientregisteringwithoutanydetail-ve'></a>Client registering without any detail (-ve)
+Expected behaviour -> Client should receive error
 ####  7.1.5. <a name='Clientregisteringwithwrongdetail-ve'></a>Client registering with wrong detail (-ve)
+Expected behaviour -> Client should receive error
 ####  7.1.6. <a name='RegistrationDOSattackSecurity-ve'></a>Registration DOS attack(Security, -ve)
+Expected behaviour -> Client should recieve connection close [TBD]
 ####  7.1.7. <a name='Clientunregisteringwithwrongdetail-ve'></a>Client unregistering with wrong detail (-ve)
+Expected behaviour -> Client should receive error
 ####  7.1.8. <a name='Clientterminatingbeforeserverresponds-ve'></a>Client terminating before server responds (-ve)
+Expected behaviour -> System should not gracefully handle
+
 
 ###  7.2. <a name='BucketFetchspeciifc'></a>Bucket Fetch speciifc
 ####  7.2.1. <a name='Registeredclientrequestingforabucketve'></a>Registered client requesting for a bucket (+ve)
@@ -212,9 +223,11 @@ To avoid this condition at all, we can first mark the bucket as dead and after s
 ####  7.4.3. <a name='Twoclientsinwhichonesendingunregistrationandanothertryingtoupdate-ve'></a>Two clients in which one sending unregistration and another trying to update (-ve)
 
 
-###  7.5. <a name='MultipleclientsworkingforDMCheck'></a>Multiple clients working for DM Check
-####  7.5.1. <a name='Twoclientsjoinedalmostsametime'></a>Two clients joined almost same time
-####  7.5.2. <a name='Twoclientjoinedatdifferenttime'></a>Two client joined at different time
+###  7.5. <a name='Concurrencytest'></a>Concurrency test
+####  7.5.1. <a name='Twoclientsjoinedalmostsametimeve'></a>Two clients joined almost same time (+ve)
+####  7.5.2. <a name='Twoclientjoinedatdifferenttimeve'></a>Two client joined at different time (+ve)
+####  7.5.3. <a name='Bucketformationandbucketassignmentishappeningatthesametime.Notethatbucketassignmentisfromolderpoolve'></a>Bucket formation and bucket assignment is happening at the same time. Note that bucket assignment is from older pool (+ve)
+####  7.5.4. <a name='Clientsarecomingandgoingatresonableshortspanoftimeve'></a>Clients are coming and going at resonable short span of time (+ve)
 
 ###  7.6. <a name='Statscheck'></a>Stats check
 ##### Check if bucket processing took longer than threshold (-ve)
