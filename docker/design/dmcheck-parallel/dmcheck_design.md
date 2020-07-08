@@ -79,32 +79,32 @@ Multiple clients like to contribute in checking openDM. These clients can come a
 
 ##  2. <a name='Requirementsbreak-down'></a>Requirements break-down
 ###  2.1. <a name='Functionalrequirements'></a>Functional requirements
-* Multiple clients should be able to fetch user list for checking
-* Only the client who got the user list should be able to update
-* Only registered client should be able to interact with system
-* Client can be able to specify its capability and system should be able to provide number of user lists accordingly
-* In case of any difficulty(Crash for example), Client should be able to recollect its owned user list with the help of system
-* User should be able to give list of users which needs high priority for processing OpenDM
-* User should be able to view list of users which are not yet marked for processing.
-* If user is deleted, then system should silently discard any update of OpenDM for this user
-* On user deletion, system should delete corresponding OpenDM info as well
-* Multiple clients should be able to proxy using same Tweeter ID. However, in this case, its  the client responsibility to maintain harmony among themselves. System will treat all such clients as identical
-* Faulty client can submit incorrect info. System should allow to recover in such case. As an approach, system can log client activity
+* Multiple clients should be able to fetch user list for checking [Done]
+* Only the client who got the user list should be able to update [Done]
+* Only registered client should be able to interact with system [Done]
+* Client can be able to specify its capability and system should be able to provide number of user lists accordingly [Pending]
+* In case of any difficulty(Crash for example), Client should be able to recollect its owned user list with the help of system [Pending]
+* User should be able to give list of users which needs high priority for processing OpenDM [Pending]
+* User should be able to view list of users which are not yet marked for processing. [Done]
+* If user is deleted, then system should silently discard any update of OpenDM for this user [Need discussion]
+* On user deletion, system should delete corresponding OpenDM info as well [Need discussion]
+* Multiple clients should be able to proxy using same Tweeter ID. However, in this case, its  the client responsibility to maintain harmony among themselves. System will treat all such clients as identical [Pending]
+* Faulty client can submit incorrect info. System should allow to recover in such case. As an approach, system can log client activity [Pending]
 
 
 ###  2.2. <a name='Non-functionalrequirements'></a>Non-functional requirements
-* Clients should not wait for getting user list
-* Client should not wait while updaing openDM info for user list assigned to it
-* System should be fair to users for OpenDM check. It means that no user openDM check should be starved for ever
-* System should unlock user lists owned by dead clients and reassigns
-* System should have minimal load on DB while its processing. This data should be instrumented and published.
-* System should have a resonable maximum wait time for processing any user openDM once it marked for processing. For non-marked, user, its fine as user can assing if needed. 
-* System should be able to scale with reasonable limit. Limit should be advertised
-* System should avoid giving same user list to multiple clients. However, for performance, it may be accepted, but should not be a practice.
-* System should be lock-free. Lock must be used only when it can't be avoided. Its requirement for scale. Lock will be bottleneck for any system with lock
-* Any client should not be able to predict its assigned user list or manipulate system to get user list of its choice. This requirement is related to privacy and security
-* System should facilitate enough data for monitoring and troubleshooting
-* System should be able to minimize impact of erroneous DM info from client. A client may provide DM as True for user who is his/her follower and so it might be partially true info. System design should allow to troubleshoot such result and originating client.
+* Clients should not wait for getting user list [Done]
+* Client should not wait while updaing openDM info for user list assigned to it [Done]
+* System should be fair to users for OpenDM check. It means that no user openDM check should be starved for ever [Pending]
+* System should unlock user lists owned by dead clients and reassigns [Done]
+* System should have minimal load on DB while its processing. This data should be instrumented and published. [Pending]
+* System should have a resonable maximum wait time for processing any user openDM once it marked for processing. For non-marked, user, its fine as user can assing if needed. [Pending]
+* System should be able to scale with reasonable limit. Limit should be advertised [Pending]
+* System should avoid giving same user list to multiple clients. However, for performance, it may be accepted, but should not be a practice. [Done. One bucket is only for one client]
+* System should be lock-free. Lock must be used only when it can't be avoided. Its requirement for scale. Lock will be bottleneck for any system with lock [Done]
+* Any client should not be able to predict its assigned user list or manipulate system to get user list of its choice. This requirement is related to privacy and security [Pending]
+* System should facilitate enough data for monitoring and troubleshooting [Pending]
+* System should be able to minimize impact of erroneous DM info from client. A client may provide DM as True for user who is his/her follower and so it might be partially true info. System design should allow to troubleshoot such result and originating client. [Pending]
 
 
 
