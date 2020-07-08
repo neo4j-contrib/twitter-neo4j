@@ -173,10 +173,9 @@ class DMCypherStoreIntf():
         query = """
             UNWIND $buckets AS bs
 
-            MERGE(bucket:DMCheckBucket {id:bs.bucket_id})
+            MERGE(bucket:DMCheckBucket {uuid:bs.bucket_uuid})
                 SET bucket.edit_datetime = $state.edit_datetime,
-                    bucket.priority = bs.bucket_priority,
-                    bucket.uuid = bs.bucket_uuid
+                    bucket.priority = bs.bucket_priority
 
             FOREACH (u IN bs.bucket |
                 MERGE(user:User {screen_name:u.name})

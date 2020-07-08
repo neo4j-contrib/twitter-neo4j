@@ -105,11 +105,11 @@ class DMCheckBucketManager:
 
     def __make_db_buckets(self, buckets, priority=DMCHECK_BUCKET_DEFAULT_PRIORITY):
         db_buckets = []
-        bucket_id = 0
         for bucket in buckets:
             db_bucket=[{'name': user} for user in bucket]
-            bucket_id += 1
-            db_buckets.append({'bucket_id':bucket_id, 'bucket_priority': priority, 'bucket_uuid':uuid.uuid4().hex, 'bucket_state':"unassigned", 'bucket':db_bucket})
+            uuid = uuid.uuid4().hex
+            print("Generated {} UUID for bucket".format(uuid))
+            db_buckets.append({'bucket_uuid':uuid, 'bucket_priority': priority, 'bucket_state':"unassigned", 'bucket':db_bucket})
         return db_buckets
 
     def __get_buckets(self, bucketsize = DMCHECK_DEFAULT_BUCKET_SIZE):
