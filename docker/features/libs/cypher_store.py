@@ -3,7 +3,7 @@ from py2neo import Graph
 import socket
 import os
 from retrying import retry
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 
 from .twitter_logging import logger
@@ -188,12 +188,14 @@ class DMCypherStoreIntf():
 
     def assign_dmcheck_buckets(self, client_id, bucket_cnt):
         print("Assigning {} DMcheck buckets".format(bucket_cnt))
-        state = {'bucket_cnt':bucket_cnt, 'client_id':client_id}
+        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {'assigned_datetime':currtime, 'bucket_cnt':bucket_cnt, 'client_id':client_id}
         query = """
-            MATCH(bucket:DMCheckBucket)WHERE NOT (bucket)-[:DMCHECKCLIENT]->()
+            MATCH(bucket:DMCheckBucket) WHERE NOT (bucket)-[:DMCHECKCLIENT]->()
             WITH bucket LIMIT $state.bucket_cnt
             MATCH(client:DMCheckClient {id:$state.client_id})
             MERGE(bucket)-[:DMCHECKCLIENT]->(client)
+            WITH bucket SET bucket.assigned_datetime = $state.assigned_datetime
             return bucket
         """
         response_json = execute_query_with_result(query, state=state)
@@ -234,6 +236,55 @@ class DMCypherStoreIntf():
         """
         execute_query(query, state=state)
         return True
+
+    def is_dead_bucket(self, bucket_id):
+        print("Checking if {} bucket is dead".format(bucket_id))
+        state = {"uuid":bucket_id}
+        query = """
+            MATCH(b:DMCheckBucket {uuid:$state.bucket_id})
+                WHERE EXISTS(b.dead_datetime)
+                return b.uuid
+        """
+        response_json = execute_query_with_result(query, state=state)
+        if not response_json:
+            return True
+        else:
+            return False
+
+    def get_all_dead_buckets(self, threshold_mins_elapsed):
+        print("Getting list of dead buckets for more than {} minutes".format(threshold_mins_elapsed))
+        currtime = datetime.utcnow()
+        threshold_time = currtime - timedelta(minutes=threshold_mins_elapsed)
+        dead_datetime_threshold = threshold_time.strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {"dead_datetime_threshold": dead_datetime_threshold}
+        query = """
+            MATCH(b:DMCheckBucket)
+                WHERE b.dead_datetime < $state.dead_datetime_threshold
+                return b.uuid
+        """
+        response_json = execute_query_with_result(query, state=state)
+        buckets = [ bucket['b.uuid'] for bucket in response_json]
+        print("Got {} buckets".format(len(buckets)))
+        return buckets
+
+    def detect_n_mark_deadbuckets(self, threshold_hours_elapsed):
+        print("Marking buckets as dead if last access is more than {} hours".format(threshold_hours_elapsed))
+        pdb.set_trace()
+        currtime = datetime.utcnow()
+        currtime_formatted = currtime.strftime('%Y-%m-%d_%H:%M:%S.%f')
+        threshold_time = currtime - timedelta(hours=threshold_hours_elapsed)
+        assigned_datetime_threshold = threshold_time.strftime('%Y-%m-%d_%H:%M:%S.%f')
+        state = {"dead_datetime": currtime_formatted, "assigned_datetime_threshold": assigned_datetime_threshold}
+        query = """
+            MATCH(b:DMCheckBucket)-[:DMCHECKCLIENT]->(c:DMCheckClient)
+                WHERE b.assigned_datetime < $state.assigned_datetime_threshold
+                SET b.dead_datetime = $state.dead_datetime
+                return b.uuid
+        """
+        response_json = execute_query_with_result(query, state=state)
+        buckets = [ bucket['b.uuid'] for bucket in response_json]
+        print("Got {} buckets with UUIDs as {}".format(len(buckets), buckets))
+        return buckets
 
     def get_all_users_for_bucket(self, bucket_id):
         print("Getting users for {} bucket".format(bucket_id))

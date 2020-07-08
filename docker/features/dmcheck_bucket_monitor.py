@@ -55,6 +55,8 @@ class DMCheckBucketMonitor():
         print("Refilling buckets")
         while True:
             try:
+                print("Handling Dead buckets, if any")
+                self.dmcheck_bucket_mgr.handle_dead_buckets()
                 print("Trying to add more buckets")
                 self.dmcheck_bucket_mgr.add_buckets()
                 print("Sleeping for 15 mins")
