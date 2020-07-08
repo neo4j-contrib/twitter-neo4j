@@ -111,7 +111,7 @@ class DMCypherStoreIntf():
 
     def add_dmcheck_client(self, client_id, screen_name):
         print("Adding client with id={}, screen name={}".format(client_id, screen_name))
-        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        currtime = datetime.utcnow()
         state = {'state':"CREATED", 'create_datetime': currtime, 'edit_datetime':currtime}
         user = [{'screen_name':screen_name, 'id':client_id}]
         query = """
@@ -120,15 +120,15 @@ class DMCypherStoreIntf():
             MERGE (client:DMCheckClient {id:u.id})
                 SET client.screen_name = u.screen_name,
                     client.state = $state.state,
-                    client.create_datetime = $state.create_datetime,
-                    client.edit_datetime = $state.edit_datetime
+                    client.create_datetime = datetime($state.create_datetime),
+                    client.edit_datetime = datetime($state.edit_datetime)
         """
         execute_query(query, user=user, state=state)
         return
 
     def change_state_dmcheck_client(self, client_id, state):
         print("Changing state to {} for client with id={}".format(state, client_id))
-        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        currtime = datetime.utcnow()
         state = {'state':state, 'edit_datetime':currtime}
         user = [{'id':client_id}]
         query = """
@@ -136,7 +136,7 @@ class DMCypherStoreIntf():
 
             MATCH (client:DMCheckClient {id:u.id})
                 SET client.state = $state.state,
-                    client.edit_datetime = $state.edit_datetime
+                    client.edit_datetime = datetime($state.edit_datetime)
         """
         execute_query(query, user=user, state=state)
         return
@@ -167,14 +167,14 @@ class DMCypherStoreIntf():
 
     def add_dmcheck_buckets(self, buckets):
         print("Adding {} DMcheck buckets".format(len(buckets)))
-        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        currtime = datetime.utcnow()
         state = {'edit_datetime':currtime}
         #TODO: Replace MERGE with MATCH for user
         query = """
             UNWIND $buckets AS bs
 
             MERGE(bucket:DMCheckBucket {uuid:bs.bucket_uuid})
-                SET bucket.edit_datetime = $state.edit_datetime,
+                SET bucket.edit_datetime = datetime($state.edit_datetime),
                     bucket.priority = bs.bucket_priority
 
             FOREACH (u IN bs.bucket |
@@ -188,14 +188,14 @@ class DMCypherStoreIntf():
 
     def assign_dmcheck_buckets(self, client_id, bucket_cnt):
         print("Assigning {} DMcheck buckets".format(bucket_cnt))
-        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        currtime = datetime.utcnow()
         state = {'assigned_datetime':currtime, 'bucket_cnt':bucket_cnt, 'client_id':client_id}
         query = """
             MATCH(bucket:DMCheckBucket) WHERE NOT (bucket)-[:DMCHECKCLIENT]->()
             WITH bucket LIMIT $state.bucket_cnt
             MATCH(client:DMCheckClient {id:$state.client_id})
             MERGE(bucket)-[:DMCHECKCLIENT]->(client)
-            WITH bucket SET bucket.assigned_datetime = $state.assigned_datetime
+            WITH bucket SET bucket.assigned_datetime = datetime($state.assigned_datetime)
             return bucket
         """
         response_json = execute_query_with_result(query, state=state)
@@ -254,12 +254,11 @@ class DMCypherStoreIntf():
     def get_all_dead_buckets(self, threshold_mins_elapsed):
         print("Getting list of dead buckets for more than {} minutes".format(threshold_mins_elapsed))
         currtime = datetime.utcnow()
-        threshold_time = currtime - timedelta(minutes=threshold_mins_elapsed)
-        dead_datetime_threshold = threshold_time.strftime('%Y-%m-%d_%H:%M:%S.%f')
+        dead_datetime_threshold = currtime - timedelta(minutes=threshold_mins_elapsed)
         state = {"dead_datetime_threshold": dead_datetime_threshold}
         query = """
             MATCH(b:DMCheckBucket)
-                WHERE b.dead_datetime < $state.dead_datetime_threshold
+                WHERE b.dead_datetime < datetime($state.dead_datetime_threshold)
                 return b.uuid
         """
         response_json = execute_query_with_result(query, state=state)
@@ -270,14 +269,12 @@ class DMCypherStoreIntf():
     def detect_n_mark_deadbuckets(self, threshold_hours_elapsed):
         print("Marking buckets as dead if last access is more than {} hours".format(threshold_hours_elapsed))
         currtime = datetime.utcnow()
-        currtime_formatted = currtime.strftime('%Y-%m-%d_%H:%M:%S.%f')
-        threshold_time = currtime - timedelta(hours=threshold_hours_elapsed)
-        assigned_datetime_threshold = threshold_time.strftime('%Y-%m-%d_%H:%M:%S.%f')
-        state = {"dead_datetime": currtime_formatted, "assigned_datetime_threshold": assigned_datetime_threshold}
+        assigned_datetime_threshold = currtime - timedelta(hours=threshold_hours_elapsed)
+        state = {"dead_datetime": currtime, "assigned_datetime_threshold": assigned_datetime_threshold}
         query = """
             MATCH(b:DMCheckBucket)-[:DMCHECKCLIENT]->(c:DMCheckClient)
-                WHERE b.assigned_datetime < $state.assigned_datetime_threshold
-                SET b.dead_datetime = $state.dead_datetime
+                WHERE b.assigned_datetime < datetime($state.assigned_datetime_threshold)
+                SET b.dead_datetime = datetime($state.dead_datetime)
                 return b.uuid
         """
         response_json = execute_query_with_result(query, state=state)
@@ -287,11 +284,11 @@ class DMCypherStoreIntf():
 
     def get_all_users_for_bucket(self, bucket_id):
         print("Getting users for {} bucket".format(bucket_id))
-        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        currtime = datetime.utcnow()
         state = {'edit_datetime':currtime, 'uuid':bucket_id}
         query = """
             MATCH(u:User)-[:INDMCHECKBUCKET]->(b:DMCheckBucket {uuid:$state.uuid})
-            SET b.edit_datetime = $state.edit_datetime
+            SET b.edit_datetime = datetime($state.edit_datetime)
             return u.screen_name, u.id
         """
         response_json = execute_query_with_result(query, state=state)
@@ -301,7 +298,7 @@ class DMCypherStoreIntf():
 
     def store_dm_friends(self, client_id, bucket_id, users):
         print("Store DM users for {} bucket".format(bucket_id))
-        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        currtime = datetime.utcnow()
         state = {'client_id':client_id, 'bucket_id':bucket_id}
         query = """
             UNWIND $users AS user
@@ -318,7 +315,7 @@ class DMCypherStoreIntf():
 
     def store_nondm_friends(self, client_id, bucket_id, users):
         print("Store NON_DM users for {} bucket".format(bucket_id))
-        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        currtime = datetime.utcnow()
         state = {'client_id':client_id, 'bucket_id':bucket_id}
         query = """
             UNWIND $users AS user
@@ -337,7 +334,7 @@ class DMCypherStoreIntf():
     def store_dmcheck_unknown_friends(self, client_id, bucket_id, users):
         #TODO:Not Tested
         print("Store NON_DM users for {} bucket".format(bucket_id))
-        currtime = datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')
+        currtime = datetime.utcnow()
         state = {'client_id':client_id, 'bucket_id':bucket_id}
         query = """
             UNWIND $users AS user
