@@ -332,7 +332,6 @@ class DMCypherStoreIntf():
         return True
 
     def store_dmcheck_unknown_friends(self, client_id, bucket_id, users):
-        #TODO:Not Tested
         print("Store NON_DM users for {} bucket".format(bucket_id))
         currtime = datetime.utcnow()
         state = {'client_id':client_id, 'bucket_id':bucket_id}
