@@ -62,7 +62,7 @@
 		* 7.5.2. [Two client joined at different time (+ve)](#Twoclientjoinedatdifferenttimeve)
 		* 7.5.3. [Bucket formation and bucket assignment is happening at the same time. Note that bucket assignment is from older pool (+ve)](#Bucketformationandbucketassignmentishappeningatthesametime.Notethatbucketassignmentisfromolderpoolve)
 		* 7.5.4. [Clients are coming and going at resonable short span of time (+ve)](#Clientsarecomingandgoingatresonableshortspanoftimeve)
-		* 7.5.5. [New users are added and buckets are getting created in parallel at their own speed](#Newusersareaddedandbucketsaregettingcreatedinparallelattheirownspeed)
+		* 7.5.5. [New users are added and buckets are getting created in parallel at their own speed (+ve)](#Newusersareaddedandbucketsaregettingcreatedinparallelattheirownspeedve)
 	* 7.6. [Stats check](#Statscheck)
 		* 7.6.1. [Check if any client is not responsive for long then threshold and test the bucket status (-ve)](#Checkifanyclientisnotresponsiveforlongthenthresholdandtestthebucketstatus-ve)
 
@@ -229,7 +229,7 @@ Expected behaviour -> System should not gracefully handle
 ####  7.5.2. <a name='Twoclientjoinedatdifferenttimeve'></a>Two client joined at different time (+ve)
 ####  7.5.3. <a name='Bucketformationandbucketassignmentishappeningatthesametime.Notethatbucketassignmentisfromolderpoolve'></a>Bucket formation and bucket assignment is happening at the same time. Note that bucket assignment is from older pool (+ve)
 ####  7.5.4. <a name='Clientsarecomingandgoingatresonableshortspanoftimeve'></a>Clients are coming and going at resonable short span of time (+ve)
-####  7.5.5. <a name='Newusersareaddedandbucketsaregettingcreatedinparallelattheirownspeed'></a>New users are added and buckets are getting created in parallel at their own speed
+####  7.5.5. <a name='Newusersareaddedandbucketsaregettingcreatedinparallelattheirownspeedve'></a>New users are added and buckets are getting created in parallel at their own speed (+ve)
 
 ###  7.6. <a name='Statscheck'></a>Stats check
 ##### Check if bucket processing took longer than threshold (-ve)
