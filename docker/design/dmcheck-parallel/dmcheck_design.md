@@ -28,6 +28,7 @@
 		* 6.2.2. [Sequence diagram for making buckets](#Sequencediagramformakingbuckets)
 		* 6.2.3. [Sequence diagram for  Assigning buckets to client](#SequencediagramforAssigningbucketstoclient)
 		* 6.2.4. [Sequence diagram for processing DM Check info update from client](#SequencediagramforprocessingDMCheckinfoupdatefromclient)
+		* 6.2.5. [Sequence diagram for releasing indiefintely locked buckets](#Sequencediagramforreleasingindiefintelylockedbuckets)
 * 7. [Test cases](#Testcases)
 	* 7.1. [Registration specific](#Registrationspecific)
 		* 7.1.1. [Client registring for first time using valid screen name and ID (+ve)](#ClientregistringforfirsttimeusingvalidscreennameandIDve)
@@ -177,7 +178,9 @@ To avoid this condition at all, we can first mark the bucket as dead and after s
 
 ####  6.2.4. <a name='SequencediagramforprocessingDMCheckinfoupdatefromclient'></a>Sequence diagram for processing DM Check info update from client
 ![image info](./data/StoreClientProvidedDMInfo.jpg)
-
+####  6.2.5. <a name='Sequencediagramforreleasingindiefintelylockedbuckets'></a>Sequence diagram for releasing indiefintely locked buckets
+Such bucket which is acquired by client, but client has not updated for long time
+![image info](./data/DeadBucketHandler.jpg)
 
 ##  7. <a name='Testcases'></a>Test cases
 
