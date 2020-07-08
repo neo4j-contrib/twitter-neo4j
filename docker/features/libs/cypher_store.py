@@ -269,7 +269,6 @@ class DMCypherStoreIntf():
 
     def detect_n_mark_deadbuckets(self, threshold_hours_elapsed):
         print("Marking buckets as dead if last access is more than {} hours".format(threshold_hours_elapsed))
-        pdb.set_trace()
         currtime = datetime.utcnow()
         currtime_formatted = currtime.strftime('%Y-%m-%d_%H:%M:%S.%f')
         threshold_time = currtime - timedelta(hours=threshold_hours_elapsed)
