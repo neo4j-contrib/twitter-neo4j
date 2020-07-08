@@ -189,6 +189,7 @@ Such bucket which is acquired by client, but client has not updated for long tim
 This approach needs timestamp comparisons of node property for following purposes
 1. For identifying dead buckets
 2. For stats purposes
+
 Storing values in DB can affect the timestamp in future check. As per https://github.com/neo4j-drivers/neotime/issues/3 Neo4J offers compatibility with python datetime format natively and so, we will be storing datetime in python datetime native format only. Otherwise in case database treats the data as text string, then it will apply lexographic comparison which will be incorrect occassionally
 
 ##  8. <a name='Testcases'></a>Test cases
