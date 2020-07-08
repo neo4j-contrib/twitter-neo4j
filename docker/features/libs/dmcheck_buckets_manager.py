@@ -87,11 +87,11 @@ class DMCheckBucketManager:
 
     def __client_store_bucket_sanity_passed(self, client_id, bucket_id):
         if not  self.dataStoreIntf.valid_bucket_owner(bucket_id, client_id):
-            logger.error("[{}] client is trying to update DM Check for [{}] bucket not owned by itself".format(bucket_id, client_id))
+            print("[{}] client is trying to update DM Check for [{}] bucket not owned by itself".format(bucket_id, client_id))
             return False
 
         if self.dataStoreIntf.is_dead_bucket(bucket_id):
-            logger.error("[{}] bucket is marked as dead".format(bucket_id))
+            print("[{}] bucket is marked as dead".format(bucket_id))
             return False
 
         return True

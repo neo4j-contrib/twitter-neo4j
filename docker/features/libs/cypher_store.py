@@ -246,7 +246,7 @@ class DMCypherStoreIntf():
                 return b.uuid
         """
         response_json = execute_query_with_result(query, state=state)
-        if not response_json:
+        if response_json:
             return True
         else:
             return False
