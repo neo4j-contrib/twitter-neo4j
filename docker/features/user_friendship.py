@@ -148,7 +148,9 @@ class UserRelations():
                 buckets = self.dmcheck_bucket_mgr.assignBuckets(os.environ["TWITTER_ID"], bucketscount=buckets_batch_cnt)
                 while buckets:
                     for bucket in buckets:
+                        print("Processing {} bucket at  {}Z".format(bucket['bucket_id'], datetime.utcnow()))
                         self.__process_bucket(bucket)
+                        print("Storing {} bucket user info at  {}Z".format(bucket['bucket_id'], datetime.utcnow()))
                         self.dmcheck_bucket_mgr.storeDMCheckInfoForBucket(self.source_id, bucket)
                     buckets = self.dmcheck_bucket_mgr.assignBuckets(os.environ["TWITTER_ID"], bucketscount=buckets_batch_cnt)
                 print("Not Found any bucket for processing. So waiting for more buckets to be added")

@@ -6,6 +6,7 @@ import pdb
 import os
 import traceback
 import time
+from datetime import datetime
 
 '''
 Initialization code
@@ -55,9 +56,9 @@ class DMCheckBucketMonitor():
         print("Refilling buckets")
         while True:
             try:
-                print("Handling Dead buckets, if any")
+                print("Handling Dead buckets, if any at {}Z".format(datetime.utcnow()))
                 self.dmcheck_bucket_mgr.handle_dead_buckets()
-                print("Trying to add more buckets")
+                print("Trying to add more buckets at {}Z".format(datetime.utcnow()))
                 self.dmcheck_bucket_mgr.add_buckets()
                 print("Sleeping for 15 mins")
                 time.sleep(900)
