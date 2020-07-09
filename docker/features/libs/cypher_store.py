@@ -258,7 +258,7 @@ class DMCypherStoreIntf():
         state = {"dead_datetime_threshold": dead_datetime_threshold}
         query = """
             MATCH(b:DMCheckBucket)
-                WHERE b.dead_datetime < datetime($state.dead_datetime_threshold)
+                WHERE datetime(b.dead_datetime) < datetime($state.dead_datetime_threshold)
                 return b.uuid
         """
         response_json = execute_query_with_result(query, state=state)
@@ -273,7 +273,7 @@ class DMCypherStoreIntf():
         state = {"dead_datetime": currtime, "assigned_datetime_threshold": assigned_datetime_threshold}
         query = """
             MATCH(b:DMCheckBucket)-[:DMCHECKCLIENT]->(c:DMCheckClient)
-                WHERE b.assigned_datetime < datetime($state.assigned_datetime_threshold)
+                WHERE datetime(b.assigned_datetime) < datetime($state.assigned_datetime_threshold)
                 SET b.dead_datetime = datetime($state.dead_datetime)
                 return b.uuid
         """
