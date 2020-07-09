@@ -172,7 +172,7 @@ class UserRelations():
                 continue
 
 def main():
-    print("Starting DM lookup. \nConfig file should be [config/{}]\n".format('.env'))
+    print("Starting DM lookup with {}/{} client. \nConfig file should be [config/{}]\n".format(os.environ["TWITTER_ID"],os.environ["TWITTER_USER"],'.env'))
     stats_tracker = {'processed': 0}
     userRelations = UserRelations(os.environ["TWITTER_ID"],os.environ["TWITTER_USER"])
     userRelations.register_as_dmcheck_client()

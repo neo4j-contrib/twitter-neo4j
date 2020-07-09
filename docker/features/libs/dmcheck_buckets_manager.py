@@ -72,7 +72,7 @@ class DMCheckBucketManager:
             bucketscount = DMCHECK_MAX_BUCKETS_PER_CLIENT_REQ
 
         buckets = self.dataStoreIntf.assign_dmcheck_buckets(client_id, bucketscount)
-        logger.debug("Assigned {} bucket(s) to the client".format(buckets))
+        print("Assigned {} bucket(s) to the client".format(buckets))
         buckets_for_client = []
         for id in buckets:
             users = self.dataStoreIntf.get_all_users_for_bucket(id)
