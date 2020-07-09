@@ -60,7 +60,7 @@ class DMCheckBucketMonitor():
                 self.dmcheck_bucket_mgr.handle_dead_buckets()
                 print("Trying to add more buckets at {}Z".format(datetime.utcnow()))
                 self.dmcheck_bucket_mgr.add_buckets()
-                print("Sleeping for 15 mins")
+                print("Sleeping for 15 mins at {}Z".format(datetime.utcnow()))
                 time.sleep(900)
 
             except Exception as e:
