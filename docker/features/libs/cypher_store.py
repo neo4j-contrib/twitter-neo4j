@@ -143,7 +143,6 @@ class DMCypherStoreIntf():
 
     def get_all_nonprocessed_list(self):
         print("Finding all users from DB who is not processed")
-        pdb.set_trace()
         query = """
             match(u:User)
             WITH u
@@ -157,7 +156,6 @@ class DMCypherStoreIntf():
 
     def get_all_users_in_dmchech_buckets(self):
         print("Finding all users from DB who is not put in DMCheck bucket")
-        pdb.set_trace()
         query = """
             match(u:User)-[:INDMCHECKBUCKET]->(b:DMCheckBucket)
             return u.screen_name ORDER BY u.screen_name
