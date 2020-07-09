@@ -143,11 +143,12 @@ class DMCypherStoreIntf():
 
     def get_all_nonprocessed_list(self):
         print("Finding all users from DB who is not processed")
+        pdb.set_trace()
         query = """
             match(u:User)
-            match(c:DMCheckClient)
-            where not (c)-[:NON_DM]->(u) and not(c)-[:DM]->(u)
-            return u.screen_name ORDER BY u.screen_name
+            WITH u
+            where  NOT ()-[:DM|NON_DM|UNKNOWN]->(u)
+            return u.screen_name ORDER BY u.screen_name   
         """
         response_json = execute_query_with_result(query)
         users = [ user['u.screen_name'] for user in response_json]
@@ -156,6 +157,7 @@ class DMCypherStoreIntf():
 
     def get_all_users_in_dmchech_buckets(self):
         print("Finding all users from DB who is not put in DMCheck bucket")
+        pdb.set_trace()
         query = """
             match(u:User)-[:INDMCHECKBUCKET]->(b:DMCheckBucket)
             return u.screen_name ORDER BY u.screen_name
