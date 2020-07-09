@@ -1,7 +1,7 @@
 version: '3'
   
 services:
-    dmcheck_client1:
+    dmcheck_client_b1_1:
         build: .
         image: neo4j-twittertools
         command: bash -c "python user_friendship.py"
@@ -11,8 +11,8 @@ services:
           max-size: "2m"
           max-file: "2"
         volumes:
-            - .env_dmcheck_client1:/features/config/.env
-    dmcheck_client2:
+            - .env_dmcheck_client_b1_1:/features/config/.env
+    dmcheck_client_b1_2:
         build: .
         image: neo4j-twittertools
         command: bash -c "python user_friendship.py"
@@ -22,7 +22,7 @@ services:
           max-size: "2m"
           max-file: "2"
         volumes:
-            - .env_dmcheck_client2:/features/config/.env
+            - .env_dmcheck_client_b1_2:/features/config/.env
     dmcheck_bucket_monitor:
         build: .
         image: neo4j-twittertools
