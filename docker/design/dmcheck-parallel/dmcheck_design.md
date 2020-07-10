@@ -31,6 +31,7 @@
 		* 6.2.5. [Sequence diagram for releasing indiefintely locked buckets](#Sequencediagramforreleasingindiefintelylockedbuckets)
 * 7. [Database design](#Databasedesign)
 	* 7.1. [Database interface decisions](#Databaseinterfacedecisions)
+	* 7.2. [Nodes and relationships design](#Nodesandrelationshipsdesign)
 * 8. [Test cases](#Testcases)
 	* 8.1. [Registration specific](#Registrationspecific)
 		* 8.1.1. [Client registring for first time using valid screen name and ID (+ve)](#ClientregistringforfirsttimeusingvalidscreennameandIDve)
@@ -191,6 +192,9 @@ This approach needs timestamp comparisons of node property for following purpose
 2. For stats purposes
 
 Storing values in DB can affect the timestamp in future check. As per https://github.com/neo4j-drivers/neotime/issues/3 Neo4J offers compatibility with python datetime format natively and so, we will be storing datetime in python datetime native format only. Otherwise in case database treats the data as text string, then it will apply lexographic comparison which will be incorrect occassionally
+
+###  7.2. <a name='Nodesandrelationshipsdesign'></a>Nodes and relationships design
+![image info](./data/Neo4J_Database.jpg)
 
 ##  8. <a name='Testcases'></a>Test cases
 
