@@ -79,7 +79,39 @@ class DMCypherStoreIntf():
         print("Initializing Cypher Store")
         try_connecting_neo4j()
         print("Cypher Store init finished")
-    
+
+    class upgradeTools:
+        def upgrade_rename_dm_relation():
+            print("Renaming DM->DM_YES, NON_DM->DM_NO, NONEXIST->DM_UNKNOWN")
+            pdb.set_trace()
+            query = """
+                    MATCH (c:DMCheckClient)-[r:DM]->(u:User) 
+                    MERGE (c)-[:DM_YES]->(u)
+                    DELETE r 
+                    return count(r) as count         
+            """
+            response_json = execute_query_with_result(query)
+            count = response_json[0]['count']
+            query = """
+                    MATCH (c:DMCheckClient)-[r:NONDM]->(u:User) 
+                    MERGE (c)-[:DM_NO]->(u)
+                    DELETE r 
+                    return count(r) as count         
+            """
+            response_json = execute_query_with_result(query)
+            count += response_json[0]['count']  
+
+            query = """
+                    MATCH (c:DMCheckClient)-[r:NONEXIST]->(u:User) 
+                    MERGE (c)-[:DM_UNKNOWN]->(u)
+                    DELETE r 
+                    return count(r) as count         
+            """
+            response_json = execute_query_with_result(query)
+            count += response_json[0]['count']
+            print("Total {} relationships are renamed".format(count)) 
+            return     
+
     def dmcheck_client_exists(self, client_id):
         print("Checking existing of  client with id={}".format(client_id))
         user = [{'id':client_id}]
