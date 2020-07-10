@@ -146,7 +146,7 @@ class DMCypherStoreIntf():
         query = """
             match(u:User)
             WITH u
-            where  NOT ()-[:DM|NON_DM|UNKNOWN]->(u)
+            where  NOT ()-[:DM_YES|DM_NO|DM_UNKNOWN]->(u)
             return u.screen_name ORDER BY u.screen_name   
         """
         response_json = execute_query_with_result(query)
@@ -192,7 +192,7 @@ class DMCypherStoreIntf():
         state = {'assigned_datetime':currtime, 'bucket_cnt':bucket_cnt, 'client_id':client_id}
         query = """
             MATCH(bucket:DMCheckBucket) WHERE NOT (bucket)-[:DMCHECKCLIENT]->()
-            WITH bucket LIMIT $state.bucket_cnt
+            WITH bucket ORDER BY bucket.priority ASC LIMIT $state.bucket_cnt
             MATCH(client:DMCheckClient {id:$state.client_id})
             MERGE(bucket)-[:DMCHECKCLIENT]->(client)
             WITH bucket SET bucket.assigned_datetime = datetime($state.assigned_datetime)
@@ -298,7 +298,6 @@ class DMCypherStoreIntf():
 
     def store_dm_friends(self, client_id, bucket_id, users):
         print("Store DM users for {} bucket".format(bucket_id))
-        currtime = datetime.utcnow()
         state = {'client_id':client_id, 'bucket_id':bucket_id}
         query = """
             UNWIND $users AS user
@@ -308,14 +307,13 @@ class DMCypherStoreIntf():
             MATCH(u:User {screen_name: user.screen_name})
             MATCH (u)-[r:INDMCHECKBUCKET]->()
             DELETE r
-            MERGE(u)<-[:DM]-(client)
+            MERGE(u)<-[:DM_YES]-(client)
         """
         execute_query(query, users=users, state=state)
         return True
 
     def store_nondm_friends(self, client_id, bucket_id, users):
         print("Store NON_DM users for {} bucket".format(bucket_id))
-        currtime = datetime.utcnow()
         state = {'client_id':client_id, 'bucket_id':bucket_id}
         query = """
             UNWIND $users AS user
@@ -323,7 +321,7 @@ class DMCypherStoreIntf():
             MATCH(client:DMCheckClient {id:$state.client_id})
             MATCH(b:DMCheckBucket {uuid:$state.bucket_id})
             MATCH(u:User {screen_name: user.screen_name})
-            MERGE(u)<-[:NON_DM]-(client)
+            MERGE(u)<-[:DM_NO]-(client)
             WITH u
             MATCH (u)-[r:INDMCHECKBUCKET]->()
             DELETE r
@@ -333,7 +331,6 @@ class DMCypherStoreIntf():
 
     def store_dmcheck_unknown_friends(self, client_id, bucket_id, users):
         print("Store NON_DM users for {} bucket".format(bucket_id))
-        currtime = datetime.utcnow()
         state = {'client_id':client_id, 'bucket_id':bucket_id}
         query = """
             UNWIND $users AS user
@@ -341,7 +338,7 @@ class DMCypherStoreIntf():
             MATCH(client:DMCheckClient {id:$state.client_id})
             MATCH(b:DMCheckBucket {uuid:$state.bucket_id})
             MATCH(u:User {screen_name: user.screen_name})
-            MERGE(u)<-[:UNKNOWN]-(client)
+            MERGE(u)<-[:DM_UNKNOWN]-(client)
             WITH u
             MATCH (u)-[r:INDMCHECKBUCKET]->()
             DELETE r
@@ -357,36 +354,6 @@ class DMCypherStoreIntf():
         response_json = execute_query_with_result(query)
         users = [ user['u.screen_name'] for user in response_json]
         logger.debug("Got {} users".format(len(users)))
-        return users
-    
-    def get_dm_users_list(self):
-        print("Finding DM users from DB")
-        query = """
-            match(s:DMCheckClient)-[:DM]->(u:User) 
-            return u.screen_name
-        """
-        response_json = execute_query_with_result(query)
-        users = [ user['u.screen_name'] for user in response_json]
-        return users
-
-    def get_nondm_users_list(self):
-        print("Finding NON_DM users from DB")
-        query = """
-            match(s:DMCheckClient)-[:NON_DM]->(u:User) 
-            return u.screen_name
-        """
-        response_json = execute_query_with_result(query)
-        users = [ user['u.screen_name'] for user in response_json]
-        return users
-
-    def get_dmcheck_unknown_users_list(self):
-        print("Finding users from DB")
-        query = """
-             match(s:DMCheckClient)-[:UNKNOWN]->(u:User) 
-            return u.screen_name
-        """
-        response_json = execute_query_with_result(query)
-        users = [ user['u.screen_name'] for user in response_json]
         return users
 
 
