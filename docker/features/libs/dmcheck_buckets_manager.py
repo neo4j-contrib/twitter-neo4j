@@ -8,6 +8,7 @@ Built-in modules
 import pdb
 import os
 import uuid
+import time
 
 '''
 User defined modules
@@ -29,7 +30,7 @@ DMCHECK_DEFAULT_BUCKET_SIZE = 180
 DMCHECK_BUCKET_DEFAULT_PRIORITY = 100
 DMCHECK_MAX_BUCKETS_PER_CLIENT_REQ = 10
 THRESHOLD_HOURS_FOR_DEAD_BUCKET = 2
-THRESHOLD_MINUTES_DEAD_BUCKET_RELEASE = 5
+THRESHOLD_MINUTES_DEAD_BUCKET_RELEASE = 15
 
 
 class utils:
@@ -46,12 +47,16 @@ class DMCheckBucketManager:
         self.dmcheck_client_manager = DMCheckClientManager()
 
     def handle_dead_buckets(self):
+        ts = time.perf_counter()
         self.___release_dead_buckets()
         self.__detect_n_mark_dead_buckets()
+        te = time.perf_counter()
+        print('perfdata: func:%r took: %2.4f sec' % ('handle_dead_buckets', te-ts))
         pass
 
     #TODO: provide capability to specify max number of buckets count
     def add_buckets(self):
+        ts = time.perf_counter()
         buckets= self.__get_buckets()
         
         if len(buckets):
@@ -59,11 +64,14 @@ class DMCheckBucketManager:
             self.dataStoreIntf.add_dmcheck_buckets(db_buckets)
             pass
         else:
-            logger.info("No users found")
+            print("No users found")
+        te = time.perf_counter()
+        print('perfdata: func:%r took: %2.4f sec' % ('add_buckets', te-ts))
         return
 
     def assignBuckets(self, client_id, bucketscount=1):
         logger.info("Assigning {} bucket(s) to the client".format(bucketscount, client_id))
+        ts = time.perf_counter()
         if not self.__client_sanity_passed(client_id):
             return False
         
@@ -77,8 +85,28 @@ class DMCheckBucketManager:
         for id in buckets:
             users = self.dataStoreIntf.get_all_users_for_bucket(id)
             buckets_for_client.append({'bucket_id':id, 'users':users})
+        te = time.perf_counter()
+        print('perfdata: func:%r took: %2.4f sec' % ('assignBuckets', te-ts))
         return buckets_for_client
 
+    def store_dmcheckinfo_for_bucket(self, client_id, bucket):
+        logger.info("Got {} buckets from the {} client".format(len(bucket['bucket_id']), client_id))
+        ts = time.perf_counter()
+        bucket_id = bucket['bucket_id']
+        if not self.__client_sanity_passed(client_id):
+            return False
+        if not self.__client_store_bucket_sanity_passed(client_id, bucket_id):
+            return False
+
+        #TODO: Sanity check user info
+        users = bucket['users']
+        self.__store_dmcheck_status_for_bucket(client_id, bucket_id, users)
+        self.__release_bucket(bucket_id)
+        print("Successfully processed {} bucket".format(bucket['bucket_id']))
+        te = time.perf_counter()
+        print('perfdata: func:%r took: %2.4f sec' % ('store_dmcheckinfo_for_bucket', te-ts))
+        return       
+        
     def __client_sanity_passed(self, client_id):
         if not self.dmcheck_client_manager.client_registered(client_id):
             logger.error("Unregistered client {} is trying to get buckets".format(client_id))
@@ -114,21 +142,6 @@ class DMCheckBucketManager:
         self.dataStoreIntf.store_dm_friends(client_id, bucket_id, candm_users)
         self.dataStoreIntf.store_nondm_friends(client_id, bucket_id, cantdm_users)
         self.dataStoreIntf.store_dmcheck_unknown_friends(client_id, bucket_id, unknown_users)
-        
-    def storeDMCheckInfoForBucket(self, client_id, bucket):
-        logger.info("Got {} buckets from the {} client".format(len(bucket['bucket_id']), client_id))
-        bucket_id = bucket['bucket_id']
-        if not self.__client_sanity_passed(client_id):
-            return False
-        if not self.__client_store_bucket_sanity_passed(client_id, bucket_id):
-            return False
-
-        #TODO: Sanity check user info
-        users = bucket['users']
-        self.__store_dmcheck_status_for_bucket(client_id, bucket_id, users)
-        self.__release_bucket(bucket_id)
-        print("Successfully processed {} bucket".format(bucket['bucket_id']))
-        return       
 
     def __make_db_buckets(self, buckets, priority=DMCHECK_BUCKET_DEFAULT_PRIORITY):
         db_buckets = []
