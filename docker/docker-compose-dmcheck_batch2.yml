@@ -23,7 +23,7 @@ services:
           max-file: "2"
         volumes:
             - .env_dmcheck_client_b2_2:/features/config/.env
-    dmcheck_client_batch1_3:
+    dmcheck_client_batch2_3:
         build: .
         image: neo4j-twittertools
         command: bash -c "python user_friendship.py"
