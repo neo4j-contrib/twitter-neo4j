@@ -192,7 +192,7 @@ class DMCypherStoreIntf():
         return count      
 
     def get_nonprocessed_userlist(self, max_users):
-        print("Finding all users from DB who is not processed")
+        print("Finding max {} users from DB who is not processed".format(max_users))
         state = {'limit':max_users}
         query = """
             match(u:User)
