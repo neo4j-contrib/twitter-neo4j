@@ -71,6 +71,7 @@
 		* 8.6.1. [Check if any client is not responsive for long then threshold and test the bucket status (-ve)](#Checkifanyclientisnotresponsiveforlongthenthresholdandtestthebucketstatus-ve)
 * 9. [Implementation](#Implementation)
 	* 9.1. [Client Stats](#ClientStats)
+	* 9.2. [System view](#Systemview)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -261,3 +262,7 @@ Expected behaviour -> System should not gracefully handle
 ![image info](./data/client_stats_example1.png)
 ![image info](./data/client_stats_example2.png)
 
+
+###  9.2. <a name='Systemview'></a>System view
+![image info](./data/system_graph_view_all_nodes.png)
+![image info](./data/system_graph_view.png)
