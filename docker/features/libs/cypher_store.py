@@ -240,11 +240,15 @@ class DMCypherStoreIntf():
     def assign_dmcheck_buckets(self, client_id, bucket_cnt):
         print("Assigning {} DMcheck buckets".format(bucket_cnt))
         currtime = datetime.utcnow()
-        state = {'assigned_datetime':currtime, 'bucket_cnt':bucket_cnt, 'client_id':client_id}
+        client_stats = {"last_access_time": currtime, "buckets_assigned":1}
+        state = {'assigned_datetime':currtime, 'bucket_cnt':bucket_cnt, 'client_id':client_id, 'client_stats':client_stats}
         query = """
             MATCH(bucket:DMCheckBucket) WHERE NOT (bucket)-[:DMCHECKCLIENT]->()
             WITH bucket ORDER BY bucket.priority ASC LIMIT $state.bucket_cnt
             MATCH(client:DMCheckClient {id:$state.client_id})
+            MATCH(client)-[:STATS]->(stat:DMCheckClientStats)
+                SET stat.buckets_assigned = stat.buckets_assigned + $state.client_stats.buckets_assigned,
+                    stat.last_access_time = $state.client_stats.last_access_time
             MERGE(bucket)-[:DMCHECKCLIENT]->(client)
             WITH bucket SET bucket.assigned_datetime = datetime($state.assigned_datetime)
             return bucket
