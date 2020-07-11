@@ -258,6 +258,6 @@ Expected behaviour -> System should not gracefully handle
 ##  9. <a name='Implementation'></a>Implementation
 
 ###  9.1. <a name='ClientStats'></a>Client Stats
-![image info](./data/client_stats_example1.jpg)
-![image info](./data/client_stats_example2.jpg)
+![image info](./data/client_stats_example1.png)
+![image info](./data/client_stats_example2.png)
 
