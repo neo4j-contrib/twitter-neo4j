@@ -31,6 +31,7 @@ DMCHECK_BUCKET_DEFAULT_PRIORITY = 100
 DMCHECK_MAX_BUCKETS_PER_CLIENT_REQ = 10
 THRESHOLD_HOURS_FOR_DEAD_BUCKET = 2
 THRESHOLD_MINUTES_DEAD_BUCKET_RELEASE = 15
+THRESHOLD_MAX_USERS_PER_ADD_BUCKET = 18000
 
 
 class utils:
@@ -155,6 +156,9 @@ class DMCheckBucketManager:
     def __calculate_max_users_count(self, clients_count):
             if clients_count:
                 max_user_count = clients_count*DMCHECK_MAX_BUCKETS_PER_CLIENT_REQ*2*DMCHECK_DEFAULT_BUCKET_SIZE
+                if max_user_count > THRESHOLD_MAX_USERS_PER_ADD_BUCKET:
+                    print("Thresholding max user count to {}".format(THRESHOLD_MAX_USERS_PER_ADD_BUCKET))
+                    max_user_count = THRESHOLD_MAX_USERS_PER_ADD_BUCKET
             else:
                 max_user_count = DMCHECK_MAX_BUCKETS_PER_CLIENT_REQ*2
             return max_user_count
