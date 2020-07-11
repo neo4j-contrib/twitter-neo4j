@@ -69,6 +69,8 @@
 		* 8.5.5. [New users are added and buckets are getting created in parallel at their own speed (+ve)](#Newusersareaddedandbucketsaregettingcreatedinparallelattheirownspeedve)
 	* 8.6. [Stats check](#Statscheck)
 		* 8.6.1. [Check if any client is not responsive for long then threshold and test the bucket status (-ve)](#Checkifanyclientisnotresponsiveforlongthenthresholdandtestthebucketstatus-ve)
+* 9. [Implementation](#Implementation)
+	* 9.1. [Client Stats](#ClientStats)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -253,4 +255,9 @@ Expected behaviour -> System should not gracefully handle
 ####  8.6.1. <a name='Checkifanyclientisnotresponsiveforlongthenthresholdandtestthebucketstatus-ve'></a>Check if any client is not responsive for long then threshold and test the bucket status (-ve)
 
 
+##  9. <a name='Implementation'></a>Implementation
+
+###  9.1. <a name='ClientStats'></a>Client Stats
+![image info](./data/client_stats_example1.jpg)
+![image info](./data/client_stats_example2.jpg)
 
