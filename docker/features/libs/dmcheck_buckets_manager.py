@@ -152,9 +152,14 @@ class DMCheckBucketManager:
             db_buckets.append({'bucket_uuid':bucket_id, 'bucket_priority': priority, 'bucket_state':"unassigned", 'bucket':db_bucket})
         return db_buckets
 
+    def __calculate_max_users_count(self, clients_count):
+            return clients_count*DMCHECK_MAX_BUCKETS_PER_CLIENT_REQ*2*DMCHECK_DEFAULT_BUCKET_SIZE
+
     def __get_buckets(self, bucketsize = DMCHECK_DEFAULT_BUCKET_SIZE):
         logger.info("Making buckets with {} size".format(bucketsize))
-        users_wkg = self.dataStoreIntf.get_all_nonprocessed_list()
+        clients_count = self.dataStoreIntf.get_all_dmcheck_clients("ACTIVE")
+        max_users_counts = self.__calculate_max_users_count(clients_count)
+        users_wkg = self.dataStoreIntf.get_nonprocessed_userlist(max_users_counts)
         print("Got {} users which needs DM check".format(len(users_wkg)))
         buckets = list(utils.chunks(users_wkg, bucketsize))
         logger.info("Got {} buckets".format(len(buckets)))

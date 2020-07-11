@@ -158,10 +158,10 @@ class DMCypherStoreIntf():
         execute_query(query, user=user, state=state)
         return
 
-    def change_state_dmcheck_client(self, client_id, state):
-        print("Changing state to {} for client with id={}".format(state, client_id))
+    def change_state_dmcheck_client(self, client_id, client_state):
+        print("Changing state to {} for client with id={}".format(client_state, client_id))
         currtime = datetime.utcnow()
-        state = {'state':state, 'edit_datetime':currtime}
+        state = {'state':client_state, 'edit_datetime':currtime}
         user = [{'id':client_id}]
         query = """
             UNWIND $user AS u
@@ -173,17 +173,29 @@ class DMCypherStoreIntf():
         execute_query(query, user=user, state=state)
         return
 
-    def get_all_nonprocessed_list(self):
+    def get_all_dmcheck_clients(self, client_state):
+        print("Listing all DM check clients which are active")
+        state = {'state':client_state}
+        query = """
+            match(c:DMCheckClient {state:toupper($state.state)}) return count(c) AS count
+        """
+        response_json = execute_query_with_result(query,state=state)
+        count = response_json[0]['count']
+        logger.debug("Got {} DMCheck clients".format(count))
+        return count      
+
+    def get_nonprocessed_userlist(self, max_users):
         print("Finding all users from DB who is not processed")
+        state = {'limit':max_users}
         query = """
             match(u:User)
             WITH u
             where  NOT ()-[:DM|NonDM|DM_YES|DM_NO|DM_UNKNOWN]->(u) AND NOT (u)-[:INDMCHECKBUCKET]->(:DMCheckBucket)
-            return u.screen_name ORDER BY u.screen_name   
+            return u.screen_name ORDER BY u.screen_name LIMIT $state.limit  
         """
-        response_json = execute_query_with_result(query)
+        response_json = execute_query_with_result(query, state=state)
         users = [ user['u.screen_name'] for user in response_json]
-        logger.debug("Got {} users".format(len(users)))
+        print("Got {} users".format(len(users)))
         return users      
 
     def get_all_users_in_dmcheck_buckets(self):
