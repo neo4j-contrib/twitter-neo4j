@@ -273,9 +273,10 @@ Expected behaviour -> System should not gracefully handle
 ![image info](./data/system_graph_view.png)
 
 Severity - Medium
+
 Impact - Eventually users are processed and so no impact on functionality.
          However, it leads to duplicate processing in client side
-		 
+
 Logs below
 
 Client-1
