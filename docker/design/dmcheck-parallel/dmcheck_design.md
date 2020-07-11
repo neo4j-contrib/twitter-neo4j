@@ -272,6 +272,10 @@ Expected behaviour -> System should not gracefully handle
 ###  10.1. <a name='Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.Refer:below'></a>If two clients asks for buckets at the same time, system gives exactly same bucket. 
 ![image info](./data/system_graph_view.png)
 
+Severity - Medium
+Impact - Eventually users are processed and so no impact on functionality.
+         However, it leads to duplicate processing in client side
+		 
 Logs below
 
 Client-1
@@ -281,3 +285,5 @@ Assigned ['ab671c41e9ac46e0bde2adbd789150a8', '27e0db5fc39b4d64b574bd06130119c1'
 Client-2
 Assigned ['e563a8dbafd44093879743e7b863e5e3', '22f0574f05054190aa0c8545ec0acb2c'] bucket(s) to the client
 Assigned ['0768982b79b444ad8b1899f3ab1f3139', 'c940f8ed568a4e2c9d63559de711df48'] bucket(s) to the client
+
+
