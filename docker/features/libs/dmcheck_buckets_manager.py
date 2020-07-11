@@ -156,7 +156,7 @@ class DMCheckBucketManager:
             if clients_count:
                 max_user_count = clients_count*DMCHECK_MAX_BUCKETS_PER_CLIENT_REQ*2*DMCHECK_DEFAULT_BUCKET_SIZE
             else:
-                max_user_count = 1
+                max_user_count = DMCHECK_MAX_BUCKETS_PER_CLIENT_REQ*2
             return max_user_count
 
     def __get_buckets(self, bucketsize = DMCHECK_DEFAULT_BUCKET_SIZE):
