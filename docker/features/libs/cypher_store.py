@@ -144,7 +144,8 @@ class DMCypherStoreIntf():
     def add_dmcheck_client(self, client_id, screen_name):
         print("Adding client with id={}, screen name={}".format(client_id, screen_name))
         currtime = datetime.utcnow()
-        state = {'state':"CREATED", 'create_datetime': currtime, 'edit_datetime':currtime}
+        client_stats = {"last_access_time": currtime, "buckets_assigned":0, "buckets_processed":0, "buckets_fault":0, "buckets_dead":0}
+        state = {'state':"CREATED", 'create_datetime': currtime, 'edit_datetime':currtime, 'client_stats':client_stats}
         user = [{'screen_name':screen_name, 'id':client_id}]
         query = """
             UNWIND $user AS u
@@ -154,6 +155,8 @@ class DMCypherStoreIntf():
                     client.state = $state.state,
                     client.create_datetime = datetime($state.create_datetime),
                     client.edit_datetime = datetime($state.edit_datetime)
+            MERGE(client)-[:STATS]->(stat:DMCheckClientStats)
+            ON CREATE SET stat += $state.client_stats
         """
         execute_query(query, user=user, state=state)
         return
@@ -161,7 +164,8 @@ class DMCypherStoreIntf():
     def change_state_dmcheck_client(self, client_id, client_state):
         print("Changing state to {} for client with id={}".format(client_state, client_id))
         currtime = datetime.utcnow()
-        state = {'state':client_state, 'edit_datetime':currtime}
+        client_stats = {"last_access_time": currtime}
+        state = {'state':client_state, 'edit_datetime':currtime, 'client_stats':client_stats}
         user = [{'id':client_id}]
         query = """
             UNWIND $user AS u
@@ -169,6 +173,9 @@ class DMCypherStoreIntf():
             MATCH (client:DMCheckClient {id:u.id})
                 SET client.state = $state.state,
                     client.edit_datetime = datetime($state.edit_datetime)
+            WITH client
+                MATCH(client)-[:STATS]->(stat:DMCheckClientStats)
+                    SET stat += $state.client_stats
         """
         execute_query(query, user=user, state=state)
         return
