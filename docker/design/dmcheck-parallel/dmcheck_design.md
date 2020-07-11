@@ -269,7 +269,7 @@ Expected behaviour -> System should not gracefully handle
 ![image info](./data/system_graph_view_all_nodes.png)
 
 ##  10. <a name='Bugs'></a>Bugs
-###  10.1. <a name='Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.Refer:below'></a>If two clients asks for buckets at the same time, system gives exactly same bucket. Refer: below
+###  10.1. <a name='Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.Refer:below'></a>If two clients asks for buckets at the same time, system gives exactly same bucket. 
 ![image info](./data/system_graph_view.png)
 
 Logs below
