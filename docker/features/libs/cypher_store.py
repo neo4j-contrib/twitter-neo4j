@@ -284,9 +284,13 @@ class DMCypherStoreIntf():
 
     def remove_bucket(self, bucket_id):
         print("Releaseing users for {} bucket".format(bucket_id))
-        state = {'uuid':bucket_id}
+        currtime = datetime.utcnow()
+        client_stats = {"last_access_time": currtime}
+        state = {'uuid':bucket_id, 'client_stats':client_stats}
         query = """
-            MATCH(b:DMCheckBucket {uuid:$state.uuid})-[r:DMCHECKCLIENT]->(client:DMCheckClient)
+            MATCH(b:DMCheckBucket {uuid:$state.uuid})-[r:DMCHECKCLIENT]->(client:DMCheckClient)-[:STATS]->(stat:DMCheckClientStats)
+                SET stat.buckets_processed = stat.buckets_processed + 1,
+                    stat.last_access_time = $state.client_stats.last_access_time
             DELETE r,b
         """
         execute_query(query, state=state)
@@ -325,7 +329,7 @@ class DMCypherStoreIntf():
         print("Marking buckets as dead if last access is more than {} hours".format(threshold_hours_elapsed))
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime}
-        assigned_datetime_threshold = currtime - timedelta(minutes=threshold_hours_elapsed)
+        assigned_datetime_threshold = currtime - timedelta(hours=threshold_hours_elapsed)
         state = {"dead_datetime": currtime, "assigned_datetime_threshold": assigned_datetime_threshold, 'client_stats':client_stats}
         query = """
             MATCH(b:DMCheckBucket)-[:DMCHECKCLIENT]->(c:DMCheckClient)-[:STATS]->(stat:DMCheckClientStats)
