@@ -72,6 +72,8 @@
 * 9. [Implementation](#Implementation)
 	* 9.1. [Client Stats](#ClientStats)
 	* 9.2. [System view](#Systemview)
+* 10. [Bugs](#Bugs)
+	* 10.1. [If two clients asks for buckets at the same time, system gives exactly same bucket. Refer: below](#Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.Refer:below)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -265,4 +267,17 @@ Expected behaviour -> System should not gracefully handle
 
 ###  9.2. <a name='Systemview'></a>System view
 ![image info](./data/system_graph_view_all_nodes.png)
+
+##  10. <a name='Bugs'></a>Bugs
+###  10.1. <a name='Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.Refer:below'></a>If two clients asks for buckets at the same time, system gives exactly same bucket. Refer: below
 ![image info](./data/system_graph_view.png)
+
+Logs below
+
+Client-1
+Assigned ['e563a8dbafd44093879743e7b863e5e3', '22f0574f05054190aa0c8545ec0acb2c'] bucket(s) to the client
+Assigned ['ab671c41e9ac46e0bde2adbd789150a8', '27e0db5fc39b4d64b574bd06130119c1'] bucket(s) to the client
+
+Client-2
+Assigned ['e563a8dbafd44093879743e7b863e5e3', '22f0574f05054190aa0c8545ec0acb2c'] bucket(s) to the client
+Assigned ['0768982b79b444ad8b1899f3ab1f3139', 'c940f8ed568a4e2c9d63559de711df48'] bucket(s) to the client
