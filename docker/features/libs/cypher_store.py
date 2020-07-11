@@ -324,12 +324,15 @@ class DMCypherStoreIntf():
     def detect_n_mark_deadbuckets(self, threshold_hours_elapsed):
         print("Marking buckets as dead if last access is more than {} hours".format(threshold_hours_elapsed))
         currtime = datetime.utcnow()
-        assigned_datetime_threshold = currtime - timedelta(hours=threshold_hours_elapsed)
-        state = {"dead_datetime": currtime, "assigned_datetime_threshold": assigned_datetime_threshold}
+        client_stats = {"last_access_time": currtime}
+        assigned_datetime_threshold = currtime - timedelta(minutes=threshold_hours_elapsed)
+        state = {"dead_datetime": currtime, "assigned_datetime_threshold": assigned_datetime_threshold, 'client_stats':client_stats}
         query = """
-            MATCH(b:DMCheckBucket)-[:DMCHECKCLIENT]->(c:DMCheckClient)
+            MATCH(b:DMCheckBucket)-[:DMCHECKCLIENT]->(c:DMCheckClient)-[:STATS]->(stat:DMCheckClientStats)
                 WHERE datetime(b.assigned_datetime) < datetime($state.assigned_datetime_threshold)
-                SET b.dead_datetime = datetime($state.dead_datetime)
+                SET b.dead_datetime = datetime($state.dead_datetime),
+                    stat.buckets_dead = stat.buckets_dead + 1,
+                    stat.last_access_time = $state.client_stats.last_access_time
                 return b.uuid
         """
         response_json = execute_query_with_result(query, state=state)
