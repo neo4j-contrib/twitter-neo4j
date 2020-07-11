@@ -244,7 +244,7 @@ class DMCypherStoreIntf():
         state = {'assigned_datetime':currtime, 'bucket_cnt':bucket_cnt, 'client_id':client_id, 'client_stats':client_stats}
         query = """
             MATCH(bucket:DMCheckBucket) WHERE NOT (bucket)-[:DMCHECKCLIENT]->()
-            WITH bucket ORDER BY bucket.priority ASC LIMIT $state.bucket_cnt
+            WITH bucket, rand() as r ORDER BY r, bucket.priority ASC LIMIT $state.bucket_cnt
             MATCH(client:DMCheckClient {id:$state.client_id})
             MATCH(client)-[:STATS]->(stat:DMCheckClientStats)
                 SET stat.buckets_assigned = stat.buckets_assigned + $state.client_stats.buckets_assigned,
