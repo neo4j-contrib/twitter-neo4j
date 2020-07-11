@@ -23,14 +23,3 @@ services:
           max-file: "2"
         volumes:
             - .env_dmcheck_client_b1_2:/features/config/.env
-    dmcheck_bucket_monitor:
-        build: .
-        image: neo4j-twittertools
-        command: bash -c "python dmcheck_bucket_monitor.py"
-        logging:
-         driver: "json-file"
-         options:
-          max-size: "2m"
-          max-file: "2"
-        volumes:
-            - .env_dmbucket_monitor:/features/config/.env
