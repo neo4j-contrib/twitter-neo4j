@@ -73,7 +73,7 @@
 	* 9.1. [Client Stats](#ClientStats)
 	* 9.2. [System view](#Systemview)
 * 10. [Bugs](#Bugs)
-	* 10.1. [If two clients asks for buckets at the same time, system gives exactly same bucket. Refer: below](#Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.Refer:below)
+	* 10.1. [If two clients asks for buckets at the same time, system gives exactly same bucket.](#Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -269,12 +269,18 @@ Expected behaviour -> System should not gracefully handle
 ![image info](./data/system_graph_view_all_nodes.png)
 
 ##  10. <a name='Bugs'></a>Bugs
-###  10.1. <a name='Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.Refer:below'></a>If two clients asks for buckets at the same time, system gives exactly same bucket. 
+###  10.1. <a name='Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.'></a>If two clients asks for buckets at the same time, system gives exactly same bucket. 
 ![image info](./data/system_graph_view.png)
 
 Severity - Medium
 
-Impact - Eventually users are processed and so no impact on functionality.
+When it happens -> If two clients asks for bucket at exactly same time
+
+Status - Fixed
+
+Fix detail - System will randomize the result and so, it should assign different bucket to each client.
+
+Bug Impact - Eventually users are processed and so no impact on functionality.
          However, it leads to duplicate processing in client side
 
 Logs below
