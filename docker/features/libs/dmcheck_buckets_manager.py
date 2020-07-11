@@ -154,10 +154,7 @@ class DMCheckBucketManager:
 
     def __get_buckets(self, bucketsize = DMCHECK_DEFAULT_BUCKET_SIZE):
         logger.info("Making buckets with {} size".format(bucketsize))
-        #TODO: make single call for getting list as current code is not optimized
-        users = self.dataStoreIntf.get_all_nonprocessed_list()
-        bucket_users = self.dataStoreIntf.get_all_users_in_dmcheck_buckets()
-        users_wkg = sorted(set(users) - set(bucket_users))
+        users_wkg = self.dataStoreIntf.get_all_nonprocessed_list()
         print("Got {} users which needs DM check".format(len(users_wkg)))
         buckets = list(utils.chunks(users_wkg, bucketsize))
         logger.info("Got {} buckets".format(len(buckets)))

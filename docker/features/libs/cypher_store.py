@@ -178,7 +178,7 @@ class DMCypherStoreIntf():
         query = """
             match(u:User)
             WITH u
-            where  NOT ()-[:DM|NonDM|DM_YES|DM_NO|DM_UNKNOWN]->(u)
+            where  NOT ()-[:DM|NonDM|DM_YES|DM_NO|DM_UNKNOWN]->(u) AND NOT (u)-[:INDMCHECKBUCKET]->(:DMCheckBucket)
             return u.screen_name ORDER BY u.screen_name   
         """
         response_json = execute_query_with_result(query)
