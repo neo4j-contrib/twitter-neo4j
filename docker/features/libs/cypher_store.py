@@ -178,7 +178,7 @@ class DMCypherStoreIntf():
         query = """
             match(u:User)
             WITH u
-            where  NOT ()-[:DM_YES|DM_NO|DM_UNKNOWN]->(u)
+            where  NOT ()-[:DM|NonDM|DM_YES|DM_NO|DM_UNKNOWN]->(u)
             return u.screen_name ORDER BY u.screen_name   
         """
         response_json = execute_query_with_result(query)
@@ -186,7 +186,7 @@ class DMCypherStoreIntf():
         logger.debug("Got {} users".format(len(users)))
         return users      
 
-    def get_all_users_in_dmchech_buckets(self):
+    def get_all_users_in_dmcheck_buckets(self):
         print("Finding all users from DB who is not put in DMCheck bucket")
         query = """
             match(u:User)-[:INDMCHECKBUCKET]->(b:DMCheckBucket)
