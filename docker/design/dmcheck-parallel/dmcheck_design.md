@@ -273,10 +273,10 @@ Expected behaviour -> System should not gracefully handle
 ##  10. <a name='SystemTroubleshootandVisibility'></a>System Troubleshoot and Visibility 
 ###  10.1. <a name='Detectionofmalfunctionedclient'></a>Detection of malfunctioned client
 Using client stats, below example shows that 
-1. client is not able to process buckets whatever it is claiming
-2. Client is requesting buckets even though it fails to process older one
+1. client is not able to process buckets whatever it is claiming (notice that buckets_dead is non-zero)
+2. Client is requesting buckets even though it fails to process older one(notice that buckets_dead value is high)
 ![image info](./data/malfunctioned_client_identification.png)
-3. Client error is severe as it is requesting new buckets too fast
+3. Client error is severe as it is requesting new buckets too fast(notice difference between edit time and last access time). This observation needs frequent sampling at fixed interval.
 ![image info](./data/malfunctioned_client_identification2.png)
 
 ##  11. <a name='Bugs'></a>Bugs
