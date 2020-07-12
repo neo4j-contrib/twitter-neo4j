@@ -37,7 +37,7 @@ if store_type.lower() == "file_store":
     from libs.file_store import DMFileStoreIntf as DMStoreIntf
 else:
     from libs.cypher_store import DMCypherStoreIntf as DMStoreIntf
-from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken
+from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterUserAccountLocked
 
 from libs.twitter_access import fetch_tweet_info, get_reponse_header
 from libs.twitter_logging import logger
@@ -171,7 +171,14 @@ class UserRelations():
                 print(traceback.format_exc())
                 print(e)
                 print('Exiting since user credential is invalid')
-                return               
+                return         
+
+            except TwitterUserAccountLocked as e:
+                logger.exception(e)
+                print(traceback.format_exc())
+                print(e)
+                print('Exiting since Account is locked')
+                return       
 
             except Exception as e:
                 logger.exception(e)

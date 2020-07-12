@@ -47,6 +47,8 @@ def fetch_tweet_info(url, headers = {'accept': 'application/json'}):
                 raise TwitterUserNotFoundError(response_json)
             elif error['code'] == 89:
                 raise TwitterUserInvalidOrExpiredToken(response_json)
+            elif error['code'] == 326:
+                raise TwitterUserAccountLocked(response_json)
       raise Exception('Twitter API error: %s' % response_json)
     return response_json
 
