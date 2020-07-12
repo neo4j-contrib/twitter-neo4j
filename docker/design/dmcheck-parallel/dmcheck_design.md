@@ -72,8 +72,10 @@
 * 9. [Implementation](#Implementation)
 	* 9.1. [Client Stats](#ClientStats)
 	* 9.2. [System view](#Systemview)
-* 10. [Bugs](#Bugs)
-	* 10.1. [If two clients asks for buckets at the same time, system gives exactly same bucket.](#Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.)
+* 10. [System Troubleshoot and Visibility](#SystemTroubleshootandVisibility)
+	* 10.1. [Detection of malfunctioned client](#Detectionofmalfunctionedclient)
+* 11. [Bugs](#Bugs)
+	* 11.1. [If two clients asks for buckets at the same time, system gives exactly same bucket.](#Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -268,8 +270,17 @@ Expected behaviour -> System should not gracefully handle
 ###  9.2. <a name='Systemview'></a>System view
 ![image info](./data/system_graph_view_all_nodes.png)
 
-##  10. <a name='Bugs'></a>Bugs
-###  10.1. <a name='Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.'></a>If two clients asks for buckets at the same time, system gives exactly same bucket. 
+##  10. <a name='SystemTroubleshootandVisibility'></a>System Troubleshoot and Visibility 
+###  10.1. <a name='Detectionofmalfunctionedclient'></a>Detection of malfunctioned client
+Using client stats, below example shows that 
+1. client is not able to process buckets whatever it is claiming
+2. Client is requesting buckets even though it fails to process older one
+![image info](./data/malfunctioned_client_identification.png)
+3. Client error is severe as it is requesting new buckets too fast
+![image info](./data/malfunctioned_client_identification2.png)
+
+##  11. <a name='Bugs'></a>Bugs
+###  11.1. <a name='Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.'></a>If two clients asks for buckets at the same time, system gives exactly same bucket. 
 ![image info](./data/system_graph_view.png)
 
 Severity - Medium
