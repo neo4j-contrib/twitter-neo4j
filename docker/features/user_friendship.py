@@ -154,7 +154,7 @@ class UserRelations():
                         print("Processing {} bucket at  {}Z".format(bucket['bucket_id'], datetime.utcnow()))
                         self.__process_bucket(bucket)
                         print("Storing {} bucket user info at  {}Z".format(bucket['bucket_id'], datetime.utcnow()))
-                        self.dmcheck_bucket_mgr.store_dmcheckinfo_for_bucket(self.source_id, bucket)
+                        self.dmcheck_bucket_mgr.store_dmcheckinfo_for_bucket(self.client_id, bucket)
                     buckets = self.dmcheck_bucket_mgr.assignBuckets(os.environ["CLIENT_ID"], bucketscount=buckets_batch_cnt)
                 print("Not Found any bucket for processing. So waiting for more buckets to be added")
                 time.sleep(60)
