@@ -154,13 +154,12 @@ class DMCheckBucketManager:
         return db_buckets
 
     def __calculate_max_users_count(self, clients_count):
-            if clients_count:
-                max_user_count = clients_count*DMCHECK_MAX_BUCKETS_PER_CLIENT_REQ*2*DMCHECK_DEFAULT_BUCKET_SIZE
-                if max_user_count > THRESHOLD_MAX_USERS_PER_ADD_BUCKET:
-                    print("Thresholding max user count to {}".format(THRESHOLD_MAX_USERS_PER_ADD_BUCKET))
-                    max_user_count = THRESHOLD_MAX_USERS_PER_ADD_BUCKET
-            else:
-                max_user_count = DMCHECK_MAX_BUCKETS_PER_CLIENT_REQ*2
+            if not clients_count:
+                clients_count = 1
+            max_user_count = clients_count*DMCHECK_MAX_BUCKETS_PER_CLIENT_REQ*2*DMCHECK_DEFAULT_BUCKET_SIZE
+            if max_user_count > THRESHOLD_MAX_USERS_PER_ADD_BUCKET:
+                print("Thresholding max user count to {}".format(THRESHOLD_MAX_USERS_PER_ADD_BUCKET))
+                max_user_count = THRESHOLD_MAX_USERS_PER_ADD_BUCKET
             return max_user_count
 
     def __get_buckets(self, bucketsize = DMCHECK_DEFAULT_BUCKET_SIZE):
