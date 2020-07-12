@@ -37,7 +37,7 @@ if store_type.lower() == "file_store":
     from libs.file_store import DMFileStoreIntf as DMStoreIntf
 else:
     from libs.cypher_store import DMCypherStoreIntf as DMStoreIntf
-from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
+from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken
 
 from libs.twitter_access import fetch_tweet_info, get_reponse_header
 from libs.twitter_logging import logger
@@ -163,6 +163,12 @@ class UserRelations():
                 print('Sleeping for 15 minutes due to quota. Current time={}'.format(datetime.now()))
                 time.sleep(900)
                 continue
+            except TwitterUserInvalidOrExpiredToken as e:
+                logger.exception(e)
+                print(traceback.format_exc())
+                print(e)
+                print('Exiting since user credential is invalid')
+                return               
 
             except Exception as e:
                 logger.exception(e)
