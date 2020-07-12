@@ -278,6 +278,7 @@ Using client stats, below example shows that
 ![image info](./data/malfunctioned_client_identification.png)
 3. Client error is severe as it is requesting new buckets too fast(notice difference between edit time and last access time). This observation needs frequent sampling at fixed interval.
 ![image info](./data/malfunctioned_client_identification2.png)
+**Query used** match(b:DMCheckBucket)-[r1:DMCHECKCLIENT]->(c:DMCheckClient)-[r2:STATS]->(s:DMCheckClientStats) return b,r1,c,r2,s
 
 ##  11. <a name='Bugs'></a>Bugs
 ###  11.1. <a name='Iftwoclientsasksforbucketsatthesametimesystemgivesexactlysamebucket.'></a>If two clients asks for buckets at the same time, system gives exactly same bucket. 
