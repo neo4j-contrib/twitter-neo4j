@@ -141,17 +141,20 @@ class DMCypherStoreIntf():
             return False
 
 
-    def add_dmcheck_client(self, client_id, screen_name):
-        print("Adding client with id={}, screen name={}".format(client_id, screen_name))
+    def add_dmcheck_client(self, client_id, screen_name, dm_from_id, dm_from_screen_name):
+        print("Adding client with id={}, screen name={}, DM src[{}/{}]".format(client_id, screen_name, dm_from_id, dm_from_screen_name))
+        pdb.set_trace()
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime, "buckets_assigned":0, "buckets_processed":0, "buckets_fault":0, "buckets_dead":0}
         state = {'state':"CREATED", 'create_datetime': currtime, 'edit_datetime':currtime, 'client_stats':client_stats}
-        user = [{'screen_name':screen_name, 'id':client_id}]
+        user = [{'screen_name':screen_name, 'id':client_id, 'dm_from_id':dm_from_id, 'dm_from_screen_name':dm_from_screen_name}]
         query = """
             UNWIND $user AS u
     
             MERGE (client:DMCheckClient {id:u.id})
                 SET client.screen_name = u.screen_name,
+                    client.dm_from_id = u.dm_from_id,
+                    client.dm_from_screen_name = u.dm_from_screen_name,
                     client.state = $state.state,
                     client.create_datetime = datetime($state.create_datetime),
                     client.edit_datetime = datetime($state.edit_datetime)

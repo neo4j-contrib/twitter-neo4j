@@ -50,10 +50,12 @@ class UserRelations():
     This class uses expert pattern. 
     It provides API to 
     """
-    def __init__(self, source_id, source_screen_name, outfile=None):
+    def __init__(self, client_id, client_screen_name, source_id, source_screen_name, outfile=None):
         print("Initializing user friendship")
         self.source_id = source_id
         self.source_screen_name = source_screen_name
+        self.client_id = client_id
+        self.client_screen_name = client_screen_name
         self.dataStoreIntf = DMStoreIntf()
         self.dmcheck_client_manager = DMCheckClientManager()
         self.dmcheck_bucket_mgr = DMCheckBucketManager()
@@ -62,7 +64,8 @@ class UserRelations():
     
     def register_as_dmcheck_client(self):
         print("Registering DM check client as {} Id and {} screen.name".format(self.source_id, self.source_screen_name))
-        self.dmcheck_client_manager.register_client(self.source_id, self.source_screen_name)
+        self.dmcheck_client_manager.register_client(client_id=self.client_id, client_screen_name=self.client_screen_name, 
+                                dm_from_id=self.source_id, dm_from_screen_name=self.source_screen_name)
         print("Successfully registered DM check client as {} Id and {} screen.name".format(self.source_id, self.source_screen_name))
 
     def unregister_client(self):
@@ -79,7 +82,7 @@ class UserRelations():
                 'target_id': user['id']
                 }
         else:
-            logger.info("User Id is missing and so using {} screen name".format(user['screen_name']))
+            print("User Id is missing and so using {} screen name".format(user['screen_name']))
             params = {
                 'source_screen_name': self.source_screen_name,
                 'target_screen_name': user['screen_name']
@@ -112,7 +115,7 @@ class UserRelations():
                     start_time = datetime.now()
                     print("Continuing after threshold reset")
 
-                print("Fetching friendship info for {} user".format(user))
+                print("Fetching friendship info frm {} to {} user".format(self.source_screen_name, user))
                 friendship = self.__process_friendship_fetch(user)
             except TwitterUserNotFoundError as unf:
                 logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
@@ -180,7 +183,7 @@ class UserRelations():
 def main():
     print("Starting DM lookup with {}/{} client. \nConfig file should be [config/{}]\n".format(os.environ["TWITTER_ID"],os.environ["TWITTER_USER"],'.env'))
     stats_tracker = {'processed': 0}
-    userRelations = UserRelations(os.environ["TWITTER_ID"],os.environ["TWITTER_USER"])
+    userRelations = UserRelations(client_id=os.environ["CLIENT_ID"], client_screen_name=os.environ["CLIENT_SCREEN_NAME"], source_id=os.environ["TWITTER_ID"], source_screen_name=os.environ["TWITTER_USER"])
     userRelations.register_as_dmcheck_client()
     try:
         userRelations.findDMForUsersInStore()
