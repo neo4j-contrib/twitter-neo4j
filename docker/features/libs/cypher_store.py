@@ -83,7 +83,6 @@ class DMCypherStoreIntf():
     class upgradeTools:
         def upgrade_rename_dm_relation():
             print("Renaming DM->DM_YES, NON_DM->DM_NO, NONEXIST->DM_UNKNOWN")
-            pdb.set_trace()
             query = """
                     MATCH (c:DMCheckClient)-[r:DM]->(u:User) 
                     MERGE (c)-[:DM_YES]->(u)
@@ -143,7 +142,6 @@ class DMCypherStoreIntf():
 
     def add_dmcheck_client(self, client_id, screen_name, dm_from_id, dm_from_screen_name):
         print("Adding client with id={}, screen name={}, DM src[{}/{}]".format(client_id, screen_name, dm_from_id, dm_from_screen_name))
-        pdb.set_trace()
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime, "buckets_assigned":0, "buckets_processed":0, "buckets_fault":0, "buckets_dead":0}
         state = {'state':"CREATED", 'create_datetime': currtime, 'edit_datetime':currtime, 'client_stats':client_stats}

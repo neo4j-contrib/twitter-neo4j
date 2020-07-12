@@ -29,7 +29,6 @@ class DMCheckClientManager:
     #TODO: Fetch client ID if screen name alone is provided
     """
     def register_client(self, client_id, client_screen_name, dm_from_id, dm_from_screen_name):
-        pdb.set_trace()
         logger.info("Processing registeration request for client with ID={} and screen_name={}".format(client_id, client_screen_name))
         client_exists = self.dataStoreIntf.dmcheck_client_exists(client_id)
         if not client_exists:
