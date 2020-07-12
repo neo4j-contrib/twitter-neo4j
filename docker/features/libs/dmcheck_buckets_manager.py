@@ -155,6 +155,7 @@ class DMCheckBucketManager:
 
     def __calculate_max_users_count(self, clients_count):
             if not clients_count:
+                print("No client found and so defaulting to 1")
                 clients_count = 1
             max_user_count = clients_count*DMCHECK_MAX_BUCKETS_PER_CLIENT_REQ*2*DMCHECK_DEFAULT_BUCKET_SIZE
             if max_user_count > THRESHOLD_MAX_USERS_PER_ADD_BUCKET:
