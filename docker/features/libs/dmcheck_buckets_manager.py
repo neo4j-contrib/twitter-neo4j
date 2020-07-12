@@ -110,7 +110,7 @@ class DMCheckBucketManager:
         
     def __client_sanity_passed(self, client_id):
         if not self.dmcheck_client_manager.client_registered(client_id):
-            logger.error("Unregistered client {} is trying to get buckets".format(client_id))
+            print("Unregistered client {} is trying to get buckets".format(client_id))
             return False
         return True
 
