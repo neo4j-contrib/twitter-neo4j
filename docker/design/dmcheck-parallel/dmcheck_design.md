@@ -5,6 +5,7 @@
 	* 2.2. [Non-functional requirements](#Non-functionalrequirements)
 * 3. [Architecture](#Architecture)
 	* 3.1. [Architecture diagram](#Architecturediagram)
+	* 3.2. [Architecture principles](#Architectureprinciples)
 * 4. [Use cases walkthrough](#Usecaseswalkthrough)
 	* 4.1. [Below use-case talks about how the users are divided in buckets.](#Belowuse-casetalksabouthowtheusersaredividedinbuckets.)
 	* 4.2. [Below use-case talks how multiple clients takes items and update. Also, it talks about challenges](#Belowuse-casetalkshowmultipleclientstakesitemsandupdate.Alsoittalksaboutchallenges)
@@ -82,7 +83,7 @@
 	autoSave=true
 	/vscode-markdown-toc-config -->
 <!-- /vscode-markdown-toc -->
-# DM check subsystem
+# DM check concurrent subsystem
 
 ##  1. <a name='Vision'></a>Vision
 Multiple clients like to contribute in checking openDM. These clients can come and go anytime. System should provide fault tolerant and efficient solution for them to contribute.
@@ -124,6 +125,12 @@ This problem can be mapped to public distribution system(PDS). Note that PDS sho
 ###  3.1. <a name='Architecturediagram'></a>Architecture diagram
 Below diagram depicts various building blocks of this system
 ![image info](./data/architecture_diagram.jpg)
+
+###  3.2. <a name='Architectureprinciples'></a>Architecture principles
+1. Lock free concurrency (for scale)
+2. Linear span- optimal number of variables (for stability, maintanenence)
+3. No duplication of data
+4. Simple in design and simple in implementation
 
 ##  4. <a name='Usecaseswalkthrough'></a>Use cases walkthrough
 ###  4.1. <a name='Belowuse-casetalksabouthowtheusersaredividedinbuckets.'></a>Below use-case talks about how the users are divided in buckets.
