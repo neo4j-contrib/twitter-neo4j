@@ -74,6 +74,79 @@ class DMCypherDBInit:
             except Exception as e:
                 print(e)
 
+class ClientServiceIntf():
+    '''
+            Not tested
+    '''
+    def __init__(self):
+        print("Initializing Cypher Store")
+        try_connecting_neo4j()
+        print("Cypher Store init finished")
+
+    def client_service_registered(self, client_id, service_id):
+        print("Checking existance of  client with id={}".format(client_id))
+        user = [{'id':client_id, 'service_id':service_id}]
+        query = """
+            UNWIND $user AS u
+
+            MATCH (client:ServiceClient {id:u.id})-[:INSERVICE]->(:ClientService {id:u.service_id}) return u.id
+        """
+        response_json = execute_query_with_result(query, user=user)
+        if response_json:
+            return True
+        else:
+            return False
+
+    def client_valid(self, client_id):
+        print("Checking validity of  client with id={}".format(client_id))
+        user = [{'id':client_id}]
+        query = """
+            UNWIND $user AS u
+
+            MATCH (client:ServiceClient {id:u.id}) where client.state="ACTIVE" return u.id
+        """
+        response_json = execute_query_with_result(query, user=user)
+        if response_json:
+            return True
+        else:
+            return False
+
+
+    def register_service_for_client(self, client_id, service_id):
+        # It assumes that client is already registered
+        print("Adding client with id={} to service with id={}".format(client_id, service_id))
+        currtime = datetime.utcnow()
+        state = {'state':"CREATED", 'create_datetime': currtime, 'edit_datetime':currtime}
+        user = [{'id':client_id, 'service_id':service_id}]
+        query = """
+            UNWIND $user AS u
+    
+            MATCH (client:ServiceClient {id:u.id})
+            MERGE (client)-[:INSERVICE]->(service:ClientService {id:u.service_id})
+                SET service.create_datetime = datetime($state.create_datetime),
+                    service.state = state.state,
+                    service.edit_datetime = datetime($state.edit_datetime)
+        """
+        execute_query(query, user=user, state=state)
+        return
+
+    def change_service_state(self, client_id, service_id, client_state):
+        print("Changing state to {} for client with id={}".format(client_state, client_id))
+        currtime = datetime.utcnow()
+        client_stats = {"last_access_time": currtime}
+        state = {'state':client_state, 'edit_datetime':currtime, 'client_stats':client_stats}
+        user = [{'id':client_id}]
+        query = """
+            UNWIND $user AS u
+
+            MATCH (client:ServiceClient {id:u.id})
+            MATCH (client)-[:INSERVICE]->(service:ClientService {id:u.service_id})
+                SET client.state = $state.state,
+                    client.edit_datetime = datetime($state.edit_datetime)
+        """
+        execute_query(query, user=user, state=state)
+        return
+
 class DMCypherStoreIntf():
     def __init__(self):
         print("Initializing Cypher Store")

@@ -41,6 +41,7 @@ These clients can come and go anytime. System should provide fault tolerant and 
 * A registered client can only work on a valid service
 * System should be able to deactivate clients for services
 [Pending]
+* Client should able to check if a service is valid or not
 * Multiple clients should be able to proxy using same Tweeter ID. However, in this case, its  the client responsibility to maintain harmony among themselves. System will treat all such clients as identical [Pending]
 * Faulty client can submit incorrect info. System should allow to recover in such case. As an approach, system can log client activity [Pending]
 
@@ -54,6 +55,7 @@ These clients can come and go anytime. System should provide fault tolerant and 
 * System should be lock-free. Lock must be used only when it can't be avoided. Its requirement for scale. Lock will be bottleneck for any system with lock 
 * System should facilitate enough data for monitoring and troubleshooting [Pending]
 * System should be able to minimize impact of erroneous client. A repeated registratration request from same client should not affect other clients.
+* System should keep enough stats for client access to service
 
 ###  2.3. <a name='Nonrequirement'></a>Non requirement
 * System doesn't support grouping of services
