@@ -141,10 +141,10 @@ class FollowingsBucketManager:
             if not clients_count:
                 print("No client found and so defaulting to 1")
                 clients_count = 1
-            max_user_count = clients_count*MAX_BUCKETS_PER_CLIENT_REQ*2*DEFAULT_BUCKET_SIZE
-            if max_user_count > THRESHOLD_MAX_USERS_PER_ADD_BUCKET:
-                print("Thresholding max user count to {}".format(THRESHOLD_MAX_USERS_PER_ADD_BUCKET))
-                max_user_count = THRESHOLD_MAX_USERS_PER_ADD_BUCKET
+            max_user_count = clients_count*self.service_defaults['default_max_bucket_per_client_req']*2*self.service_defaults['default_bucket_size']
+            if max_user_count > self.service_defaults['threshold_max_users_per_add_bucket']:
+                print("Thresholding max user count to {}".format(self.service_defaults['threshold_max_users_per_add_bucket']))
+                max_user_count = self.service_defaults['threshold_max_users_per_add_bucket']
             return max_user_count
 
     def __get_buckets(self, bucketsize = DEFAULT_BUCKET_SIZE):
