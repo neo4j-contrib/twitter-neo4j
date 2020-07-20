@@ -60,7 +60,21 @@ class FollowingsBucketManager:
         if not self.service_manager.get_service_state(self.service_id) == self.service_manager.ServiceState.CREATED:
             self.service_manager.change_service_state(self.service_id, self.service_manager.ServiceState.ACTIVE)
         print(("Successfully registered service with ID {}".format(self.service_id)))
-    
+
+    def add_buckets(self):
+        ts = time.perf_counter()
+        buckets= self.__get_buckets()
+        
+        if len(buckets):
+            db_buckets = self.__make_db_buckets(buckets)
+            self.dataStoreIntf.add_dmcheck_buckets(db_buckets)
+            pass
+        else:
+            print("No users found")
+        te = time.perf_counter()
+        print('perfdata: func:%r took: %2.4f sec' % ('add_buckets', te-ts))
+        return
+
     def register_service_for_client(self, client_id):
         #tested
         print(("Registering service with ID {} for client {}".format(self.service_id, client_id)))
@@ -123,3 +137,23 @@ class FollowingsBucketManager:
 
         return True
 
+    def __calculate_max_users_count(self, clients_count):
+            if not clients_count:
+                print("No client found and so defaulting to 1")
+                clients_count = 1
+            max_user_count = clients_count*MAX_BUCKETS_PER_CLIENT_REQ*2*DEFAULT_BUCKET_SIZE
+            if max_user_count > THRESHOLD_MAX_USERS_PER_ADD_BUCKET:
+                print("Thresholding max user count to {}".format(THRESHOLD_MAX_USERS_PER_ADD_BUCKET))
+                max_user_count = THRESHOLD_MAX_USERS_PER_ADD_BUCKET
+            return max_user_count
+
+    def __get_buckets(self, bucketsize = DEFAULT_BUCKET_SIZE):
+        logger.info("Making buckets with {} size".format(bucketsize))
+        clients_count = self.service_manager.get_count_clients_for_service(service_id=self.service_id)
+        max_users_counts = self.__calculate_max_users_count(clients_count)
+        pdb.set_trace()
+        users_wkg = self.dataStoreIntf.get_nonprocessed_userlist(max_users_counts)
+        print("Got {} users which needs DM check".format(len(users_wkg)))
+        buckets = list(utils.chunks(users_wkg, bucketsize))
+        logger.info("Got {} buckets".format(len(buckets)))
+        return buckets

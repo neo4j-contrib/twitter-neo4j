@@ -117,6 +117,13 @@ class FollowingCypherStoreIntf(BucketCypherStoreIntf):
         pass
 
 class ClientManagementCypherStoreIntf:
+
+
+    class ClientState:
+        CREATED = "CREATED",
+        ACTIVE = "ACTIVE",
+        DEACTIVE = "DEACTIVE"
+
     def __init__(self):
         #tested
         print("Initializing Cypher Store")
@@ -205,12 +212,26 @@ class ServiceManagementIntf:
 
     class ServiceState:
         CREATED = "CREATED",
-        ACTIVE = "ACTIVE"
+        ACTIVE = "ACTIVE",
+        DEACTIVE = "DEACTIVE"
 
     def __init__(self):
         print("Initializing Cypher Store")
         try_connecting_neo4j()
         print("Cypher Store init finished")
+
+    #TODO: Change ACTIVE string to the class variable
+    def get_count_clients_for_service(self, service_id, client_state="ACTIVE"):
+        #tested
+        print("Listing all DM check clients for {} service which are {}".format(service_id, client_state))
+        state = {'client_state':client_state, 'service_id':service_id}
+        query = """
+            match(c:ClientForService {state:toupper($state.client_state)})-[:INSERVICE]->(:ServiceForClient {id:$state.service_id}) return count(c) AS count
+        """
+        response_json = execute_query_with_result(query,state=state)
+        count = response_json[0]['count']
+        logger.debug("Got {} DMCheck clients".format(count))
+        return count 
 
     def client_service_registered(self, client_id, service_id):
         print("Checking existance of  client with id={}".format(client_id))
