@@ -59,9 +59,8 @@ class FollowingFetcher():
         print("Successfully registered client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
 
     def __register_service(self):
-        pdb.set_trace()
         print("Registering following service for client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
-        self.client_manager.register_client(client_id=self.client_id, client_screen_name=self.client_screen_name)
+        self.bucket_mgr.register_service_for_client(client_id=self.client_id)
         print("Successfully registered following service for client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
 
     def register_client(self):
