@@ -63,15 +63,15 @@ class UserRelations():
         print("User friendship init finished")
     
     def register_as_dmcheck_client(self):
-        print("Registering DM check client as {} Id and {} screen.name".format(self.source_id, self.source_screen_name))
+        print("Registering DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
         self.dmcheck_client_manager.register_client(client_id=self.client_id, client_screen_name=self.client_screen_name, 
                                 dm_from_id=self.source_id, dm_from_screen_name=self.source_screen_name)
-        print("Successfully registered DM check client as {} Id and {} screen.name".format(self.source_id, self.source_screen_name))
+        print("Successfully registered DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
 
     def unregister_client(self):
-        print("Unregistering DM check client as {} Id and {} screen.name".format(self.source_id, self.source_screen_name))
-        self.dmcheck_client_manager.unregister_client(self.source_id, self.source_screen_name)
-        print("Successfully unregistered DM check client as {} Id and {} screen.name".format(self.source_id, self.source_screen_name))
+        print("Unregistering DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
+        self.dmcheck_client_manager.unregister_client(self.client_id, self.client_screen_name)
+        print("Successfully unregistered DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
 
     def __process_friendship_fetch(self, user):
         #print("Processing friendship fetch for {}  user".format(user))
