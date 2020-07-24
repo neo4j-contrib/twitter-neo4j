@@ -66,6 +66,8 @@ Concurrent processing of each service can be mapped to public distribution syste
 
 ###  3.1. <a name='Architecturediagram'></a>Architecture diagram
 
+![image info](./data/jpg/MultiServiceClients!Architecture!Multi service registration_20.jpg)
+![image info](./data/jpg/MultiServiceClients!Architecture!MultiServiceComponents_19.jpg)
 
 ###  3.2. <a name='Architectureprinciples'></a>Architecture principles
 1. Lock free concurrency (for scale)
@@ -74,14 +76,18 @@ Concurrent processing of each service can be mapped to public distribution syste
 4. Simple in design and simple in implementation
 
 ##  4. <a name='Usecaseswalkthrough'></a>Use cases walkthrough
+![image info](./data/jpg/MultiServiceClients!Use-cases!Use-cases_16.jpg)
 
-##  5. <a name='Importantscenrios'></a>Important scenrios
+##  5. <a name='Importantscenrios'></a>Important scenerios
 
 ##  6. <a name='Componentdesign'></a>Component design
 
 
 ##  7. <a name='Databasedesign'></a>Database design
 
+![image info](./data/jpg/MultiServiceClients!database system!Database design complete!database design_complete_17.jpg)
+![image info](./data/jpg/MultiServiceClients!database system!database design custom!Database design custom!Database design cu_21.jpg)
+![image info](./data/jpg/MultiServiceClients!database system!databse design basic!Data Model1!database_design_basic_18.jpg)
 
 ##  8. <a name='Testcases'></a>Test cases
 
