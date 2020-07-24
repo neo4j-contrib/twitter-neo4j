@@ -87,28 +87,6 @@ class BucketCypherStoreClientIntf(metaclass=ABCMeta):
     def configure(self, client_id):
         pass
 
-class BucketCypherStoreIntf(metaclass=ABCMeta):
-    def __init__(self):
-        print("Initializing Bucket Cypher Store")
-        try_connecting_neo4j()
-        print("Bucket Cypher Store init finished")
-
-    def make_db_buckets(self, buckets, priority):
-        #tested
-        db_buckets = []
-        for db_bucket in buckets:
-            bucket_id = uuid.uuid4().hex
-            print("Generated {} UUID for bucket".format(bucket_id))
-            db_buckets.append({'bucket_uuid':bucket_id, 'bucket_priority': priority, 'bucket_state':"unassigned", 'bucket':db_bucket})
-        return db_buckets
-
-    @abstractmethod
-    def get_nonprocessed_list(self, max_item_counts):
-        pass
-
-    @abstractmethod
-    def add_buckets(self, buckets, priority):
-        pass
     '''
     @abstractmethod
     def assign_buckets(self, client_id, bucket_cnt):
@@ -133,6 +111,31 @@ class BucketCypherStoreIntf(metaclass=ABCMeta):
         pass
     '''
 
+class BucketCypherStoreIntf(metaclass=ABCMeta):
+    def __init__(self, service_id):
+        print("Initializing Bucket Cypher Store")
+        self.service_id = service_id
+        try_connecting_neo4j()
+        print("Bucket Cypher Store init finished")
+
+    def make_db_buckets(self, buckets, priority):
+        #tested
+        db_buckets = []
+        for db_bucket in buckets:
+            bucket_id = uuid.uuid4().hex
+            print("Generated {} UUID for bucket".format(bucket_id))
+            db_buckets.append({'bucket_uuid':bucket_id, 'bucket_priority': priority, 'bucket_state':"unassigned", 'bucket':db_bucket})
+        return db_buckets
+
+    @abstractmethod
+    def get_nonprocessed_list(self, max_item_counts):
+        pass
+
+    @abstractmethod
+    def add_buckets(self, buckets, priority):
+        pass
+
+
 class FollowingCypherStoreClientIntf(BucketCypherStoreClientIntf):
     def __init__(self):
         print("Initializing Following Cypher Store")
@@ -155,7 +158,7 @@ class FollowingCypherStoreClientIntf(BucketCypherStoreClientIntf):
 class FollowingCypherStoreIntf(BucketCypherStoreIntf):
     def __init__(self):
         print("Initializing Following Cypher Store")
-        super().__init__()
+        super().__init__(ServiceManagementIntf.ServiceIDs.FOLLOWING_SERVICE)
         print("Following Cypher Store init finished")
 
     def get_nonprocessed_list(self, max_item_counts):
@@ -177,12 +180,12 @@ class FollowingCypherStoreIntf(BucketCypherStoreIntf):
         #tested
         print("Adding {} buckets to DB".format(len(buckets)))
         currtime = datetime.utcnow()
-        state = {'edit_datetime':currtime}
+        state = {'edit_datetime':currtime, 'service_id': self.service_id}
         #TODO: Check if it is needed to replace MERGE with MATCH for user
         query = """
             UNWIND $buckets AS bs
-
-            MERGE(bucket:UserFollowingCheckBucket {uuid:bs.bucket_uuid})
+            MATCH(service:ServiceForClient {id:$state.service_id})
+            MERGE(bucket:UserFollowingCheckBucket {uuid:bs.bucket_uuid})-[:BUCKETFORSERVICE]->(service)
                 SET bucket.edit_datetime = datetime($state.edit_datetime),
                     bucket.priority = bs.bucket_priority
 
