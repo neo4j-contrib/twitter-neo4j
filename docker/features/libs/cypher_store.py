@@ -6,6 +6,7 @@ from retrying import retry
 from datetime import datetime, timedelta
 import time
 from abc import ABCMeta, abstractmethod
+import uuid
 
 from .twitter_logging import logger
 from . import common
@@ -92,10 +93,22 @@ class BucketCypherStoreIntf(metaclass=ABCMeta):
         try_connecting_neo4j()
         print("Bucket Cypher Store init finished")
 
+    def make_db_buckets(self, buckets, priority):
+        #tested
+        db_buckets = []
+        for db_bucket in buckets:
+            bucket_id = uuid.uuid4().hex
+            print("Generated {} UUID for bucket".format(bucket_id))
+            db_buckets.append({'bucket_uuid':bucket_id, 'bucket_priority': priority, 'bucket_state':"unassigned", 'bucket':db_bucket})
+        return db_buckets
+
     @abstractmethod
     def get_nonprocessed_list(self, max_item_counts):
         pass
 
+    @abstractmethod
+    def add_buckets(self, buckets, priority):
+        pass
     '''
     @abstractmethod
     def assign_buckets(self, client_id, bucket_cnt):
@@ -160,8 +173,34 @@ class FollowingCypherStoreIntf(BucketCypherStoreIntf):
         print("Got {} users".format(len(users)))
         return users
 
-    def store_followings(self):
-        pass
+    def __add_buckets_to_db(self, buckets):
+        #tested
+        print("Adding {} buckets to DB".format(len(buckets)))
+        currtime = datetime.utcnow()
+        state = {'edit_datetime':currtime}
+        #TODO: Check if it is needed to replace MERGE with MATCH for user
+        query = """
+            UNWIND $buckets AS bs
+
+            MERGE(bucket:UserFollowingCheckBucket {uuid:bs.bucket_uuid})
+                SET bucket.edit_datetime = datetime($state.edit_datetime),
+                    bucket.priority = bs.bucket_priority
+
+            FOREACH (u IN bs.bucket |
+                MERGE(user:User {screen_name:u.name})
+                MERGE (user)-[:INUSERFOLLOWINGCHECKBUCKET]->(bucket)
+            )
+        """
+        execute_query(query, buckets=buckets, state=state)
+        return
+
+    def add_buckets(self, buckets, priority):
+        #tested
+        print("Processing {} buckets addition to DB with priority {}".format(len(buckets), priority))
+        db_buckets = self.make_db_buckets(buckets, priority)
+        self.__add_buckets_to_db(db_buckets)
+        print("Successfully processed {} buckets addition to DB with priority {}".format(len(buckets), priority))
+        return
 
 class ClientManagementCypherStoreIntf:
 

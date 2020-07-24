@@ -7,7 +7,6 @@ Built-in modules
 '''
 import pdb
 import os
-import uuid
 import time
 
 '''
@@ -62,13 +61,12 @@ class FollowingsBucketManager:
         print(("Successfully registered service with ID {}".format(self.service_id)))
 
     def add_buckets(self):
+        #tested
         ts = time.perf_counter()
         buckets= self.__get_buckets()
-        pdb.set_trace()
         if len(buckets):
             db_buckets = self.__make_db_buckets(buckets)
-            self.dataStoreIntf.add_dmcheck_buckets(db_buckets)
-            pass
+            self.dataStoreIntf.add_buckets(buckets=db_buckets, priority=self.service_defaults["default_bucket_priority"])
         else:
             print("No users found")
         te = time.perf_counter()
@@ -76,14 +74,15 @@ class FollowingsBucketManager:
         return
 
     def __calculate_max_users_count(self, clients_count):
-            if not clients_count:
-                print("No client found and so defaulting to 1")
-                clients_count = 1
-            max_user_count = clients_count*self.service_defaults['default_max_bucket_per_client_req']*2*self.service_defaults['default_bucket_size']
-            if max_user_count > self.service_defaults['threshold_max_users_per_add_bucket']:
-                print("Thresholding max user count to {}".format(self.service_defaults['threshold_max_users_per_add_bucket']))
-                max_user_count = self.service_defaults['threshold_max_users_per_add_bucket']
-            return max_user_count
+        #tested
+        if not clients_count:
+            print("No client found and so defaulting to 1")
+            clients_count = 1
+        max_user_count = clients_count*self.service_defaults['default_max_bucket_per_client_req']*2*self.service_defaults['default_bucket_size']
+        if max_user_count > self.service_defaults['threshold_max_users_per_add_bucket']:
+            print("Thresholding max user count to {}".format(self.service_defaults['threshold_max_users_per_add_bucket']))
+            max_user_count = self.service_defaults['threshold_max_users_per_add_bucket']
+        return max_user_count
 
     def __get_buckets(self, bucketsize = DEFAULT_BUCKET_SIZE):
         #tested
@@ -95,3 +94,11 @@ class FollowingsBucketManager:
         buckets = list(utils.chunks(users_wkg, bucketsize))
         logger.info("Got {} buckets".format(len(buckets)))
         return buckets
+
+    def __make_db_buckets(self, buckets):
+        #tested
+        db_buckets = []
+        for bucket in buckets:
+            db_bucket=[{'name': user} for user in bucket]
+            db_buckets.append(db_bucket)
+        return db_buckets
