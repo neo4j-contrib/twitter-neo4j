@@ -88,7 +88,7 @@ Concurrent processing of each service can be mapped to public distribution syste
 ##  7. <a name='Databasedesign'></a>Database design
 
 ![image info](./data/database_design_basic.jpg)
-![image info](./data/database design_complete.jpg)
+![image info](./data/database_design_complete.jpg)
 ![image info](./data/database_design_custom.jpg)
 
 ##  8. <a name='Testcases'></a>Test cases
