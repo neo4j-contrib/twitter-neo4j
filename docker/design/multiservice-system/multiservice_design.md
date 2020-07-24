@@ -8,7 +8,7 @@
 	* 3.1. [Architecture diagram](#Architecturediagram)
 	* 3.2. [Architecture principles](#Architectureprinciples)
 * 4. [Use cases walkthrough](#Usecaseswalkthrough)
-* 5. [Important scenrios](#Importantscenrios)
+* 5. [Important scenerios](#Importantscenerios)
 * 6. [Component design](#Componentdesign)
 * 7. [Database design](#Databasedesign)
 * 8. [Test cases](#Testcases)
@@ -76,19 +76,22 @@ Concurrent processing of each service can be mapped to public distribution syste
 4. Simple in design and simple in implementation
 
 ##  4. <a name='Usecaseswalkthrough'></a>Use cases walkthrough
+
 ![image info](./data/Use-cases-clients.jpg)
 ![image info](./data/use-cases-service-manager.jpg)
 ![image info](./data/use-case-visibility.jpg)
 
-##  5. <a name='Importantscenrios'></a>Important scenerios
+##  5. <a name='Importantscenerios'></a>Important scenerios
 
 ##  6. <a name='Componentdesign'></a>Component design
 
 
 ##  7. <a name='Databasedesign'></a>Database design
-
+Basic view of database
 ![image info](./data/database_design_basic.jpg)
+Full view of database
 ![image info](./data/database_design_complete.jpg)
+Customization of service info
 ![image info](./data/database_design_custom.jpg)
 
 ##  8. <a name='Testcases'></a>Test cases
