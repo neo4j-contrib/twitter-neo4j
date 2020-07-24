@@ -63,6 +63,15 @@ class FollowingsBucketManager:
             self.service_manager.change_service_state(self.service_id, self.service_manager.ServiceState.ACTIVE)
         print(("Successfully registered service with ID {}".format(self.service_id)))
 
+    def unregister_service(self):
+        #tested
+        print(("Unregistering service with ID {}".format(self.service_id)))
+        if not self.service_manager.service_exists(self.service_id):
+            print("Service doesn't exist")
+            return
+        self.service_manager.change_service_state(self.service_id, self.service_manager.ServiceState.DEACTIVE)
+        print(("Successfully unregistered service with ID {}".format(self.service_id)))
+
     def handle_dead_buckets(self):
         ts = time.perf_counter()
         pdb.set_trace()
