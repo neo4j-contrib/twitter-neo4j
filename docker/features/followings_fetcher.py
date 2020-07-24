@@ -35,7 +35,7 @@ from libs.twitter_access import fetch_tweet_info, get_reponse_header
 from libs.twitter_logging import logger
 
 from libs.client_manager import ClientManager 
-from libs.following_buckets_manager import FollowingsBucketManager as BucketManager
+from libs.following_buckets_manager_client import FollowingsBucketManagerClient as BucketManager
 
 class FollowingFetcher():
     """
@@ -48,7 +48,7 @@ class FollowingFetcher():
         self.client_screen_name = client_screen_name
         self.dataStoreIntf = StoreIntf()
         self.client_manager = ClientManager()
-        self.bucket_mgr = BucketManager()
+        self.bucket_mgr = BucketManager(client_id)
         self.grandtotal = 0 #Tracks the count of total friendship stored in DB
         print("Following fetcher init finished")
     
@@ -60,7 +60,7 @@ class FollowingFetcher():
 
     def __register_service(self):
         print("Registering following service for client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
-        self.bucket_mgr.register_service_for_client(client_id=self.client_id)
+        self.bucket_mgr.register_service_for_client()
         print("Successfully registered following service for client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
 
     def register_client(self):

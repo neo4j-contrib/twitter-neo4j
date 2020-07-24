@@ -323,8 +323,8 @@ class ServiceManagementIntf:
         return count 
 
     def client_service_registered(self, client_id, service_id):
+        #tested
         print("Checking existance of  client with id={}".format(client_id))
-        pdb.set_trace()
         user = [{'id':client_id, 'service_id':service_id}]
         query = """
             UNWIND $user AS u
