@@ -161,6 +161,23 @@ class FollowingCypherStoreIntf(BucketCypherStoreIntf):
         super().__init__(ServiceManagementIntf.ServiceIDs.FOLLOWING_SERVICE)
         print("Following Cypher Store init finished")
 
+    def configure(self, defaults):
+        #tested
+        print("Configuring Following service metadata info")
+        currtime = datetime.utcnow()
+        state = {'create_datetime':currtime, 'service_id': self.service_id, 'defaults':defaults}
+        query = """
+            MATCH(service:ServiceForClient {id:$state.service_id})
+            MERGE(service)-[:FOLLOWINGSERVICEMETA]->(followservice:followingServiceMeta)
+            ON CREATE SET followservice.create_datetime = datetime($state.create_datetime)
+
+            MERGE(followservice)-[:DEFAULTS]->(defaults:ServiceDefaults)
+            ON CREATE SET defaults += $state.defaults
+        """
+        execute_query(query, state=state)
+        print("Successfully configured Following service metadata info")
+        return
+
     def get_nonprocessed_list(self, max_item_counts):
         #tested
         print("Finding max {} users from DB who is not processed".format(max_item_counts))
@@ -206,7 +223,6 @@ class FollowingCypherStoreIntf(BucketCypherStoreIntf):
         return
 
 class ClientManagementCypherStoreIntf:
-
 
     class ClientState:
         CREATED = "CREATED",
@@ -291,7 +307,6 @@ class ClientManagementCypherStoreIntf:
         execute_query(query, user=user, state=state)
         return
 
-
 class ServiceManagementIntf:
     '''
             Not tested
@@ -312,14 +327,14 @@ class ServiceManagementIntf:
     #TODO: Change ACTIVE string to the class variable
     def get_count_clients_for_service(self, service_id, client_state="ACTIVE"):
         #tested
-        print("Listing all DM check clients for {} service which are {}".format(service_id, client_state))
+        print("Listing all clients for {} service which are {}".format(service_id, client_state))
         state = {'client_state':client_state, 'service_id':service_id}
         query = """
             match(c:ClientForService {state:toupper($state.client_state)})-[:INSERVICE]->(:ServiceForClient {id:$state.service_id}) return count(c) AS count
         """
         response_json = execute_query_with_result(query,state=state)
         count = response_json[0]['count']
-        logger.debug("Got {} DMCheck clients".format(count))
+        logger.debug("Got {} clients".format(count))
         return count 
 
     def client_service_registered(self, client_id, service_id):
@@ -416,7 +431,6 @@ class ServiceManagementIntf:
         """
         execute_query(query, svc=svc, state=state)
         return
-
 
 
 class DMCypherStoreIntf:
