@@ -195,7 +195,8 @@ class FollowingCypherStoreIntf(BucketCypherStoreIntf):
     
     def get_nonprocessed_list(self, max_item_counts):
         #TODO: Check the configuration and decide
-        self.__get_nonprocessed_userlist_with_tweet_post(max_item_counts=max_item_counts)
+        users = self.__get_nonprocessed_userlist_with_tweet_post(max_item_counts=max_item_counts)
+        return users
 
     def __add_buckets_to_db(self, buckets):
         #tested

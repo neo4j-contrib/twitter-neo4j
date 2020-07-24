@@ -27,12 +27,8 @@ User defined modules
 from config.load_config import load_config
 load_config()
 
-from libs.cypher_store import DMCypherStoreIntf as DMStoreIntf
 from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
-
 from libs.twitter_logging import logger
-
-from libs.client_manager import ClientManager
 from libs.following_buckets_manager import FollowingsBucketManager as BucketManager
 
 class FollowingBucketMonitor():
@@ -43,8 +39,6 @@ class FollowingBucketMonitor():
     def __init__(self):
         #tested
         print("Initializing Following bucket monitor")
-        self.dataStoreIntf = DMStoreIntf()
-        self.client_manager = ClientManager()
         self.bucket_mgr = BucketManager()
         self.grandtotal = 0 #Tracks the count of total friendship stored in DB
         print("Following bucket monitor init finished") 
