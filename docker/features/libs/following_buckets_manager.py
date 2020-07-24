@@ -27,7 +27,7 @@ MAX_BUCKETS_PER_CLIENT_REQ = 10
 THRESHOLD_HOURS_FOR_DEAD_BUCKET = 2
 THRESHOLD_MINUTES_DEAD_BUCKET_RELEASE = 15
 THRESHOLD_MAX_USERS_PER_ADD_BUCKET = (9000*2)
-DEFAULT_CHECK_USER_WITHOUT_TWEET = 0
+DEFAULT_CHECK_USER_WITH_TWEET_POST = 1
 
 
 class utils:
@@ -51,7 +51,7 @@ class FollowingsBucketManager:
                                 "threshold_hours_dead_bucket": THRESHOLD_HOURS_FOR_DEAD_BUCKET,
                                 "threshold_minutes_dead_bucket_release":THRESHOLD_MINUTES_DEAD_BUCKET_RELEASE,
                                 "threshold_max_users_per_add_bucket":THRESHOLD_MAX_USERS_PER_ADD_BUCKET}
-        self.following_service_defaults = {"check_user_without_tweet": DEFAULT_CHECK_USER_WITHOUT_TWEET}
+        self.following_service_defaults = {"check_user_with_tweet_post": DEFAULT_CHECK_USER_WITH_TWEET_POST}
     
     def register_service(self):
         #tested

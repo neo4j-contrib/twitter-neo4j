@@ -178,12 +178,12 @@ class FollowingCypherStoreIntf(BucketCypherStoreIntf):
         print("Successfully configured Following service metadata info")
         return
 
-    def get_nonprocessed_list(self, max_item_counts):
+    def __get_nonprocessed_userlist_with_tweet_post(self, max_item_counts):
         #tested
         print("Finding max {} users from DB who is not processed".format(max_item_counts))
         state = {'limit':max_item_counts}
         query = """
-            match(u:User)
+            match(u:User)-[:POSTS]->(t:Tweet)
             WITH u
             where  NOT ()-[:CHECKEDUSERFOLLOWING]->(u) AND NOT (u)-[:INUSERFOLLOWINGCHECKBUCKET]->(:UserFollowingCheckBucket)
             return u.screen_name ORDER BY u.screen_name LIMIT $state.limit  
@@ -192,6 +192,10 @@ class FollowingCypherStoreIntf(BucketCypherStoreIntf):
         users = [ user['u.screen_name'] for user in response_json]
         print("Got {} users".format(len(users)))
         return users
+    
+    def get_nonprocessed_list(self, max_item_counts):
+        #TODO: Check the configuration and decide
+        self.__get_nonprocessed_userlist_with_tweet_post(max_item_counts=max_item_counts)
 
     def __add_buckets_to_db(self, buckets):
         #tested
