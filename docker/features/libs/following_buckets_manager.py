@@ -57,7 +57,7 @@ class FollowingsBucketManager:
         print(("Registering service with ID {}".format(self.service_id)))
         if not self.service_manager.service_exists(self.service_id):
             self.service_manager.register_service(self.service_id, defaults = self.service_defaults)
-        if not self.service_manager.get_service_state(self.service_id) == self.service_manager.ServiceState.CREATED:
+        if self.service_manager.get_service_state(self.service_id) == self.service_manager.ServiceState.CREATED:
             self.service_manager.change_service_state(self.service_id, self.service_manager.ServiceState.ACTIVE)
         print(("Successfully registered service with ID {}".format(self.service_id)))
 
@@ -75,68 +75,6 @@ class FollowingsBucketManager:
         print('perfdata: func:%r took: %2.4f sec' % ('add_buckets', te-ts))
         return
 
-    def register_service_for_client(self, client_id):
-        #tested
-        print(("Registering service with ID {} for client {}".format(self.service_id, client_id)))
-        if not self.service_manager.client_service_registered(client_id=client_id, service_id=self.service_id):
-            self.service_manager.register_service_for_client(client_id=client_id, service_id=self.service_id)
-            print(("Successfully registered service with ID {} for client {}".format(self.service_id, client_id)))
-
-
-    def assignBuckets(self, client_id, bucketscount=1):
-        logger.info("Assigning {} bucket(s) to the client".format(bucketscount, client_id))
-        ts = time.perf_counter()
-        if not self.__client_sanity_passed(client_id):
-            return False
-        
-        if bucketscount > MAX_BUCKETS_PER_CLIENT_REQ:
-            logger.warn("Thresholding buckets count from {} to {}".format(bucketscount, MAX_BUCKETS_PER_CLIENT_REQ))
-            bucketscount = MAX_BUCKETS_PER_CLIENT_REQ
-
-        buckets = self.dataStoreIntf.assign_buckets(client_id, bucketscount)
-        print("Assigned {} bucket(s) to the client".format(buckets))
-        buckets_for_client = []
-        for id in buckets:
-            users = self.dataStoreIntf.get_all_users_for_bucket(id)
-            buckets_for_client.append({'bucket_id':id, 'users':users})
-        te = time.perf_counter()
-        print('perfdata: func:%r took: %2.4f sec' % ('assignBuckets', te-ts))
-        return buckets_for_client
-
-    def store_bucket(self, client_id, bucket):
-        logger.info("Got {} buckets from the {} client".format(len(bucket['bucket_id']), client_id))
-        ts = time.perf_counter()
-        bucket_id = bucket['bucket_id']
-        if not self.__client_sanity_passed(client_id):
-            return False
-        if not self.__client_store_bucket_sanity_passed(client_id, bucket_id):
-            return False
-
-        #TODO: Sanity check user info
-        users = bucket['users']
-        #TODO: Store bucket info
-        print("Successfully processed {} bucket".format(bucket['bucket_id']))
-        te = time.perf_counter()
-        print('perfdata: func:%r took: %2.4f sec' % ('store_bucket', te-ts))
-        return       
-        
-    def __client_sanity_passed(self, client_id):
-        if not self.client_manager.client_registered(client_id):
-            print("Unregistered client {} is trying to get buckets".format(client_id))
-            return False
-        return True
-
-    def __client_store_bucket_sanity_passed(self, client_id, bucket_id):
-        if not  self.dataStoreIntf.valid_bucket_owner(bucket_id, client_id):
-            print("[{}] client is trying to update DM Check for [{}] bucket not owned by itself".format(bucket_id, client_id))
-            return False
-
-        if self.dataStoreIntf.is_dead_bucket(bucket_id):
-            print("[{}] bucket is marked as dead".format(bucket_id))
-            return False
-
-        return True
-
     def __calculate_max_users_count(self, clients_count):
             if not clients_count:
                 print("No client found and so defaulting to 1")
@@ -151,9 +89,9 @@ class FollowingsBucketManager:
         logger.info("Making buckets with {} size".format(bucketsize))
         clients_count = self.service_manager.get_count_clients_for_service(service_id=self.service_id)
         max_users_counts = self.__calculate_max_users_count(clients_count)
+        users_wkg = self.dataStoreIntf.get_nonprocessed_list(max_users_counts)
+        print("Got {} users which needs Following check".format(len(users_wkg)))
         pdb.set_trace()
-        users_wkg = self.dataStoreIntf.get_nonprocessed_userlist(max_users_counts)
-        print("Got {} users which needs DM check".format(len(users_wkg)))
         buckets = list(utils.chunks(users_wkg, bucketsize))
         logger.info("Got {} buckets".format(len(buckets)))
         return buckets

@@ -76,11 +76,26 @@ class DMCypherDBInit:
             except Exception as e:
                 print(e)
 
+class BucketCypherStoreClientIntf(metaclass=ABCMeta):
+    def __init__(self):
+        print("Initializing Bucket Cypher Store")
+        try_connecting_neo4j()
+        print("Bucket Cypher Store init finished")
+
+    @abstractmethod
+    def configure(self, client_id):
+        pass
+
 class BucketCypherStoreIntf(metaclass=ABCMeta):
     def __init__(self):
         print("Initializing Bucket Cypher Store")
         try_connecting_neo4j()
         print("Bucket Cypher Store init finished")
+
+    @abstractmethod
+    def get_nonprocessed_list(self, max_item_counts):
+        pass
+
     '''
     @abstractmethod
     def assign_buckets(self, client_id, bucket_cnt):
@@ -105,15 +120,47 @@ class BucketCypherStoreIntf(metaclass=ABCMeta):
         pass
     '''
 
+class FollowingCypherStoreClientIntf(BucketCypherStoreClientIntf):
+    def __init__(self):
+        print("Initializing Following Cypher Store")
+        super().__init__()
+        print("Following Cypher Store init finished")
+
+    def configure(self, client_id):
+        print("Configuring client with id={} for  service".format(client_id))
+        pdb.set_trace()
+        user = [{'id':client_id}]
+        query = """
+            UNWIND $user AS u
+
+            MATCH (client:ClientForService {id:u.id})
+            MERGE (client)-[:FOLLOWINGCHECKCLIENT]->(:FollowingCheckClient)
+        """
+        execute_query(query, user=user)
+        return
+
 class FollowingCypherStoreIntf(BucketCypherStoreIntf):
     def __init__(self):
         print("Initializing Following Cypher Store")
         super().__init__()
         print("Following Cypher Store init finished")
-    def store_followings(self):
-        pass
 
-    def get_nonprocessed_userlist(self, max_users):
+    def get_nonprocessed_list(self, max_item_counts):
+        #tested
+        print("Finding max {} users from DB who is not processed".format(max_item_counts))
+        state = {'limit':max_item_counts}
+        query = """
+            match(u:User)
+            WITH u
+            where  NOT ()-[:CHECKEDUSERFOLLOWING]->(u) AND NOT (u)-[:INUSERFOLLOWINGCHECKBUCKET]->(:UserFollowingCheckBucket)
+            return u.screen_name ORDER BY u.screen_name LIMIT $state.limit  
+        """
+        response_json = execute_query_with_result(query, state=state)
+        users = [ user['u.screen_name'] for user in response_json]
+        print("Got {} users".format(len(users)))
+        return users
+
+    def store_followings(self):
         pass
 
 class ClientManagementCypherStoreIntf:
@@ -270,6 +317,7 @@ class ServiceManagementIntf:
         """
         response_json = execute_query_with_result(query, svc=svc)
         svc_state = response_json[0]['service_state']
+        print("Found state {} for service with id={}".format(svc_state, service_id))
         return svc_state
 
     def register_service(self, service_id, defaults):
