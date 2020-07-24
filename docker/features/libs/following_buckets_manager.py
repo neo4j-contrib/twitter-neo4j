@@ -62,6 +62,7 @@ class FollowingsBucketManager:
 
     def add_buckets(self):
         #tested
+        #TODO: Fetch defaults from DB. It will allow user to customize parameters at runtime
         ts = time.perf_counter()
         buckets= self.__get_buckets()
         if len(buckets):
