@@ -10,6 +10,8 @@
 * 4. [Use cases walkthrough](#Usecaseswalkthrough)
 * 5. [Important scenerios](#Importantscenerios)
 * 6. [Component design](#Componentdesign)
+	* 6.1. [Client Management component](#ClientManagementcomponent)
+	* 6.2. [Service management component](#Servicemanagementcomponent)
 * 7. [Database design](#Databasedesign)
 * 8. [Test cases](#Testcases)
 * 9. [Implementation](#Implementation)
@@ -84,7 +86,11 @@ Concurrent processing of each service can be mapped to public distribution syste
 ##  5. <a name='Importantscenerios'></a>Important scenerios
 
 ##  6. <a name='Componentdesign'></a>Component design
+###  6.1. <a name='ClientManagementcomponent'></a>Client Management component
+![image info](./data/sequence_Client_manager_register.jpg)
+![image info](./data/sequence_Client_manager_unregister.jpg)
 
+###  6.2. <a name='Servicemanagementcomponent'></a>Service management component
 
 ##  7. <a name='Databasedesign'></a>Database design
 Basic view of database
