@@ -60,6 +60,15 @@ class FollowingsBucketManager:
             self.service_manager.change_service_state(self.service_id, self.service_manager.ServiceState.ACTIVE)
         print(("Successfully registered service with ID {}".format(self.service_id)))
 
+    def handle_dead_buckets(self):
+        ts = time.perf_counter()
+        pdb.set_trace()
+        self.___release_dead_buckets()
+        self.__detect_n_mark_dead_buckets()
+        te = time.perf_counter()
+        print('perfdata: func:%r took: %2.4f sec' % ('handle_dead_buckets', te-ts))
+        pass
+
     def add_buckets(self):
         #tested
         #TODO: Fetch defaults from DB. It will allow user to customize parameters at runtime
