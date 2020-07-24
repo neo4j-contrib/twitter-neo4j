@@ -14,9 +14,10 @@ User defined modules
 '''
 from libs.twitter_logging import console_logger as logger
 from libs.cypher_store import FollowingCypherStoreIntf as StoreIntf
-from libs.cypher_store import ServiceManagementIntf as serviceIntf
 
-from libs.client_manager import ClientManager
+from libs.cypher_store import ServiceManagementIntf
+
+from libs.service_manager import ServiceManager
 
 '''
 Constants
@@ -42,9 +43,7 @@ class FollowingsBucketManager:
     def __init__(self):
         #tested
         self.dataStoreIntf = StoreIntf()
-        self.client_manager = ClientManager()
-        self.service_manager = serviceIntf()
-        self.service_id = serviceIntf.ServiceIDs.FOLLOWING_SERVICE
+        self.service_manager = ServiceManager(service_id=ServiceManagementIntf.ServiceIDs.FOLLOWING_SERVICE)
         self.service_defaults={"default_bucket_size": DEFAULT_BUCKET_SIZE,
                                 "default_bucket_priority": BUCKET_DEFAULT_PRIORITY,
                                 "default_max_bucket_per_client_req": MAX_BUCKETS_PER_CLIENT_REQ,
@@ -55,22 +54,13 @@ class FollowingsBucketManager:
     
     def register_service(self):
         #tested
-        print(("Registering service with ID {}".format(self.service_id)))
-        if not self.service_manager.service_exists(self.service_id):
-            self.service_manager.register_service(self.service_id, defaults = self.service_defaults)
+        self.service_manager.register_service(defaults = self.service_defaults)
         self.dataStoreIntf.configure(defaults = self.following_service_defaults)
-        if self.service_manager.get_service_state(self.service_id) == self.service_manager.ServiceState.CREATED:
-            self.service_manager.change_service_state(self.service_id, self.service_manager.ServiceState.ACTIVE)
-        print(("Successfully registered service with ID {}".format(self.service_id)))
+
 
     def unregister_service(self):
         #tested
-        print(("Unregistering service with ID {}".format(self.service_id)))
-        if not self.service_manager.service_exists(self.service_id):
-            print("Service doesn't exist")
-            return
-        self.service_manager.change_service_state(self.service_id, self.service_manager.ServiceState.DEACTIVE)
-        print(("Successfully unregistered service with ID {}".format(self.service_id)))
+        self.service_manager.unregister_service()
 
     def handle_dead_buckets(self):
         ts = time.perf_counter()
@@ -79,7 +69,6 @@ class FollowingsBucketManager:
         self.__detect_n_mark_dead_buckets()
         te = time.perf_counter()
         print('perfdata: func:%r took: %2.4f sec' % ('handle_dead_buckets', te-ts))
-        pass
 
     def add_buckets(self):
         #tested
@@ -109,7 +98,7 @@ class FollowingsBucketManager:
     def __get_buckets(self, bucketsize = DEFAULT_BUCKET_SIZE):
         #tested
         logger.info("Making buckets with {} size".format(bucketsize))
-        clients_count = self.service_manager.get_count_clients_for_service(service_id=self.service_id)
+        clients_count = self.service_manager.get_count_clients_for_service()
         max_users_counts = self.__calculate_max_users_count(clients_count)
         users_wkg = self.dataStoreIntf.get_nonprocessed_list(max_users_counts)
         print("Got {} users which needs Following check".format(len(users_wkg)))
