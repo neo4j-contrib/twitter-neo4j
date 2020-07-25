@@ -32,45 +32,39 @@ dep_check = os.getenv("DEPENDENCY_CHECK", "False")
 if dep_check.lower() == "true":
     from installer import dependency_check
 
-store_type = os.getenv("DB_STORE_TYPE", "file_store")
-if store_type.lower() == "file_store":
-    from libs.file_store import DMFileStoreIntf as DMStoreIntf
-else:
-    from libs.cypher_store import DMCypherStoreIntf as DMStoreIntf
+
+from libs.cypher_store import DMCypherStoreIntf as DMStoreIntf
 from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterUserAccountLocked
 
 from libs.twitter_access import fetch_tweet_info, get_reponse_header
 from libs.twitter_logging import logger
 
-from libs.dmcheck_client_manager import DMCheckClientManager
-from libs.dmcheck_buckets_manager import DMCheckBucketManager
+from libs.dmcheck_buckets_manager_client import DMCheckBucketManagerClient as DMCheckBucketManager
 
 class UserRelations():
     """
     This class uses expert pattern. 
     It provides API to 
     """
-    def __init__(self, client_id, client_screen_name, source_id, source_screen_name, outfile=None):
+    def __init__(self, client_id, client_screen_name, source_id, source_screen_name):
         print("Initializing user friendship")
         self.source_id = source_id
         self.source_screen_name = source_screen_name
         self.client_id = client_id
         self.client_screen_name = client_screen_name
         self.dataStoreIntf = DMStoreIntf()
-        self.dmcheck_client_manager = DMCheckClientManager()
-        self.dmcheck_bucket_mgr = DMCheckBucketManager()
+        self.dmcheck_bucket_mgr = DMCheckBucketManager(client_id, client_screen_name, source_id, source_screen_name)
         self.grandtotal = 0 #Tracks the count of total friendship stored in DB
         print("User friendship init finished")
     
     def register_as_dmcheck_client(self):
         print("Registering DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
-        self.dmcheck_client_manager.register_client(client_id=self.client_id, client_screen_name=self.client_screen_name, 
-                                dm_from_id=self.source_id, dm_from_screen_name=self.source_screen_name)
+        self.dmcheck_bucket_mgr.register_service()
         print("Successfully registered DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
 
     def unregister_client(self):
         print("Unregistering DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
-        self.dmcheck_client_manager.unregister_client(self.client_id, self.client_screen_name)
+        self.dmcheck_client_manager.unregister_service()
         print("Successfully unregistered DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
 
     def __process_friendship_fetch(self, user):

@@ -84,13 +84,18 @@ class BucketCypherStoreClientIntf(metaclass=ABCMeta):
         print("Bucket Cypher Store init finished")
 
     @abstractmethod
-    def configure(self, client_id):
-        pass
-
-    '''
-    @abstractmethod
     def assign_buckets(self, client_id, bucket_cnt):
         pass
+
+    @abstractmethod
+    def configure(self, **kwargs):
+        pass
+
+    @abstractmethod
+    def get_all_entities_for_bucket(self, bucket_id):
+        pass
+        
+    '''
     @abstractmethod
     def valid_bucket_owner(self, bucket_id, client_id):
         pass
@@ -110,6 +115,112 @@ class BucketCypherStoreClientIntf(metaclass=ABCMeta):
     def detect_n_mark_deadbuckets(self, threshold_hours_elapsed):
         pass
     '''
+
+class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
+
+    class ClientState:
+        CREATED="CREATED"
+        ACTIVE="ACTIVE"
+        DEACTIVE="DEACTIVE"
+
+    def __init__(self):
+        print("Initializing Following Cypher Store")
+        super().__init__()
+        print("Following Cypher Store init finished")
+
+    def configure(self, **kwargs):
+        #tested
+        if not all (k in kwargs for k in ("client_id","screen_name", "dm_from_id", "dm_from_screen_name")):
+            return
+        client_id = kwargs['client_id']
+        screen_name = kwargs['screen_name']
+        dm_from_id = kwargs['dm_from_id']
+        dm_from_screen_name = kwargs['dm_from_screen_name']
+        print("Configuring client with id={} for  service".format(client_id))
+        self.__add_dmcheck_client(client_id, screen_name, dm_from_id, dm_from_screen_name)
+        self.__change_state_dmcheck_client(client_id, DMCheckCypherStoreClientIntf.ClientState.ACTIVE)
+        return
+
+    def __add_dmcheck_client(self, client_id, screen_name, dm_from_id, dm_from_screen_name):
+        #tested
+        print("Adding client with id={}, screen name={}, DM src[{}/{}]".format(client_id, screen_name, dm_from_id, dm_from_screen_name))
+        currtime = datetime.utcnow()
+        client_stats = {"last_access_time": currtime, "buckets_assigned":0, "buckets_processed":0, "buckets_fault":0, "buckets_dead":0}
+        state = {'state':DMCheckCypherStoreClientIntf.ClientState.CREATED, 'create_datetime': currtime, 'edit_datetime':currtime, 'client_stats':client_stats}
+        user = [{'screen_name':screen_name, 'id':client_id, 'dm_from_id':dm_from_id, 'dm_from_screen_name':dm_from_screen_name}]
+        query = """
+            UNWIND $user AS u
+            MATCH (clientforservice:ClientForService {id:u.id}) 
+            MERGE (client:DMCheckClient {id:u.id})
+                SET client.screen_name = u.screen_name,
+                    client.dm_from_id = u.dm_from_id,
+                    client.dm_from_screen_name = u.dm_from_screen_name,
+                    client.state = $state.state,
+                    client.create_datetime = datetime($state.create_datetime),
+                    client.edit_datetime = datetime($state.edit_datetime)
+            MERGE(client)-[:STATS]->(stat:DMCheckClientStats)
+            ON CREATE SET stat += $state.client_stats
+            MERGE (clientforservice)-[:DMCHECKHECKCLIENT]->(client)
+        """
+        execute_query(query, user=user, state=state)
+        return
+
+    def __change_state_dmcheck_client(self, client_id, client_state):
+        #tested
+        print("Changing state to {} for client with id={}".format(client_state, client_id))
+        currtime = datetime.utcnow()
+        client_stats = {"last_access_time": currtime}
+        state = {'state':client_state, 'edit_datetime':currtime, 'client_stats':client_stats}
+        user = [{'id':client_id}]
+        query = """
+            UNWIND $user AS u
+
+            MATCH (client:DMCheckClient {id:u.id})
+                SET client.state = $state.state,
+                    client.edit_datetime = datetime($state.edit_datetime)
+            WITH client
+                MATCH(client)-[:STATS]->(stat:DMCheckClientStats)
+                    SET stat += $state.client_stats
+        """
+        execute_query(query, user=user, state=state)
+        return
+
+    def get_all_entities_for_bucket(self, bucket_id):
+        #tested
+        print("Getting users for {} bucket".format(bucket_id))
+        currtime = datetime.utcnow()
+        state = {'edit_datetime':currtime, 'uuid':bucket_id}
+        query = """
+            MATCH(u:User)-[:INDMCHECKBUCKET]->(b:DMCheckBucket {uuid:$state.uuid})
+            SET b.edit_datetime = datetime($state.edit_datetime)
+            return u.screen_name, u.id
+        """
+        response_json = execute_query_with_result(query, state=state)
+        users = [ {'screen_name':user['u.screen_name'], 'id':user['u.id']} for user in response_json]
+        logger.debug("Got {} buckets".format(len(users)))
+        return users
+
+    def assign_buckets(self, client_id, bucket_cnt):
+        #tested
+        print("Assigning {} DMcheck buckets".format(bucket_cnt))
+        currtime = datetime.utcnow()
+        client_stats = {"last_access_time": currtime, "buckets_assigned":1}
+        state = {'assigned_datetime':currtime, 'bucket_cnt':bucket_cnt, 'client_id':client_id, 'client_stats':client_stats}
+        query = """
+            MATCH(bucket:DMCheckBucket) WHERE NOT (bucket)-[:DMCHECKCLIENT]->()
+            WITH bucket, rand() as r ORDER BY r, bucket.priority ASC LIMIT $state.bucket_cnt
+            MATCH(client:DMCheckClient {id:$state.client_id})
+            MATCH(client)-[:STATS]->(stat:DMCheckClientStats)
+                SET stat.buckets_assigned = stat.buckets_assigned + $state.client_stats.buckets_assigned,
+                    stat.last_access_time = $state.client_stats.last_access_time
+            MERGE(bucket)-[:DMCHECKCLIENT]->(client)
+            WITH bucket SET bucket.assigned_datetime = datetime($state.assigned_datetime)
+            return bucket
+        """
+        response_json = execute_query_with_result(query, state=state)
+        buckets = [ bucket['bucket']['uuid'] for bucket in response_json]
+        print("Got {} buckets".format(len(buckets)))
+        return buckets
 
 class BucketCypherStoreIntf(metaclass=ABCMeta):
     def __init__(self, service_id):
@@ -282,8 +393,8 @@ class DMCheckCypherStoreIntf(BucketCypherStoreIntf):
 class ClientManagementCypherStoreIntf:
 
     class ClientState:
-        CREATED = "CREATED",
-        ACTIVE = "ACTIVE",
+        CREATED = "CREATED"
+        ACTIVE = "ACTIVE"
         DEACTIVE = "DEACTIVE"
 
     def __init__(self):
@@ -365,16 +476,13 @@ class ClientManagementCypherStoreIntf:
         return
 
 class ServiceManagementIntf:
-    '''
-            Not tested
-    '''
     class ServiceIDs:
-        FOLLOWING_SERVICE="following_service",
+        FOLLOWING_SERVICE="following_service"
         DMCHECK_SERVICE="dmcheck_service"
 
     class ServiceState:
-        CREATED = "CREATED",
-        ACTIVE = "ACTIVE",
+        CREATED = "CREATED"
+        ACTIVE = "ACTIVE"
         DEACTIVE = "DEACTIVE"
 
     def __init__(self):
@@ -416,6 +524,19 @@ class ServiceManagementIntf:
         svc = {'id':service_id}
         query = """
             MATCH (service:ServiceForClient {id:$svc.id}) return $svc.id
+        """
+        response_json = execute_query_with_result(query, svc=svc)
+        if response_json:
+            return True
+        else:
+            return False
+
+    def service_ready(self, service_id):
+        #tested
+        print("Checking validity of  service with id={}".format(service_id))
+        svc = {'id':service_id, 'state':ServiceManagementIntf.ServiceState.ACTIVE}
+        query = """
+            MATCH (service:ServiceForClient {id:$svc.id}) where service.state=$svc.state return $svc.id
         """
         response_json = execute_query_with_result(query, svc=svc)
         if response_json:
