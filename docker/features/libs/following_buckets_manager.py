@@ -17,19 +17,9 @@ from libs.cypher_store import FollowingCypherStoreIntf as StoreIntf
 
 from libs.cypher_store import ServiceManagementIntf
 
-from libs.service_manager import ServiceManager
+from libs.service_manager import ServiceManager, ServiceConfigManager
 
-'''
-Constants
-'''
-DEFAULT_BUCKET_SIZE = 180
-BUCKET_DEFAULT_PRIORITY = 100
-MAX_BUCKETS_PER_CLIENT_REQ = 10
-THRESHOLD_HOURS_FOR_DEAD_BUCKET = 2
-THRESHOLD_MINUTES_DEAD_BUCKET_RELEASE = 15
-THRESHOLD_MAX_USERS_PER_ADD_BUCKET = (9000*2)
 DEFAULT_CHECK_USER_WITH_TWEET_POST = 1
-
 
 class utils:
     @staticmethod
@@ -44,12 +34,9 @@ class FollowingsBucketManager:
         #tested
         self.dataStoreIntf = StoreIntf()
         self.service_manager = ServiceManager(service_id=ServiceManagementIntf.ServiceIDs.FOLLOWING_SERVICE)
-        self.service_defaults={"default_bucket_size": DEFAULT_BUCKET_SIZE,
-                                "default_bucket_priority": BUCKET_DEFAULT_PRIORITY,
-                                "default_max_bucket_per_client_req": MAX_BUCKETS_PER_CLIENT_REQ,
-                                "threshold_hours_dead_bucket": THRESHOLD_HOURS_FOR_DEAD_BUCKET,
-                                "threshold_minutes_dead_bucket_release":THRESHOLD_MINUTES_DEAD_BUCKET_RELEASE,
-                                "threshold_max_users_per_add_bucket":THRESHOLD_MAX_USERS_PER_ADD_BUCKET}
+        #Get service defaults
+        self.service_config_mgr = ServiceConfigManager()
+        self.service_defaults = self.service_config_mgr.get_defaults()
         self.following_service_defaults = {"check_user_with_tweet_post": DEFAULT_CHECK_USER_WITH_TWEET_POST}
     
     def register_service(self):
@@ -74,7 +61,7 @@ class FollowingsBucketManager:
         #tested
         #TODO: Fetch defaults from DB. It will allow user to customize parameters at runtime
         ts = time.perf_counter()
-        buckets= self.__get_buckets()
+        buckets= self.__get_buckets(bucketsize = self.service_defaults['default_bucket_size'])
         if len(buckets):
             db_buckets = self.__make_db_buckets(buckets)
             self.dataStoreIntf.add_buckets(buckets=db_buckets, priority=self.service_defaults["default_bucket_priority"])
@@ -95,7 +82,7 @@ class FollowingsBucketManager:
             max_user_count = self.service_defaults['threshold_max_users_per_add_bucket']
         return max_user_count
 
-    def __get_buckets(self, bucketsize = DEFAULT_BUCKET_SIZE):
+    def __get_buckets(self, bucketsize):
         #tested
         logger.info("Making buckets with {} size".format(bucketsize))
         clients_count = self.service_manager.get_count_clients_for_service()

@@ -17,6 +17,28 @@ from libs.cypher_store import ServiceManagementIntf as serviceIntf
 
 from libs.client_manager import ClientManager
 
+'''
+Constants
+'''
+DEFAULT_BUCKET_SIZE = 180
+BUCKET_DEFAULT_PRIORITY = 100
+MAX_BUCKETS_PER_CLIENT_REQ = 10
+THRESHOLD_HOURS_FOR_DEAD_BUCKET = 2
+THRESHOLD_MINUTES_DEAD_BUCKET_RELEASE = 15
+THRESHOLD_MAX_USERS_PER_ADD_BUCKET = (9000*2)
+
+class ServiceConfigManager:
+    def __init__(self):
+        self.service_defaults={ "default_bucket_size": DEFAULT_BUCKET_SIZE,
+                                "default_bucket_priority": BUCKET_DEFAULT_PRIORITY,
+                                "default_max_bucket_per_client_req": MAX_BUCKETS_PER_CLIENT_REQ,
+                                "threshold_hours_dead_bucket": THRESHOLD_HOURS_FOR_DEAD_BUCKET,
+                                "threshold_minutes_dead_bucket_release":THRESHOLD_MINUTES_DEAD_BUCKET_RELEASE,
+                                "threshold_max_users_per_add_bucket":THRESHOLD_MAX_USERS_PER_ADD_BUCKET}
+    
+    def get_defaults(self):
+        return self.service_defaults
+
 class ServiceManager:
 
     def __init__(self, service_id):
