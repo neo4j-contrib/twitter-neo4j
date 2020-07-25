@@ -15,8 +15,6 @@ User defined modules
 from libs.twitter_logging import console_logger as logger
 from libs.cypher_store import ServiceManagementIntf as serviceIntf
 
-from libs.client_manager import ClientManager
-
 '''
 Constants
 '''
@@ -43,7 +41,6 @@ class ServiceManager:
 
     def __init__(self, service_id):
         #tested
-        self.client_manager = ClientManager()
         self.service_manager = serviceIntf()
         self.service_id = service_id
     
