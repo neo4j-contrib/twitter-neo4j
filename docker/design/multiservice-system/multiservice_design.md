@@ -36,8 +36,8 @@ These clients can come and go anytime. System should provide fault tolerant and 
 
 ##  2. <a name='Requirementsbreak-down'></a>Requirements break-down
 ###  2.1. <a name='Functionalrequirements'></a>Functional requirements
-* Multiple clients should be able to register for one or more services
-* A service may be added anytime 
+* Multiple clients should be able to register for one or more services [Done]
+* A service may be added anytime [Done]
 * System should facilitate for revoking of a service. 
 * In case any service is revoked, past activity related to service must be preserved.
 * A registered client can only work on a valid service
@@ -52,7 +52,7 @@ These clients can come and go anytime. System should provide fault tolerant and 
 * System should able to add new services using plugin model.
 * System should  deactivate inactive clients for services.
 * Client needs to activate service in case it comes back again
-* Client should not wait for registration of service
+* Client should not wait for registration of service [Done]
 * System should be able to scale with reasonable limit. Limit should be advertised [Pending]
 * System should be lock-free. Lock must be used only when it can't be avoided. Its requirement for scale. Lock will be bottleneck for any system with lock 
 * System should facilitate enough data for monitoring and troubleshooting [Pending]
