@@ -27,17 +27,9 @@ User defined modules
 from config.load_config import load_config
 load_config()
 
-store_type = os.getenv("DB_STORE_TYPE", "file_store")
-if store_type.lower() == "file_store":
-    from libs.file_store import DMFileStoreIntf as DMStoreIntf
-else:
-    from libs.cypher_store import DMCypherStoreIntf as DMStoreIntf
 from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
-
 from libs.twitter_logging import logger
-
-from libs.dmcheck_client_manager import DMCheckClientManager
-from libs.dmcheck_buckets_manager import DMCheckBucketManager
+from libs.dmcheck_buckets_manager import DMCheckBucketManager as BucketManager
 
 class DMCheckBucketMonitor():
     """
@@ -45,21 +37,25 @@ class DMCheckBucketMonitor():
     It provides API to 
     """
     def __init__(self):
+        #tested
         print("Initializing DM Check bucket monitor")
-        self.dataStoreIntf = DMStoreIntf()
-        self.dmcheck_client_manager = DMCheckClientManager()
-        self.dmcheck_bucket_mgr = DMCheckBucketManager()
+        self.bucket_mgr = BucketManager()
         self.grandtotal = 0 #Tracks the count of total friendship stored in DB
-        print("DM Check bucket monitor init finished")    
+        print("DM Check bucket monitor init finished") 
+
+    def register_service(self):
+        #tested
+        self.bucket_mgr.register_service()
 
     def RefillBucketPools(self):
+        #tested
         print("Refilling buckets")
         while True:
             try:
                 print("Handling Dead buckets, if any at {}Z".format(datetime.utcnow()))
-                self.dmcheck_bucket_mgr.handle_dead_buckets()
+                #self.bucket_mgr.handle_dead_buckets()
                 print("Trying to add more buckets at {}Z".format(datetime.utcnow()))
-                self.dmcheck_bucket_mgr.add_buckets()
+                self.bucket_mgr.add_buckets()
                 print("Sleeping for 15 mins at {}Z".format(datetime.utcnow()))
                 time.sleep(900)
 
@@ -73,9 +69,10 @@ class DMCheckBucketMonitor():
 
 def main():
     print("Starting DMCheck Bucket monitor. \nConfig file should be [config/{}]\n".format('.env'))
-    dmcheck_bucket_monitor = DMCheckBucketMonitor()
+    bucket_monitor = DMCheckBucketMonitor()
+    bucket_monitor.register_service()
     try:
-        dmcheck_bucket_monitor.RefillBucketPools()
+        bucket_monitor.RefillBucketPools()
     except Exception as e:
         pass
     finally:

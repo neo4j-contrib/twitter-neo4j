@@ -227,6 +227,58 @@ class FollowingCypherStoreIntf(BucketCypherStoreIntf):
         print("Successfully processed {} buckets addition to DB with priority {}".format(len(buckets), priority))
         return
 
+
+class DMCheckCypherStoreIntf(BucketCypherStoreIntf):
+    def __init__(self):
+        #tested
+        print("Initializing DM Check Cypher Store")
+        super().__init__(ServiceManagementIntf.ServiceIDs.DMCHECK_SERVICE)
+        print("DM Check Cypher Store init finished")
+
+    def get_nonprocessed_list(self, max_item_counts):
+        #tested
+        print("Finding max {} users from DB who is not processed".format(max_item_counts))
+        state = {'limit':max_item_counts}
+        query = """
+            match(u:User)
+            WITH u
+            where  NOT ()-[:DM|NonDM|DM_YES|DM_NO|DM_UNKNOWN]->(u) AND NOT (u)-[:INDMCHECKBUCKET]->(:DMCheckBucket)
+            return u.screen_name ORDER BY u.screen_name LIMIT $state.limit  
+        """
+        response_json = execute_query_with_result(query, state=state)
+        users = [ user['u.screen_name'] for user in response_json]
+        print("Got {} users".format(len(users)))
+        return users    
+
+    def __add_buckets_to_db(self, buckets):
+        #tested
+        print("Adding {} buckets to DB".format(len(buckets)))
+        currtime = datetime.utcnow()
+        state = {'edit_datetime':currtime, 'service_id': self.service_id}
+        #TODO: Check if it is needed to replace MERGE with MATCH for user
+        query = """
+            UNWIND $buckets AS bs
+            MATCH(service:ServiceForClient {id:$state.service_id})
+            MERGE(bucket:DMCheckBucket {uuid:bs.bucket_uuid})-[:BUCKETFORSERVICE]->(service)
+                SET bucket.edit_datetime = datetime($state.edit_datetime),
+                    bucket.priority = bs.bucket_priority
+
+            FOREACH (u IN bs.bucket |
+                MERGE(user:User {screen_name:u.name})
+                MERGE (user)-[:INDMCHECKBUCKET]->(bucket)
+            )
+        """
+        execute_query(query, buckets=buckets, state=state)
+        return
+
+    def add_buckets(self, buckets, priority):
+        #tested
+        print("Processing {} buckets addition to DB with priority {}".format(len(buckets), priority))
+        db_buckets = self.make_db_buckets(buckets, priority)
+        self.__add_buckets_to_db(db_buckets)
+        print("Successfully processed {} buckets addition to DB with priority {}".format(len(buckets), priority))
+        return
+
 class ClientManagementCypherStoreIntf:
 
     class ClientState:
@@ -317,7 +369,8 @@ class ServiceManagementIntf:
             Not tested
     '''
     class ServiceIDs:
-        FOLLOWING_SERVICE="following_service"
+        FOLLOWING_SERVICE="following_service",
+        DMCHECK_SERVICE="dmcheck_service"
 
     class ServiceState:
         CREATED = "CREATED",

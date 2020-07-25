@@ -67,7 +67,7 @@ class FollowingBucketMonitor():
 
 
 def main():
-    print("Starting DMCheck Bucket monitor. \nConfig file should be [config/{}]\n".format('.env'))
+    print("Starting Following bucket monitor. \nConfig file should be [config/{}]\n".format('.env'))
     bucket_monitor = FollowingBucketMonitor()
     bucket_monitor.register_service()
     try:
