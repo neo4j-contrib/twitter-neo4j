@@ -178,7 +178,7 @@ class UserRelations():
                 logger.exception(e)
                 print(traceback.format_exc())
                 print(e)
-                time.sleep(30)
+                time.sleep(900)
                 continue
 
 def main():
