@@ -60,13 +60,14 @@ class DMCheckBucketManagerClient:
         return buckets_for_client
 
     def store_processed_data_for_bucket(self, bucket):
+        #tested
+        print("Processing store of {} bucket".format(bucket['bucket_id']))
         ts = time.perf_counter()
         if not self.__client_sanity_passed():
             return ClientSanityFailed()
         bucket_id = bucket['bucket_id']
         users = bucket['users']
         self.__store_dmcheck_status_for_bucket(bucket_id, users)
-        pdb.set_trace()
         self.__release_bucket(bucket_id)
         print("Successfully processed {} bucket".format(bucket['bucket_id']))
         te = time.perf_counter()
@@ -95,3 +96,15 @@ class DMCheckBucketManagerClient:
             print("Service with ID {} is not ready".format(self.service_id))
             return False
         return True
+
+    def __release_bucket(self, bucket_id):
+        #tested
+        #Precondition: Bucket should exist
+        print("Releasing [{}] bucket".format(bucket_id))
+        users = self.dataStoreIntf.get_all_entities_for_bucket(bucket_id)
+        if len(users):
+            logger.warn("{}Bucket still has {} unprocessed users".format(bucket_id, len(users)))
+            self.dataStoreIntf.empty_bucket(bucket_id)
+        self.dataStoreIntf.remove_bucket(bucket_id)
+        print("Successfully released [{}] bucket".format(bucket_id))
+        return

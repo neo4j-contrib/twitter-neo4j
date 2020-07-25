@@ -94,17 +94,20 @@ class BucketCypherStoreClientIntf(metaclass=ABCMeta):
     @abstractmethod
     def get_all_entities_for_bucket(self, bucket_id):
         pass
-        
+
+    @abstractmethod
+    def empty_bucket(self, bucket_id):
+        pass
+
+    @abstractmethod
+    def remove_bucket(self, bucket_id):
+        pass
+
     '''
     @abstractmethod
     def valid_bucket_owner(self, bucket_id, client_id):
         pass
-    @abstractmethod
-    def empty_dmcheck_bucket(self, bucket_id):
-        pass
-    @abstractmethod
-    def remove_bucket(self, bucket_id):
-        pass
+
     @abstractmethod
     def is_dead_bucket(self, bucket_id):
         pass
@@ -187,6 +190,33 @@ class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         self.__store_nondm_friends(client_id, bucket_id, bucket['cantdm_users'])
         self.__store_dmcheck_unknown_friends(client_id, bucket_id, bucket['unknown_users'])
         return
+
+    def empty_bucket(self, bucket_id):
+        print("Releaseing users for {} bucket".format(bucket_id))
+        pdb.set_trace()
+        state = {'uuid':bucket_id}
+        query = """
+            MATCH(u:User)-[r:INDMCHECKBUCKET]->(b:DMCheckBucket {uuid:$state.uuid})
+            DELETE r
+        """
+        execute_query(query, state=state)
+        return True
+
+    def remove_bucket(self, bucket_id):
+        #tested
+        print("Releaseing users for {} bucket".format(bucket_id))
+        currtime = datetime.utcnow()
+        client_stats = {"last_access_time": currtime}
+        state = {'uuid':bucket_id, 'client_stats':client_stats, 'service_id':ServiceManagementIntf.ServiceIDs.DMCHECK_SERVICE}
+        query = """
+            MATCH(b:DMCheckBucket {uuid:$state.uuid})-[rs:BUCKETFORSERVICE]->(service:ServiceForClient {id:$state.service_id})
+            MATCH(b)-[r:DMCHECKCLIENT]->(client:DMCheckClient)-[:STATS]->(stat:DMCheckClientStats)
+                SET stat.buckets_processed = stat.buckets_processed + 1,
+                    stat.last_access_time = $state.client_stats.last_access_time               
+            DELETE r,rs,b
+        """
+        execute_query(query, state=state)
+        return True
 
     def __add_dmcheck_client(self, client_id, screen_name, dm_from_id, dm_from_screen_name):
         #tested
