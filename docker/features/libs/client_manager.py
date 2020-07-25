@@ -53,6 +53,7 @@ class ClientManager:
         return True
     
     def client_registered(self):
+        #tested
         client_id = self.client_screen_name
         logger.debug("Checking registration status for {} client".format(client_id))
         status = self.dataStoreIntf.client_valid(client_id)

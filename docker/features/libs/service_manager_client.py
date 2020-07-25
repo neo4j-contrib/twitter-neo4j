@@ -37,6 +37,13 @@ class ServiceManagerClient:
         self.service_manager.register_service_for_client(self.client_id, self.service_id)
         print(("Successfully registered client {} service with ID {}".format(self.client_screen_name, self.service_id)))
 
+    def valid_client(self):
+        #tested
+        return self.service_manager.client_service_registered(self.client_id, self.service_id)
+
+    def valid_service(self):
+        return self.service_manager.service_ready(self.service_id)
+
     def unregister_service(self):
         #TODO : Implement this
         print(("Unregistering service with ID {}".format(self.service_id)))
