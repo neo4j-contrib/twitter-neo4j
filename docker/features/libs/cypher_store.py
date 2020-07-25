@@ -91,6 +91,12 @@ class BucketCypherStoreClientIntf(metaclass=ABCMeta):
     def configure(self, **kwargs):
         pass
 
+class BucketCypherStoreCommonIntf:
+    def __init__(self):
+        print("Initializing Bucket Cypher Store")
+        try_connecting_neo4j()
+        print("Bucket Cypher Store init finished")
+
     @abstractmethod
     def get_all_entities_for_bucket(self, bucket_id):
         pass
@@ -107,17 +113,55 @@ class BucketCypherStoreClientIntf(metaclass=ABCMeta):
     @abstractmethod
     def valid_bucket_owner(self, bucket_id, client_id):
         pass
-
-    @abstractmethod
-    def is_dead_bucket(self, bucket_id):
-        pass
-    @abstractmethod
-    def get_all_dead_buckets(self, threshold_mins_elapsed):
-        pass
-    @abstractmethod
-    def detect_n_mark_deadbuckets(self, threshold_hours_elapsed):
-        pass
     '''
+
+class DMCheckCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
+    def __init__(self):
+        print("Initializing Following Cypher Store")
+        super().__init__()
+        print("Following Cypher Store init finished")
+
+    def get_all_entities_for_bucket(self, bucket_id):
+        #tested
+        print("Getting users for {} bucket".format(bucket_id))
+        currtime = datetime.utcnow()
+        state = {'edit_datetime':currtime, 'uuid':bucket_id}
+        query = """
+            MATCH(u:User)-[:INDMCHECKBUCKET]->(b:DMCheckBucket {uuid:$state.uuid})
+            SET b.edit_datetime = datetime($state.edit_datetime)
+            return u.screen_name, u.id
+        """
+        response_json = execute_query_with_result(query, state=state)
+        users = [ {'screen_name':user['u.screen_name'], 'id':user['u.id']} for user in response_json]
+        logger.debug("Got {} buckets".format(len(users)))
+        return users
+
+    def empty_bucket(self, bucket_id):
+        #tested
+        print("Releaseing users for {} bucket".format(bucket_id))
+        state = {'uuid':bucket_id}
+        query = """
+            MATCH(u:User)-[r:INDMCHECKBUCKET]->(b:DMCheckBucket {uuid:$state.uuid})
+            DELETE r
+        """
+        execute_query(query, state=state)
+        return True
+
+    def remove_bucket(self, bucket_id):
+        #tested
+        print("Releaseing users for {} bucket".format(bucket_id))
+        currtime = datetime.utcnow()
+        client_stats = {"last_access_time": currtime}
+        state = {'uuid':bucket_id, 'client_stats':client_stats, 'service_id':ServiceManagementIntf.ServiceIDs.DMCHECK_SERVICE}
+        query = """
+            MATCH(b:DMCheckBucket {uuid:$state.uuid})-[rs:BUCKETFORSERVICE]->(service:ServiceForClient {id:$state.service_id})
+            MATCH(b)-[r:DMCHECKCLIENT]->(client:DMCheckClient)-[:STATS]->(stat:DMCheckClientStats)
+                SET stat.buckets_processed = stat.buckets_processed + 1,
+                    stat.last_access_time = $state.client_stats.last_access_time               
+            DELETE r,rs,b
+        """
+        execute_query(query, state=state)
+        return True
 
 class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
 
@@ -143,21 +187,6 @@ class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         self.__add_dmcheck_client(client_id, screen_name, dm_from_id, dm_from_screen_name)
         self.__change_state_dmcheck_client(client_id, DMCheckCypherStoreClientIntf.ClientState.ACTIVE)
         return
-
-    def get_all_entities_for_bucket(self, bucket_id):
-        #tested
-        print("Getting users for {} bucket".format(bucket_id))
-        currtime = datetime.utcnow()
-        state = {'edit_datetime':currtime, 'uuid':bucket_id}
-        query = """
-            MATCH(u:User)-[:INDMCHECKBUCKET]->(b:DMCheckBucket {uuid:$state.uuid})
-            SET b.edit_datetime = datetime($state.edit_datetime)
-            return u.screen_name, u.id
-        """
-        response_json = execute_query_with_result(query, state=state)
-        users = [ {'screen_name':user['u.screen_name'], 'id':user['u.id']} for user in response_json]
-        logger.debug("Got {} buckets".format(len(users)))
-        return users
 
     def assign_buckets(self, client_id, bucket_cnt):
         #tested
@@ -191,32 +220,20 @@ class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         self.__store_dmcheck_unknown_friends(client_id, bucket_id, bucket['unknown_users'])
         return
 
-    def empty_bucket(self, bucket_id):
-        print("Releaseing users for {} bucket".format(bucket_id))
-        pdb.set_trace()
-        state = {'uuid':bucket_id}
-        query = """
-            MATCH(u:User)-[r:INDMCHECKBUCKET]->(b:DMCheckBucket {uuid:$state.uuid})
-            DELETE r
-        """
-        execute_query(query, state=state)
-        return True
-
-    def remove_bucket(self, bucket_id):
+    def is_dead_bucket(self, bucket_id):
         #tested
-        print("Releaseing users for {} bucket".format(bucket_id))
-        currtime = datetime.utcnow()
-        client_stats = {"last_access_time": currtime}
-        state = {'uuid':bucket_id, 'client_stats':client_stats, 'service_id':ServiceManagementIntf.ServiceIDs.DMCHECK_SERVICE}
+        print("Checking if {} bucket is dead".format(bucket_id))
+        state = {"uuid":bucket_id}
         query = """
-            MATCH(b:DMCheckBucket {uuid:$state.uuid})-[rs:BUCKETFORSERVICE]->(service:ServiceForClient {id:$state.service_id})
-            MATCH(b)-[r:DMCHECKCLIENT]->(client:DMCheckClient)-[:STATS]->(stat:DMCheckClientStats)
-                SET stat.buckets_processed = stat.buckets_processed + 1,
-                    stat.last_access_time = $state.client_stats.last_access_time               
-            DELETE r,rs,b
+            MATCH(b:DMCheckBucket {uuid:$state.bucket_id})
+                WHERE EXISTS(b.dead_datetime)
+                return b.uuid
         """
-        execute_query(query, state=state)
-        return True
+        response_json = execute_query_with_result(query, state=state)
+        if response_json:
+            return True
+        else:
+            return False
 
     def __add_dmcheck_client(self, client_id, screen_name, dm_from_id, dm_from_screen_name):
         #tested
@@ -339,6 +356,13 @@ class BucketCypherStoreIntf(metaclass=ABCMeta):
     def add_buckets(self, buckets, priority):
         pass
 
+    @abstractmethod
+    def get_all_dead_buckets(self, threshold_mins_elapsed):
+        pass
+
+    @abstractmethod
+    def detect_n_mark_deadbuckets(self, threshold_hours_elapsed):
+        pass
 
 class FollowingCypherStoreClientIntf(BucketCypherStoreClientIntf):
     def __init__(self):
@@ -482,6 +506,43 @@ class DMCheckCypherStoreIntf(BucketCypherStoreIntf):
         self.__add_buckets_to_db(db_buckets)
         print("Successfully processed {} buckets addition to DB with priority {}".format(len(buckets), priority))
         return
+
+    def get_all_dead_buckets(self, threshold_mins_elapsed):
+        #tested
+        print("Getting list of dead buckets for more than {} minutes".format(threshold_mins_elapsed))
+        currtime = datetime.utcnow()
+        dead_datetime_threshold = currtime - timedelta(minutes=threshold_mins_elapsed)
+        state = {"dead_datetime_threshold": dead_datetime_threshold}
+        query = """
+            MATCH(b:DMCheckBucket)
+                WHERE datetime(b.dead_datetime) < datetime($state.dead_datetime_threshold)
+                return b.uuid
+        """
+        response_json = execute_query_with_result(query, state=state)
+        buckets = [ bucket['b.uuid'] for bucket in response_json]
+        print("Got {} buckets".format(len(buckets)))
+        return buckets
+
+    def detect_n_mark_deadbuckets(self, threshold_hours_elapsed):
+        #tested
+        print("Marking buckets as dead if last access is more than {} hours".format(threshold_hours_elapsed))
+        currtime = datetime.utcnow()
+        client_stats = {"last_access_time": currtime}
+        assigned_datetime_threshold = currtime - timedelta(hours=threshold_hours_elapsed)
+        state = {"dead_datetime": currtime, "assigned_datetime_threshold": assigned_datetime_threshold, 'client_stats':client_stats}
+        query = """
+            MATCH(b:DMCheckBucket)-[:DMCHECKCLIENT]->(c:DMCheckClient)-[:STATS]->(stat:DMCheckClientStats)
+                WHERE datetime(b.assigned_datetime) < datetime($state.assigned_datetime_threshold)
+                SET b.dead_datetime = datetime($state.dead_datetime),
+                    stat.buckets_dead = stat.buckets_dead + 1,
+                    stat.last_access_time = $state.client_stats.last_access_time
+                return b.uuid
+        """
+        response_json = execute_query_with_result(query, state=state)
+        buckets = [ bucket['b.uuid'] for bucket in response_json]
+        print("Got {} buckets with UUIDs as {}".format(len(buckets), buckets))
+        return buckets
+
 
 class ClientManagementCypherStoreIntf:
 

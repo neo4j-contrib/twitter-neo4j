@@ -14,6 +14,7 @@ User defined modules
 '''
 from libs.twitter_logging import console_logger as logger
 from libs.cypher_store import DMCheckCypherStoreIntf as StoreIntf
+from libs.cypher_store import DMCheckCypherStoreCommonIntf as StoreCommonIntf
 
 from libs.cypher_store import ServiceManagementIntf
 
@@ -31,6 +32,7 @@ class DMCheckBucketManager:
     def __init__(self):
         #tested
         self.dataStoreIntf = StoreIntf()
+        self.dataStoreCommonIntf = StoreCommonIntf()
         self.service_manager = ServiceManager(service_id=ServiceManagementIntf.ServiceIDs.DMCHECK_SERVICE)
         #Get service defaults
         self.service_config_mgr = ServiceConfigManager()
@@ -45,8 +47,8 @@ class DMCheckBucketManager:
         self.service_manager.unregister_service()
 
     def handle_dead_buckets(self):
+        #tested
         ts = time.perf_counter()
-        pdb.set_trace()
         self.___release_dead_buckets()
         self.__detect_n_mark_dead_buckets()
         te = time.perf_counter()
@@ -95,3 +97,25 @@ class DMCheckBucketManager:
             db_bucket=[{'name': user} for user in bucket]
             db_buckets.append(db_bucket)
         return db_buckets
+
+    def __detect_n_mark_dead_buckets(self):
+        self.dataStoreIntf.detect_n_mark_deadbuckets(threshold_hours_elapsed=self.service_defaults["threshold_hours_dead_bucket"])
+
+    def ___release_dead_buckets(self):
+        buckets = self.dataStoreIntf.get_all_dead_buckets(threshold_mins_elapsed=self.service_defaults["threshold_minutes_dead_bucket_release"])
+        print("Got {} buckets for release".format(len(buckets)))
+        for bucket_id in buckets:
+            self.__release_bucket(bucket_id)
+
+    def __release_bucket(self, bucket_id):
+        #tested
+        #Precondition: Bucket should exist
+        #TODO: remove duplicate
+        print("Releasing [{}] bucket".format(bucket_id))
+        users = self.dataStoreCommonIntf.get_all_entities_for_bucket(bucket_id)
+        if len(users):
+            logger.warn("{}Bucket still has {} unprocessed users".format(bucket_id, len(users)))
+            self.dataStoreCommonIntf.empty_bucket(bucket_id)
+        self.dataStoreCommonIntf.remove_bucket(bucket_id)
+        print("Successfully released [{}] bucket".format(bucket_id))
+        return

@@ -14,6 +14,7 @@ User defined modules
 '''
 from libs.twitter_logging import console_logger as logger
 from libs.cypher_store import DMCheckCypherStoreClientIntf as StoreIntf
+from libs.cypher_store import DMCheckCypherStoreCommonIntf as StoreCommonIntf
 from libs.cypher_store import ServiceManagementIntf as ServiceIDIntf
 from libs.service_manager_client import ServiceManagerClient as ServiceIntf
 
@@ -30,6 +31,7 @@ class DMCheckBucketManagerClient:
         self.dm_from_id = dm_from_id
         self.dm_from_screen_name = dm_from_screen_name
         self.dataStoreIntf = StoreIntf()
+        self.dataStoreCommonIntf = StoreCommonIntf()
         self.service_id = ServiceIDIntf.ServiceIDs.DMCHECK_SERVICE
         self.service_manager = ServiceIntf(client_id, screen_name, self.service_id)
         
@@ -53,7 +55,7 @@ class DMCheckBucketManagerClient:
         print("Assigned {} bucket(s) to the client".format(buckets))
         buckets_for_client = []
         for id in buckets:
-            users = self.dataStoreIntf.get_all_entities_for_bucket(id)
+            users = self.dataStoreCommonIntf.get_all_entities_for_bucket(id)
             buckets_for_client.append({'bucket_id':id, 'users':users})
         te = time.perf_counter()
         print('perfdata: func:%r took: %2.4f sec' % ('assignBuckets', te-ts))
@@ -66,6 +68,9 @@ class DMCheckBucketManagerClient:
         if not self.__client_sanity_passed():
             return ClientSanityFailed()
         bucket_id = bucket['bucket_id']
+        if not self.__bucket_sanity_passed(bucket_id):
+            print("Skipping as bucket sanity failed for {} bucket".format(bucket_id))
+            return
         users = bucket['users']
         self.__store_dmcheck_status_for_bucket(bucket_id, users)
         self.__release_bucket(bucket_id)
@@ -90,6 +95,13 @@ class DMCheckBucketManagerClient:
             return False
         return True
 
+    def __bucket_sanity_passed(self, bucket_id):
+        #tested
+        if not self.dataStoreIntf.is_dead_bucket(bucket_id):
+            print("Bucket with ID {} is dead".format(bucket_id))
+            return False
+        return True
+
     def __service_sanity_passed(self):
         #tested
         if not self.service_manager.valid_service():
@@ -101,10 +113,10 @@ class DMCheckBucketManagerClient:
         #tested
         #Precondition: Bucket should exist
         print("Releasing [{}] bucket".format(bucket_id))
-        users = self.dataStoreIntf.get_all_entities_for_bucket(bucket_id)
+        users = self.dataStoreCommonIntf.get_all_entities_for_bucket(bucket_id)
         if len(users):
             logger.warn("{}Bucket still has {} unprocessed users".format(bucket_id, len(users)))
-            self.dataStoreIntf.empty_bucket(bucket_id)
-        self.dataStoreIntf.remove_bucket(bucket_id)
+            self.dataStoreCommonIntf.empty_bucket(bucket_id)
+        self.dataStoreCommonIntf.remove_bucket(bucket_id)
         print("Successfully released [{}] bucket".format(bucket_id))
         return
