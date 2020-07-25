@@ -92,6 +92,8 @@ Multiple clients like to contribute in checking followings. These clients can co
 * On user deletion, system should delete corresponding following info as well [Need discussion]
 * Multiple clients should be able to proxy using same Tweeter ID. However, in this case, its  the client responsibility to maintain harmony among themselves. System will treat all such clients as identical [Pending]
 * Faulty client can submit incorrect info. System should allow to recover in such case. As an approach, system can log client activity [Pending]
+* System should facilitate re-run following of a user
+* In case, user follow info changes on re-run, previous info should be preserved. A timestamp on previous relationship can help to distinugish that it is older relation.
 
 
 ###  2.2. <a name='Non-functionalrequirements'></a>Non-functional requirements
