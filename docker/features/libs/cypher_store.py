@@ -141,6 +141,43 @@ class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         self.__change_state_dmcheck_client(client_id, DMCheckCypherStoreClientIntf.ClientState.ACTIVE)
         return
 
+    def get_all_entities_for_bucket(self, bucket_id):
+        #tested
+        print("Getting users for {} bucket".format(bucket_id))
+        currtime = datetime.utcnow()
+        state = {'edit_datetime':currtime, 'uuid':bucket_id}
+        query = """
+            MATCH(u:User)-[:INDMCHECKBUCKET]->(b:DMCheckBucket {uuid:$state.uuid})
+            SET b.edit_datetime = datetime($state.edit_datetime)
+            return u.screen_name, u.id
+        """
+        response_json = execute_query_with_result(query, state=state)
+        users = [ {'screen_name':user['u.screen_name'], 'id':user['u.id']} for user in response_json]
+        logger.debug("Got {} buckets".format(len(users)))
+        return users
+
+    def assign_buckets(self, client_id, bucket_cnt):
+        #tested
+        print("Assigning {} DMcheck buckets".format(bucket_cnt))
+        currtime = datetime.utcnow()
+        client_stats = {"last_access_time": currtime, "buckets_assigned":1}
+        state = {'assigned_datetime':currtime, 'bucket_cnt':bucket_cnt, 'client_id':client_id, 'client_stats':client_stats}
+        query = """
+            MATCH(bucket:DMCheckBucket) WHERE NOT (bucket)-[:DMCHECKCLIENT]->()
+            WITH bucket, rand() as r ORDER BY r, bucket.priority ASC LIMIT $state.bucket_cnt
+            MATCH(client:DMCheckClient {id:$state.client_id})
+            MATCH(client)-[:STATS]->(stat:DMCheckClientStats)
+                SET stat.buckets_assigned = stat.buckets_assigned + $state.client_stats.buckets_assigned,
+                    stat.last_access_time = $state.client_stats.last_access_time
+            MERGE(bucket)-[:DMCHECKCLIENT]->(client)
+            WITH bucket SET bucket.assigned_datetime = datetime($state.assigned_datetime)
+            return bucket
+        """
+        response_json = execute_query_with_result(query, state=state)
+        buckets = [ bucket['bucket']['uuid'] for bucket in response_json]
+        print("Got {} buckets".format(len(buckets)))
+        return buckets
+
     def __add_dmcheck_client(self, client_id, screen_name, dm_from_id, dm_from_screen_name):
         #tested
         print("Adding client with id={}, screen name={}, DM src[{}/{}]".format(client_id, screen_name, dm_from_id, dm_from_screen_name))
@@ -184,43 +221,6 @@ class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         """
         execute_query(query, user=user, state=state)
         return
-
-    def get_all_entities_for_bucket(self, bucket_id):
-        #tested
-        print("Getting users for {} bucket".format(bucket_id))
-        currtime = datetime.utcnow()
-        state = {'edit_datetime':currtime, 'uuid':bucket_id}
-        query = """
-            MATCH(u:User)-[:INDMCHECKBUCKET]->(b:DMCheckBucket {uuid:$state.uuid})
-            SET b.edit_datetime = datetime($state.edit_datetime)
-            return u.screen_name, u.id
-        """
-        response_json = execute_query_with_result(query, state=state)
-        users = [ {'screen_name':user['u.screen_name'], 'id':user['u.id']} for user in response_json]
-        logger.debug("Got {} buckets".format(len(users)))
-        return users
-
-    def assign_buckets(self, client_id, bucket_cnt):
-        #tested
-        print("Assigning {} DMcheck buckets".format(bucket_cnt))
-        currtime = datetime.utcnow()
-        client_stats = {"last_access_time": currtime, "buckets_assigned":1}
-        state = {'assigned_datetime':currtime, 'bucket_cnt':bucket_cnt, 'client_id':client_id, 'client_stats':client_stats}
-        query = """
-            MATCH(bucket:DMCheckBucket) WHERE NOT (bucket)-[:DMCHECKCLIENT]->()
-            WITH bucket, rand() as r ORDER BY r, bucket.priority ASC LIMIT $state.bucket_cnt
-            MATCH(client:DMCheckClient {id:$state.client_id})
-            MATCH(client)-[:STATS]->(stat:DMCheckClientStats)
-                SET stat.buckets_assigned = stat.buckets_assigned + $state.client_stats.buckets_assigned,
-                    stat.last_access_time = $state.client_stats.last_access_time
-            MERGE(bucket)-[:DMCHECKCLIENT]->(client)
-            WITH bucket SET bucket.assigned_datetime = datetime($state.assigned_datetime)
-            return bucket
-        """
-        response_json = execute_query_with_result(query, state=state)
-        buckets = [ bucket['bucket']['uuid'] for bucket in response_json]
-        print("Got {} buckets".format(len(buckets)))
-        return buckets
 
 class BucketCypherStoreIntf(metaclass=ABCMeta):
     def __init__(self, service_id):
