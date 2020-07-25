@@ -13,8 +13,8 @@ import time
 User defined modules
 '''
 from libs.twitter_logging import console_logger as logger
-from libs.cypher_store import ServiceManagementIntf as serviceIntf
-
+from libs.cypher_store import ServiceManagementIntf as ServiceIntf
+from libs.cypher_store import ServiceManagementIntf as ServiceIDIntf
 '''
 Constants
 '''
@@ -41,7 +41,7 @@ class ServiceManager:
 
     def __init__(self, service_id):
         #tested
-        self.service_manager = serviceIntf()
+        self.service_manager = ServiceIntf()
         self.service_id = service_id
     
     def register_service(self, defaults):
@@ -49,8 +49,8 @@ class ServiceManager:
         print(("Registering service with ID {}".format(self.service_id)))
         if not self.service_manager.service_exists(self.service_id):
             self.service_manager.register_service(self.service_id, defaults = defaults)
-        if self.service_manager.get_service_state(self.service_id) == self.service_manager.ServiceState.CREATED:
-            self.service_manager.change_service_state(self.service_id, self.service_manager.ServiceState.ACTIVE)
+        if self.service_manager.get_service_state(self.service_id) == ServiceIDIntf.ServiceState.CREATED:
+            self.service_manager.change_service_state(self.service_id, ServiceIDIntf.ServiceState.ACTIVE)
         print(("Successfully registered service with ID {}".format(self.service_id)))
 
     def unregister_service(self):
