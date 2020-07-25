@@ -92,6 +92,9 @@ Concurrent processing of each service can be mapped to public distribution syste
 
 ###  6.2. <a name='Servicemanagementcomponent'></a>Service management component
 
+![image info](./data/sequence_service_manager_register.jpg)
+![image info](./data/sequence_service_manager_unregister.jpg)
+
 ##  7. <a name='Databasedesign'></a>Database design
 Basic view of database
 ![image info](./data/database_design_basic.jpg)
