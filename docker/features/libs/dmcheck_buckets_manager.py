@@ -85,7 +85,7 @@ class DMCheckBucketManager:
         clients_count = self.service_manager.get_count_clients_for_service()
         max_users_counts = self.__calculate_max_users_count(clients_count)
         users_wkg = self.dataStoreIntf.get_nonprocessed_list(max_users_counts)
-        print("Got {} users which needs Following check".format(len(users_wkg)))
+        print("Got {} users which needs DM check".format(len(users_wkg)))
         buckets = list(utils.chunks(users_wkg, bucketsize))
         logger.info("Got {} buckets".format(len(buckets)))
         return buckets
