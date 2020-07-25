@@ -178,6 +178,16 @@ class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         print("Got {} buckets".format(len(buckets)))
         return buckets
 
+    def store_processed_data_for_bucket(self, client_id, bucket):
+        #tested
+        print("Store DM data for {} bucket".format(bucket['bucket_id']))
+        bucket_id = bucket['bucket_id']
+        #TODO: Try to merge to single call
+        self.__store_dm_friends(client_id, bucket_id, bucket['candm_users'])
+        self.__store_nondm_friends(client_id, bucket_id, bucket['cantdm_users'])
+        self.__store_dmcheck_unknown_friends(client_id, bucket_id, bucket['unknown_users'])
+        return
+
     def __add_dmcheck_client(self, client_id, screen_name, dm_from_id, dm_from_screen_name):
         #tested
         print("Adding client with id={}, screen name={}, DM src[{}/{}]".format(client_id, screen_name, dm_from_id, dm_from_screen_name))
@@ -221,6 +231,59 @@ class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         """
         execute_query(query, user=user, state=state)
         return
+
+    def __store_dm_friends(self, client_id, bucket_id, users):
+        #tested
+        print("Store DM users for {} bucket".format(bucket_id))
+        state = {'client_id':client_id, 'bucket_id':bucket_id}
+        query = """
+            UNWIND $users AS user
+
+            MATCH(client:DMCheckClient {id:$state.client_id})
+            MATCH(b:DMCheckBucket {uuid:$state.bucket_id})
+            MATCH(u:User {screen_name: user.screen_name})
+            MATCH (u)-[r:INDMCHECKBUCKET]->()
+            DELETE r
+            MERGE(u)<-[:DM_YES]-(client)
+        """
+        execute_query(query, users=users, state=state)
+        return True
+
+    def __store_nondm_friends(self, client_id, bucket_id, users):
+        #tested
+        print("Store NON_DM users for {} bucket".format(bucket_id))
+        state = {'client_id':client_id, 'bucket_id':bucket_id}
+        query = """
+            UNWIND $users AS user
+
+            MATCH(client:DMCheckClient {id:$state.client_id})
+            MATCH(b:DMCheckBucket {uuid:$state.bucket_id})
+            MATCH(u:User {screen_name: user.screen_name})
+            MERGE(u)<-[:DM_NO]-(client)
+            WITH u
+            MATCH (u)-[r:INDMCHECKBUCKET]->()
+            DELETE r
+        """
+        execute_query(query, users=users, state=state)
+        return True
+
+    def __store_dmcheck_unknown_friends(self, client_id, bucket_id, users):
+        #tested
+        print("Store Unknown users for {} bucket".format(bucket_id))
+        state = {'client_id':client_id, 'bucket_id':bucket_id}
+        query = """
+            UNWIND $users AS user
+
+            MATCH(client:DMCheckClient {id:$state.client_id})
+            MATCH(b:DMCheckBucket {uuid:$state.bucket_id})
+            MATCH(u:User {screen_name: user.screen_name})
+            MERGE(u)<-[:DM_UNKNOWN]-(client)
+            WITH u
+            MATCH (u)-[r:INDMCHECKBUCKET]->()
+            DELETE r
+        """
+        execute_query(query, users=users, state=state)
+        return True
 
 class BucketCypherStoreIntf(metaclass=ABCMeta):
     def __init__(self, service_id):

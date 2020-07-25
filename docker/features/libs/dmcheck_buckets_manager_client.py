@@ -37,9 +37,9 @@ class DMCheckBucketManagerClient:
         #tested
         self.service_manager.register_service()
 
-    def assignBuckets(self, client_id, bucketscount=1):
+    def assignBuckets(self, bucketscount=1):
         #tested
-        logger.info("Assigning {} bucket(s) to the client".format(bucketscount, client_id))
+        logger.info("Assigning {} bucket(s) to the client".format(bucketscount, self.client_id))
         ts = time.perf_counter()
         if not self.__client_sanity_passed():
             return ClientSanityFailed()
@@ -49,7 +49,7 @@ class DMCheckBucketManagerClient:
 
         self.dataStoreIntf.configure(client_id=self.client_id, screen_name=self.screen_name, 
                 dm_from_id=self.dm_from_id, dm_from_screen_name=self.dm_from_screen_name)
-        buckets = self.dataStoreIntf.assign_buckets(client_id, bucketscount)
+        buckets = self.dataStoreIntf.assign_buckets(self.client_id, bucketscount)
         print("Assigned {} bucket(s) to the client".format(buckets))
         buckets_for_client = []
         for id in buckets:
@@ -59,6 +59,28 @@ class DMCheckBucketManagerClient:
         print('perfdata: func:%r took: %2.4f sec' % ('assignBuckets', te-ts))
         return buckets_for_client
 
+    def store_processed_data_for_bucket(self, bucket):
+        ts = time.perf_counter()
+        if not self.__client_sanity_passed():
+            return ClientSanityFailed()
+        bucket_id = bucket['bucket_id']
+        users = bucket['users']
+        self.__store_dmcheck_status_for_bucket(bucket_id, users)
+        pdb.set_trace()
+        self.__release_bucket(bucket_id)
+        print("Successfully processed {} bucket".format(bucket['bucket_id']))
+        te = time.perf_counter()
+        print('perfdata: func:%r took: %2.4f sec' % ('store_processed_data_for_bucket', te-ts))
+        pass
+
+    def __store_dmcheck_status_for_bucket(self, bucket_id, users):
+        #tested
+        candm_users = [user for user in users if user['candm'].upper()=="DM"]
+        cantdm_users = [user for user in users if user['candm'].upper()=="NON_DM"]
+        unknown_users = [user for user in users if user['candm'].upper()=="UNKNOWN"]
+        bucket_for_db = {'bucket_id': bucket_id, 'candm_users':candm_users, 'cantdm_users':cantdm_users, 'unknown_users':unknown_users}
+        #TODO: Try to make atomic for each bucket
+        self.dataStoreIntf.store_processed_data_for_bucket(client_id=self.client_id, bucket=bucket_for_db)
 
     def __client_sanity_passed(self):
         #tested
