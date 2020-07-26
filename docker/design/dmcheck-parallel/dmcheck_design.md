@@ -24,12 +24,14 @@
 	* 6.1. [Client Manager component](#ClientManagercomponent)
 		* 6.1.1. [Class Diagram](#ClassDiagram)
 		* 6.1.2. [Sequence diagram for client registration flow](#Sequencediagramforclientregistrationflow)
+		* 6.1.3. [Sequence diagram for client interaction to system](#Sequencediagramforclientinteractiontosystem)
 	* 6.2. [Bucket manager component](#Bucketmanagercomponent)
 		* 6.2.1. [Class diagram](#Classdiagram)
-		* 6.2.2. [Sequence diagram for making buckets](#Sequencediagramformakingbuckets)
-		* 6.2.3. [Sequence diagram for  Assigning buckets to client](#SequencediagramforAssigningbucketstoclient)
-		* 6.2.4. [Sequence diagram for processing DM Check info update from client](#SequencediagramforprocessingDMCheckinfoupdatefromclient)
-		* 6.2.5. [Sequence diagram for releasing indiefintely locked buckets](#Sequencediagramforreleasingindiefintelylockedbuckets)
+		* 6.2.2. [Sequence diagram for DMCheck bucket monitoring flow](#SequencediagramforDMCheckbucketmonitoringflow)
+		* 6.2.3. [Sequence diagram for making buckets](#Sequencediagramformakingbuckets)
+		* 6.2.4. [Sequence diagram for  Assigning buckets to client](#SequencediagramforAssigningbucketstoclient)
+		* 6.2.5. [Sequence diagram for processing DM Check info update from client](#SequencediagramforprocessingDMCheckinfoupdatefromclient)
+		* 6.2.6. [Sequence diagram for releasing indiefintely locked buckets](#Sequencediagramforreleasingindiefintelylockedbuckets)
 * 7. [Database design](#Databasedesign)
 	* 7.1. [Database interface decisions](#Databaseinterfacedecisions)
 	* 7.2. [Nodes and relationships design](#Nodesandrelationshipsdesign)
@@ -182,20 +184,28 @@ To avoid this condition at all, we can first mark the bucket as dead and after s
 ###  6.1. <a name='ClientManagercomponent'></a>Client Manager component
 ####  6.1.1. <a name='ClassDiagram'></a>Class Diagram
 ![image info](./data/dmcheck_client_manager.jpg)
+![image info](./data/classdiagram_DMCheck_client_manger.jpg)
 ####  6.1.2. <a name='Sequencediagramforclientregistrationflow'></a>Sequence diagram for client registration flow
 ![image info](./data/client_registration_flow.jpg)
+
+####  6.1.3. <a name='Sequencediagramforclientinteractiontosystem'></a>Sequence diagram for client interaction to system
+![image info](./data/sequence_Client_interaction_to_system.jpg)
 
 ###  6.2. <a name='Bucketmanagercomponent'></a>Bucket manager component
 ####  6.2.1. <a name='Classdiagram'></a>Class diagram
 ![image info](./data/DMCheckBucketManagerClasses.jpg)
-####  6.2.2. <a name='Sequencediagramformakingbuckets'></a>Sequence diagram for making buckets
+
+####  6.2.2. <a name='SequencediagramforDMCheckbucketmonitoringflow'></a>Sequence diagram for DMCheck bucket monitoring flow
+![image info](./data/sequence_dmcheck_bucket_monitor.jpg)
+
+####  6.2.3. <a name='Sequencediagramformakingbuckets'></a>Sequence diagram for making buckets
 ![image info](./data/dmcheck_make_buckets.jpg)
-####  6.2.3. <a name='SequencediagramforAssigningbucketstoclient'></a>Sequence diagram for  Assigning buckets to client
+####  6.2.4. <a name='SequencediagramforAssigningbucketstoclient'></a>Sequence diagram for  Assigning buckets to client
 ![image info](./data/AssignBucketsToClients.jpg)
 
-####  6.2.4. <a name='SequencediagramforprocessingDMCheckinfoupdatefromclient'></a>Sequence diagram for processing DM Check info update from client
+####  6.2.5. <a name='SequencediagramforprocessingDMCheckinfoupdatefromclient'></a>Sequence diagram for processing DM Check info update from client
 ![image info](./data/StoreClientProvidedDMInfo.jpg)
-####  6.2.5. <a name='Sequencediagramforreleasingindiefintelylockedbuckets'></a>Sequence diagram for releasing indiefintely locked buckets
+####  6.2.6. <a name='Sequencediagramforreleasingindiefintelylockedbuckets'></a>Sequence diagram for releasing indiefintely locked buckets
 Such bucket which is acquired by client, but client has not updated for long time
 ![image info](./data/DeadBucketHandler.jpg)
 
