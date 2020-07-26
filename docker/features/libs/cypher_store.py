@@ -494,7 +494,8 @@ class FollowingCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
     def __store_following_users(self, client_id, bucket_id, users):
         #tested
         print("Store users for {} bucket".format(bucket_id))
-        state = {'client_id':client_id, 'bucket_id':bucket_id}
+        currtime = datetime.utcnow()
+        state = {'edit_datetime':currtime, 'client_id':client_id, 'bucket_id':bucket_id}
         query = """
             UNWIND $users AS user
 
@@ -506,7 +507,24 @@ class FollowingCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
 
             FOREACH (f IN user.followings |
                 MERGE(followinguser:User {screen_name:f.screen_name})
-                MERGE (u)-[:FOLLOWS]->(followinguser)
+                SET followinguser.name = f.name,
+                    followinguser.id = f.id,
+                    followinguser.id_str = f.id_str,
+                    followinguser.created_at = f.created_at,
+                    followinguser.statuses_count = f.statuses_count,
+                    followinguser.location = f.location,
+                    followinguser.followers = f.followers_count,
+                    followinguser.following = f.friends_count,
+                    followinguser.statuses = f.statusus_count,
+                    followinguser.description = toLower(f.description),
+                    followinguser.protected = f.protected,
+                    followinguser.listed_count = f.listed_count,
+                    followinguser.verified = f.verified,
+                    followinguser.lang = f.lang,
+                    followinguser.contributors_enabled = f.contributors_enabled,
+                    followinguser.profile_image_url = f.profile_image_url
+                MERGE (u)-[rf:FOLLOWS]->(followinguser)
+                SET rf.edit_datetime = $state.edit_datetime
             )
             MERGE(client)-[:CHECKEDUSERFOLLOWING]->(u)
         """
