@@ -31,9 +31,10 @@ class FollowingCheckBucketManagerClient(BucketManagerClient):
         super().__init__(client_id=client_id, screen_name=screen_name, service_id=service_id, dataStoreIntfObj=self.dataStoreIntf, dataStoreCommonIntfObj=dataStoreCommonIntf)
     
     def configure(self):
+        #tested
         self.dataStoreIntf.configure(client_id=self.client_id)
 
     def commit_processed_data_for_bucket(self, bucket):
-        pdb.set_trace()
-        bucket_for_db = {'bucket_id': bucket_id, 'following_users':bucket['following_users']}
+        #tested
+        bucket_for_db = {'bucket_id': bucket['bucket_id'], 'users':bucket['users']}
         self.dataStoreIntf.store_processed_data_for_bucket(client_id=self.client_id, bucket=bucket_for_db)

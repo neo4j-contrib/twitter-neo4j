@@ -220,7 +220,9 @@ class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         print("Store DM data for {} bucket".format(bucket['bucket_id']))
         bucket_id = bucket['bucket_id']
         #TODO: Try to merge to single call
-        self.__store_following_users(client_id, bucket_id, bucket['following_users'])
+        self.__store_dm_friends(client_id, bucket_id, bucket['candm_users'])
+        self.__store_nondm_friends(client_id, bucket_id, bucket['cantdm_users'])
+        self.__store_dmcheck_unknown_friends(client_id, bucket_id, bucket['unknown_users'])
         return
 
     def is_dead_bucket(self, bucket_id):
@@ -282,10 +284,9 @@ class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         execute_query(query, user=user, state=state)
         return
 
-    def __store_following_users(self, client_id, bucket_id, users):
-        
+    def __store_dm_friends(self, client_id, bucket_id, users):
+        #tested
         print("Store DM users for {} bucket".format(bucket_id))
-        pdb.set_trace()
         state = {'client_id':client_id, 'bucket_id':bucket_id}
         query = """
             UNWIND $users AS user
@@ -296,6 +297,42 @@ class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
             MATCH (u)-[r:INDMCHECKBUCKET]->()
             DELETE r
             MERGE(u)<-[:DM_YES]-(client)
+        """
+        execute_query(query, users=users, state=state)
+        return True
+
+    def __store_nondm_friends(self, client_id, bucket_id, users):
+        #tested
+        print("Store NON_DM users for {} bucket".format(bucket_id))
+        state = {'client_id':client_id, 'bucket_id':bucket_id}
+        query = """
+            UNWIND $users AS user
+
+            MATCH(client:DMCheckClient {id:$state.client_id})
+            MATCH(b:DMCheckBucket {uuid:$state.bucket_id})
+            MATCH(u:User {screen_name: user.screen_name})
+            MERGE(u)<-[:DM_NO]-(client)
+            WITH u
+            MATCH (u)-[r:INDMCHECKBUCKET]->()
+            DELETE r
+        """
+        execute_query(query, users=users, state=state)
+        return True
+
+    def __store_dmcheck_unknown_friends(self, client_id, bucket_id, users):
+        #tested
+        print("Store Unknown users for {} bucket".format(bucket_id))
+        state = {'client_id':client_id, 'bucket_id':bucket_id}
+        query = """
+            UNWIND $users AS user
+
+            MATCH(client:DMCheckClient {id:$state.client_id})
+            MATCH(b:DMCheckBucket {uuid:$state.bucket_id})
+            MATCH(u:User {screen_name: user.screen_name})
+            MERGE(u)<-[:DM_UNKNOWN]-(client)
+            WITH u
+            MATCH (u)-[r:INDMCHECKBUCKET]->()
+            DELETE r
         """
         execute_query(query, users=users, state=state)
         return True
@@ -430,12 +467,14 @@ class FollowingCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         print("Got {} buckets".format(len(buckets)))
         return buckets
 
-    def store_processed_data_for_bucket(self, client_id, bucket):
-        
-        print("Store DM data for {} bucket".format(bucket['bucket_id']))
-        bucket_id = bucket['bucket_id']
-        pdb.set_trace()
 
+    def store_processed_data_for_bucket(self, client_id, bucket):
+    
+        print("Store DM data for {} bucket".format(bucket['bucket_id']))
+        pdb.set_trace()
+        bucket_id = bucket['bucket_id']
+        self.__store_following_users(client_id, bucket_id, bucket['users'])
+        return
 
     def is_dead_bucket(self, bucket_id):
         #tested
@@ -453,6 +492,29 @@ class FollowingCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         else:
             return False
 
+
+    def __store_following_users(self, client_id, bucket_id, users):
+        #tested
+        print("Store DM users for {} bucket".format(bucket_id))
+        pdb.set_trace()
+        state = {'client_id':client_id, 'bucket_id':bucket_id}
+        query = """
+            UNWIND $users AS user
+
+            MATCH(:ClientForService {id:$state.client_id})-[:FOLLOWINGCHECKCLIENT]->(client:UserFollowingCheckClient)
+            MATCH(b:UserFollowingCheckBucket {uuid:$state.bucket_id})
+            MATCH(u:User {screen_name: user.screen_name})
+            MATCH (u)-[r:INUSERFOLLOWINGCHECKBUCKET]->()
+            DELETE r
+
+            FOREACH (f IN user.followings |
+                MERGE(followinguser:User {screen_name:f.screen_name})
+                MERGE (u)-[:FOLLOWS]->(followinguser)
+            )
+            MERGE(client)-[:CHECKEDUSERFOLLOWING]->(u)
+        """
+        execute_query(query, users=users, state=state)
+        return True
 
 class FollowingCypherStoreIntf(BucketCypherStoreIntf):
     def __init__(self):
