@@ -47,49 +47,51 @@ class FollowingFetcher():
     """
     def __init__(self, client_id, client_screen_name, source_id, source_screen_name):
         #tested
-        print("Initializing user friendship")
-        self.source_id = source_id
-        self.source_screen_name = source_screen_name
+        print("Initializing user following")
         self.client_id = client_id
         self.client_screen_name = client_screen_name
-        self.dmcheck_bucket_mgr = BucketManager(client_id, client_screen_name)
+        self.bucket_mgr = BucketManager(client_id, client_screen_name)
         self.grandtotal = 0 #Tracks the count of total friendship stored in DB
         print("User friendship init finished")
     
-    def register_as_dmcheck_client(self):
-        print("Registering DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
-        self.dmcheck_bucket_mgr.register_service()
-        print("Successfully registered DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
+    def register_as_followingcheck_client(self):
+        #tested
+        print("Registering following check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
+        self.bucket_mgr.register_service()
+        print("Successfully registered client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
 
     def unregister_client(self):
-        print("Unregistering DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
-        self.dmcheck_client_manager.unregister_service()
-        print("Successfully unregistered DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
+        print("Unregistering  following check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
+        pdb.set_trace()
+        self.bucket_mgr.unregister_service()
+        print("Successfully unregistered client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
 
-    def __process_friendship_fetch(self, user):
+    def __process_following_fetch(self, user):
         #print("Processing friendship fetch for {}  user".format(user))
-        base_url = 'https://api.twitter.com/1.1/friendships/show.json'
+        base_url = 'https://api.twitter.com/1.1/friends/list.json'
         if user['id']:
             params = {
-                'source_id': self.source_id,
-                'target_id': user['id']
+                'user_id': user['id']
                 }
         else:
             print("User Id is missing and so using {} screen name".format(user['screen_name']))
             params = {
-                'source_screen_name': self.source_screen_name,
-                'target_screen_name': user['screen_name']
+                'screen_name': user['screen_name']
                 }
         url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
  
         response_json = fetch_tweet_info(url)
         #print(type(response_json))
 
-        friendship = response_json
+        if 'users' in response_json.keys():
+            friendship = response_json['users']
+        else:
+            print("No following found for {}".format(user['screen_name']))
+            friendship = []
         return friendship
 
-    def __check_dm_status(self, users):
-        print("Finding relations between {} and {} users".format(self.source_screen_name, len(users)))
+    def __check_following_user_detail(self, users):
+        print("Finding following users for {} users".format(len(users)))
         friendships = []
         count = 0
         start_time = datetime.now()
@@ -108,47 +110,42 @@ class FollowingFetcher():
                     start_time = datetime.now()
                     print("Continuing after threshold reset")
 
-                print("Fetching friendship info frm {} to {} user".format(self.source_screen_name, user))
-                friendship = self.__process_friendship_fetch(user)
+                print("Fetching following info for {} user".format(user))
+                followings_user = self.__process_following_fetch(user)
             except TwitterUserNotFoundError as unf:
                 logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
-                user['candm'] = "UNKNOWN"
+                user['followings'] = []
                 self.grandtotal += 1
                 continue
             count = count + 1
-            status = friendship['relationship']['source']['can_dm']
-            if status:
-                user['candm'] = "DM"
-            else:
-                user['candm'] = "NON_DM"
-        print("Processed {} out of {} users for DM Check".format(count, len(users)))
+            user['followings'] = followings_user
+        print("Processed {} out of {} users for following Check".format(count, len(users)))
         if count != len(users):
-            logger.info("Unable to fetch DM status for {} users".format(len(users)-count))
+            logger.info("Unable to fetch fetch status for {} users".format(len(users)-count))
 
     def __process_bucket(self, bucket):
         print("Processing bucket with ID={}".format(bucket['bucket_id']))
         bucket_id = bucket['bucket_id']
         users = bucket['users']
-        self.__check_dm_status(users)
+        self.__check_following_user_detail(users)
         return
 
     def findFollowingForUsersInStore(self):
-        print("Finding DM between the users")
-        find_dm = True
+        print("Finding following for users")
         try_count = 0
         buckets_batch_cnt = 2
-        while find_dm:
+        while True:
             try:
                 try_count = try_count + 1
                 print("Retry count is {}".format(try_count))
-                buckets = self.dmcheck_bucket_mgr.assignBuckets(bucketscount=buckets_batch_cnt)
+                buckets = self.bucket_mgr.assignBuckets(bucketscount=buckets_batch_cnt)
                 while buckets:
                     for bucket in buckets:
                         print("Processing {} bucket at  {}Z".format(bucket['bucket_id'], datetime.utcnow()))
                         self.__process_bucket(bucket)
                         print("Storing {} bucket user info at  {}Z".format(bucket['bucket_id'], datetime.utcnow()))
-                        self.dmcheck_bucket_mgr.store_processed_data_for_bucket(bucket)
-                    buckets = self.dmcheck_bucket_mgr.assignBuckets(bucketscount=buckets_batch_cnt)
+                        self.bucket_mgr.store_processed_data_for_bucket(bucket)
+                    buckets = self.bucket_mgr.assignBuckets(bucketscount=buckets_batch_cnt)
                 print("Not Found any bucket for processing. So waiting for more buckets to be added")
                 time.sleep(60)
             except TwitterRateLimitError as e:
@@ -181,17 +178,17 @@ class FollowingFetcher():
                 continue
 
 def main():
-    print("Starting DM lookup with {}/{} client. \nConfig file should be [config/{}]\n".format(os.environ["TWITTER_ID"],os.environ["TWITTER_USER"],'.env'))
+    print("Starting Following lookup with {}/{} client. \nConfig file should be [config/{}]\n".format(os.environ["TWITTER_ID"],os.environ["TWITTER_USER"],'.env'))
     stats_tracker = {'processed': 0}
     followingFetcher = FollowingFetcher(client_id=os.environ["CLIENT_ID"], client_screen_name=os.environ["CLIENT_SCREEN_NAME"], source_id=os.environ["TWITTER_ID"], source_screen_name=os.environ["TWITTER_USER"])
-    followingFetcher.register_as_dmcheck_client()
+    followingFetcher.register_as_followingcheck_client()
     try:
         followingFetcher.findFollowingForUsersInStore()
     except Exception as e:
         pass
     finally:
         stats_tracker['processed'] = followingFetcher.grandtotal
-        logger.info("[DM stats] {}".format(stats_tracker))
+        logger.info("[Following stats] {}".format(stats_tracker))
         print("Exiting program")
 
 if __name__ == "__main__": main()
