@@ -9,7 +9,7 @@ import os
 User defined modules
 '''
 from libs.twitter_logging import logger
-from libs.twitter_errors import TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken
+from libs.twitter_errors import TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterPageDoesnotExist
 
 auth_type = os.getenv("TWITTER_AUTH_TYPE", "oauth")
 if auth_type.lower() == "appauth":
@@ -49,6 +49,8 @@ def fetch_tweet_info(url, headers = {'accept': 'application/json'}):
                 raise TwitterUserInvalidOrExpiredToken(response_json)
             elif error['code'] == 326:
                 raise TwitterUserAccountLocked(response_json)
+            elif error['code'] == 34:
+                raise TwitterPageDoesnotExist(response_json)
       raise Exception('Twitter API error: %s' % response_json)
     return response_json
 
