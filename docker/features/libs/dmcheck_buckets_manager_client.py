@@ -96,7 +96,7 @@ class DMCheckBucketManagerClient:
 
     def __bucket_sanity_passed(self, bucket_id):
         #tested
-        if not self.dataStoreIntf.is_dead_bucket(bucket_id):
+        if self.dataStoreIntf.is_dead_bucket(bucket_id):
             print("Bucket with ID {} is dead".format(bucket_id))
             return False
         return True
