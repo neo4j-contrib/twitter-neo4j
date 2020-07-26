@@ -53,7 +53,7 @@ class DMCheckBucketMonitor():
         while True:
             try:
                 print("Handling Dead buckets, if any at {}Z".format(datetime.utcnow()))
-                #self.bucket_mgr.handle_dead_buckets()
+                self.bucket_mgr.handle_dead_buckets()
                 print("Trying to add more buckets at {}Z".format(datetime.utcnow()))
                 self.bucket_mgr.add_buckets()
                 print("Sleeping for 15 mins at {}Z".format(datetime.utcnow()))
