@@ -33,7 +33,6 @@ if dep_check.lower() == "true":
     from installer import dependency_check
 
 
-from libs.cypher_store import DMCypherStoreIntf as DMStoreIntf
 from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterUserAccountLocked
 
 from libs.twitter_access import fetch_tweet_info, get_reponse_header
@@ -52,7 +51,6 @@ class UserRelations():
         self.source_screen_name = source_screen_name
         self.client_id = client_id
         self.client_screen_name = client_screen_name
-        self.dataStoreIntf = DMStoreIntf()
         self.dmcheck_bucket_mgr = DMCheckBucketManager(client_id, client_screen_name, source_id, source_screen_name)
         self.grandtotal = 0 #Tracks the count of total friendship stored in DB
         print("User friendship init finished")
