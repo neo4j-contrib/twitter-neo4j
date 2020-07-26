@@ -19,7 +19,7 @@ from libs.service_client_errors import ClientSanityFailed, ServiceNotReady
 
 class BucketManagerClient(metaclass=ABCMeta):
     '''
-        It uses expert design pattern
+        It uses template design pattern
     '''
 
     def __init__(self, client_id, screen_name, service_id, dataStoreIntfObj, dataStoreCommonIntfObj):
@@ -33,6 +33,10 @@ class BucketManagerClient(metaclass=ABCMeta):
 
     @abstractmethod
     def configure(self):
+        pass
+    
+    @abstractmethod
+    def commit_processed_data_for_bucket(self, bucket):
         pass
 
     def register_service(self):
@@ -71,21 +75,12 @@ class BucketManagerClient(metaclass=ABCMeta):
         if not self.__bucket_sanity_passed(bucket_id):
             print("Skipping as bucket sanity failed for {} bucket".format(bucket_id))
             return
-        users = bucket['users']
-        self.__store_dmcheck_status_for_bucket(bucket_id, users)
+        self.commit_processed_data_for_bucket(bucket)
         self.__release_bucket(bucket_id)
         print("Successfully processed {} bucket".format(bucket['bucket_id']))
         te = time.perf_counter()
         print('perfdata: func:%r took: %2.4f sec' % ('store_processed_data_for_bucket', te-ts))
         pass
-
-    def __store_dmcheck_status_for_bucket(self, bucket_id, users):
-        
-        candm_users = [user for user in users if user['candm'].upper()=="DM"]
-        cantdm_users = [user for user in users if user['candm'].upper()=="NON_DM"]
-        unknown_users = [user for user in users if user['candm'].upper()=="UNKNOWN"]
-        bucket_for_db = {'bucket_id': bucket_id, 'candm_users':candm_users, 'cantdm_users':cantdm_users, 'unknown_users':unknown_users}
-        self.dataStoreIntf.store_processed_data_for_bucket(client_id=self.client_id, bucket=bucket_for_db)
 
     def __client_sanity_passed(self):
         
