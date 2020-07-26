@@ -403,12 +403,11 @@ class FollowingCheckCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
         return True
 
     def remove_bucket(self, bucket_id):
-
+        #tested
         print("Releaseing users for {} bucket".format(bucket_id))
-        pdb.set_trace()
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime}
-        state = {'uuid':bucket_id, 'client_stats':client_stats, 'service_id':ServiceManagementIntf.ServiceIDs.DMCHECK_SERVICE}
+        state = {'uuid':bucket_id, 'client_stats':client_stats, 'service_id':ServiceManagementIntf.ServiceIDs.FOLLOWING_SERVICE}
         query = """
             MATCH(b:UserFollowingCheckBucket {uuid:$state.uuid})-[rs:BUCKETFORSERVICE]->(service:ServiceForClient {id:$state.service_id})
             MATCH(b)-[r:USERFOLLOWINGCHECKCLIENT]->(client:UserFollowingCheckClient)-[:STATS]->(stat:UserFollowingCheckClientStats)
@@ -469,9 +468,8 @@ class FollowingCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
 
 
     def store_processed_data_for_bucket(self, client_id, bucket):
-    
-        print("Store DM data for {} bucket".format(bucket['bucket_id']))
-        pdb.set_trace()
+        #tested
+        print("Store data for {} bucket".format(bucket['bucket_id']))
         bucket_id = bucket['bucket_id']
         self.__store_following_users(client_id, bucket_id, bucket['users'])
         return
@@ -495,8 +493,7 @@ class FollowingCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
 
     def __store_following_users(self, client_id, bucket_id, users):
         #tested
-        print("Store DM users for {} bucket".format(bucket_id))
-        pdb.set_trace()
+        print("Store users for {} bucket".format(bucket_id))
         state = {'client_id':client_id, 'bucket_id':bucket_id}
         query = """
             UNWIND $users AS user
