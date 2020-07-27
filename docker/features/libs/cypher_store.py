@@ -524,6 +524,7 @@ class FollowingCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
                     followinguser.contributors_enabled = f.contributors_enabled,
                     followinguser.profile_image_url = f.profile_image_url
                 MERGE (u)-[rf:FOLLOWS]->(followinguser)
+                ON CREATE SET rf.create_datetime = $state.edit_datetime
                 SET rf.edit_datetime = $state.edit_datetime
             )
             MERGE(client)-[:CHECKEDUSERFOLLOWING]->(u)
