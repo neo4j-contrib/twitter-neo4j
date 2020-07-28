@@ -122,9 +122,9 @@ class BucketCypherStoreCommonIntf:
 
 class DMCheckCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
     def __init__(self):
-        print("Initializing Following Cypher Store")
+        print("Initializing DM Cypher Store")
         super().__init__()
-        print("Following Cypher Store init finished")
+        print("DM Cypher Store init finished")
 
     def get_all_entities_for_bucket(self, bucket_id):
         #tested
@@ -176,9 +176,9 @@ class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         DEACTIVE="DEACTIVE"
 
     def __init__(self):
-        print("Initializing Following Cypher Store")
+        print("Initializing DM Cypher Store")
         super().__init__()
-        print("Following Cypher Store init finished")
+        print("DM Cypher Store init finished")
 
     def configure(self, **kwargs):
         #tested
@@ -817,6 +817,7 @@ class ClientManagementCypherStoreIntf:
 
 class ServiceManagementIntf:
     class ServiceIDs:
+        FOLLOWER_SERVICE="follower_service"
         FOLLOWING_SERVICE="following_service"
         DMCHECK_SERVICE="dmcheck_service"
 
