@@ -67,9 +67,9 @@ class BucketManager(metaclass=ABCMeta):
         
         #TODO: Fetch defaults from DB. It will allow user to customize parameters at runtime
         print("Processing add buckets instruction")
-        pdb.set_trace()
         ts = time.perf_counter()
         buckets= self.__get_buckets(bucketsize = self.service_defaults['default_bucket_size'])
+        pdb.set_trace()
         if len(buckets):
             db_buckets = self.__make_db_buckets(buckets)
             self.dataStoreIntf.add_buckets(buckets=db_buckets, priority=self.service_defaults["default_bucket_priority"])
@@ -91,7 +91,7 @@ class BucketManager(metaclass=ABCMeta):
         return max_user_count
 
     def __get_buckets(self, bucketsize):
-        
+        #tested
         logger.info("Making buckets with {} size".format(bucketsize))
         clients_count = self.service_manager.get_count_clients_for_service()
         max_users_counts = self.__calculate_max_users_count(clients_count)

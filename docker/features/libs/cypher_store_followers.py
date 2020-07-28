@@ -184,7 +184,7 @@ class FollowerCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
                 ON CREATE SET rf.create_datetime = $state.edit_datetime
                 SET rf.edit_datetime = $state.edit_datetime
             )
-            MERGE(client)-[:CHECKEDUserFollower]->(u)
+            MERGE(client)-[:CHECKEDUSERFOLLOWER]->(u)
         """
         execute_query(query, users=users, state=state)
         return True
@@ -215,20 +215,18 @@ class FollowerCheckCypherStoreIntf(BucketCypherStoreIntf):
 
     def get_nonprocessed_list(self, max_item_counts):
         #TODO: Check the configuration and decide
-        pdb.set_trace()
         check_user_followers_count_limit = 1000
         users = self.__get_nonprocessed_userlist_with_tweet_post_with_followers_limit(max_item_counts=max_item_counts, check_user_followers_count_limit=check_user_followers_count_limit)
         return users
 
     def __get_nonprocessed_userlist_with_tweet_post_with_followers_limit(self, max_item_counts, check_user_followers_count_limit):
-        
+        #tested
         print("Finding max {} users from DB who is not processed".format(max_item_counts))
-        pdb.set_trace()
         state = {'limit':max_item_counts, 'check_user_followers_count_limit':check_user_followers_count_limit}
         query = """
             match(u:User)-[:POSTS]->(t:Tweet)
             WITH u
-            where  u.followers <=  NOT ()-[:CHECKEDUserFollower]->(u) AND NOT (u)-[:INUserFollowerCHECKBUCKET]->(:UserFollowerCheckBucket)
+            where  u.followers <= $state.check_user_followers_count_limit AND  NOT ()-[:CHECKEDUSERFOLLOWER]->(u) AND NOT (u)-[:INUSERFOLLOWERCHECKBUCKET]->(:UserFollowerCheckBucket)
             return distinct(u.screen_name) as screen_name ORDER BY u.screen_name LIMIT $state.limit  
         """
         response_json = execute_query_with_result(query, state=state)
@@ -298,7 +296,7 @@ class FollowerCheckCypherStoreIntf(BucketCypherStoreIntf):
 
             FOREACH (u IN bs.bucket |
                 MERGE(user:User {screen_name:u.name})
-                MERGE (user)-[:INUserFollowerCHECKBUCKET]->(bucket)
+                MERGE (user)-[:INUSERFOLLOWERCHECKBUCKET]->(bucket)
             )
         """
         execute_query(query, buckets=buckets, state=state)
