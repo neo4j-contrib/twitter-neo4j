@@ -235,9 +235,8 @@ class FollowerCheckCypherStoreIntf(BucketCypherStoreIntf):
         return
 
     def get_all_dead_buckets(self, threshold_mins_elapsed):
-        
+        #tested
         print("Getting list of dead buckets for more than {} minutes".format(threshold_mins_elapsed))
-        pdb.set_trace()
         currtime = datetime.utcnow()
         dead_datetime_threshold = currtime - timedelta(minutes=threshold_mins_elapsed)
         state = {"dead_datetime_threshold": dead_datetime_threshold}
@@ -252,15 +251,14 @@ class FollowerCheckCypherStoreIntf(BucketCypherStoreIntf):
         return buckets
 
     def detect_n_mark_deadbuckets(self, threshold_hours_elapsed):
-        
+        #tested
         print("Marking buckets as dead if last access is more than {} hours".format(threshold_hours_elapsed))
-        pdb.set_trace()
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime}
         assigned_datetime_threshold = currtime - timedelta(hours=threshold_hours_elapsed)
         state = {"dead_datetime": currtime, "assigned_datetime_threshold": assigned_datetime_threshold, 'client_stats':client_stats}
         query = """
-            MATCH(b:UserFollowerCheckBucket)-[:UserFollowerCHECKCLIENT]->(c:UserFollowerCheckClient)-[:STATS]->(stat:UserFollowerCheckStats)
+            MATCH(b:UserFollowerCheckBucket)-[:USERFOLLOWERCHECKCLIENT]->(c:UserFollowerCheckClient)-[:STATS]->(stat:UserFollowerCheckClientStats)
                 WHERE datetime(b.assigned_datetime) < datetime($state.assigned_datetime_threshold)
                 SET b.dead_datetime = datetime($state.dead_datetime),
                     stat.buckets_dead = stat.buckets_dead + 1,
