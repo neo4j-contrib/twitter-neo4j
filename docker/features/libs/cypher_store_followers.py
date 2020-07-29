@@ -25,9 +25,8 @@ class FollowerCheckCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
         print("Cypher Store init finished")
 
     def get_all_entities_for_bucket(self, bucket_id):
-        
+        #tested
         print("Getting users for {} bucket".format(bucket_id))
-        pdb.set_trace()
         currtime = datetime.utcnow()
         state = {'edit_datetime':currtime, 'uuid':bucket_id}
         query = """
@@ -97,9 +96,8 @@ class FollowerCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
 
 
     def assign_buckets(self, client_id, bucket_cnt):
-        
+        #tested
         print("Assigning {} buckets".format(bucket_cnt))
-        pdb.set_trace()
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime, "buckets_assigned":1}
         state = {'assigned_datetime':currtime, 'bucket_cnt':bucket_cnt, 'client_id':client_id, 'client_stats':client_stats}
