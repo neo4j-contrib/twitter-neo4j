@@ -11,4 +11,4 @@ services:
           max-size: "2m"
           max-file: "2"
         volumes:
-            - .env_followerbucket_monitor:/features/config/.env
+            - .env_followercheck_monitor:/features/config/.env
