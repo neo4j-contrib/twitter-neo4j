@@ -43,7 +43,6 @@ class FollowerCheckCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
         
         print("Releaseing users for {} bucket".format(bucket_id))
         pdb.set_trace()
-        pdb.set_trace()
         state = {'uuid':bucket_id}
         query = """
             MATCH(u:User)-[r:INUSERFOLLOWERCHECKBUCKET]->(b:UserFollowerCheckBucket {uuid:$state.uuid})
@@ -53,9 +52,8 @@ class FollowerCheckCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
         return True
 
     def remove_bucket(self, bucket_id):
-        
+        #tested
         print("Releaseing users for {} bucket".format(bucket_id))
-        pdb.set_trace()
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime}
         state = {'uuid':bucket_id, 'client_stats':client_stats, 'service_id':ServiceManagementIntf.ServiceIDs.FOLLOWER_SERVICE}
@@ -119,17 +117,15 @@ class FollowerCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
 
 
     def store_processed_data_for_bucket(self, client_id, bucket):
-        
+        #tested
         print("Store data for {} bucket".format(bucket['bucket_id']))
-        pdb.set_trace()
         bucket_id = bucket['bucket_id']
         self.__store_users(client_id, bucket_id, bucket['users'])
         return
 
     def is_dead_bucket(self, bucket_id):
-        
+        #tested
         print("Checking if {} bucket is dead".format(bucket_id))
-        pdb.set_trace()
         #TODO: Try to generalize it
         state = {"uuid":bucket_id}
         query = """
@@ -145,9 +141,8 @@ class FollowerCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
 
 
     def __store_users(self, client_id, bucket_id, users):
-        
+        #tested
         print("Store users for {} bucket".format(bucket_id))
-        pdb.set_trace()
         currtime = datetime.utcnow()
         state = {'edit_datetime':currtime, 'client_id':client_id, 'bucket_id':bucket_id}
         query = """
