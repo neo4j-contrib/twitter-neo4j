@@ -52,6 +52,7 @@ class FollowerFetcher():
         self.client_screen_name = client_screen_name
         self.bucket_mgr = BucketManager(client_id, client_screen_name)
         self.grandtotal = 0 #Tracks the count of total friendship stored in DB
+        self.twitter_query_start_time = None
         print("User friendship init finished")
     
     def register_as_followercheck_client(self):
@@ -67,60 +68,65 @@ class FollowerFetcher():
         print("Successfully unregistered client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
 
     def __process_follower_fetch(self, user):
+        #tested
         #print("Processing friendship fetch for {}  user".format(user))
-        pdb.set_trace()
         base_url = 'https://api.twitter.com/1.1/followers/list.json'
         count = 200
         cursor = -1
         friendship = []
-        users_to_import = True
-        while users_to_import:
-            if user['id']:
-                params = {
-                    'user_id': user['id'],
-                    'count': count,
-                    'cursor': cursor
-                    }
-            else:
-                print("User Id is missing and so using {} screen name".format(user['screen_name']))
-                params = {
-                    'screen_name': user['screen_name']
-                    }
-            url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
-    
-            response_json = fetch_tweet_info(url)
-            #print(type(response_json))
-        cursor = response_json["next_cursor"]
-        if 'users' in response_json.keys():
-            friendship = friendship.extend(response_json['users'])
-        else:
-            users_to_import = False
+        while cursor != 0 :
+            try:
+                self.__handle_twitter_ratelimit()
+                if user['id']:
+                    params = {
+                        'user_id': user['id'],
+                        'count': count,
+                        'cursor': cursor
+                        }
+                else:
+                    print("User Id is missing and so using {} screen name".format(user['screen_name']))
+                    params = {
+                        'screen_name': user['screen_name']
+                        }
+                url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
         
-        if not friendship:
-            print("No follower found for {}".format(user['screen_name']))
+                response_json = fetch_tweet_info(url)
+                #print(type(response_json))
+                cursor = response_json["next_cursor"]
+                if 'users' in response_json.keys():
+                    friendship.extend(response_json['users'])
+            except TwitterUserNotFoundError as unf:
+                logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
+                user['followers'] = []
+                self.grandtotal += 1
+                continue
+        print(" Found {} followers for {}".format(len(friendship), user['screen_name']))
         return friendship
 
-    def __check_follower_user_detail(self, users):
-        print("Finding follower users for {} users".format(len(users)))
-        pdb.set_trace()
-        friendships = []
-        count = 0
-        start_time = datetime.now()
+    def __handle_twitter_ratelimit(self):
+        start_time = self.twitter_query_start_time
         remaining_threshold = 0
+        curr_limit = get_reponse_header('x-rate-limit-remaining')
+        if(curr_limit and int(curr_limit) <= remaining_threshold):
+            print("Sleeping as remaining x-rate-limit-remaining is {}".format(curr_limit))
+            time_diff = (datetime.now()-start_time).seconds
+            remaining_time = (15*60) - time_diff
+            sleeptime = remaining_time + 2
+            print("sleeping for {} seconds to avoid threshold. Current time={}".format(sleeptime, datetime.now()))
+            if(sleeptime > 0):
+                time.sleep(sleeptime)
+            start_time = datetime.now()
+            print("Continuing after threshold reset")
+            return
+
+    def __check_follower_user_detail(self, users):
+        #tested
+        print("Finding follower users for {} users".format(len(users)))
+        count = 0
+        self.twitter_query_start_time = datetime.now()
         for user in users:
             try:
-                curr_limit = get_reponse_header('x-rate-limit-remaining')
-                if(curr_limit and int(curr_limit) <= remaining_threshold):
-                    print("Sleeping as remaining x-rate-limit-remaining is {}".format(curr_limit))
-                    time_diff = (datetime.now()-start_time).seconds
-                    remaining_time = (15*60) - time_diff
-                    sleeptime = remaining_time + 2
-                    print("sleeping for {} seconds to avoid threshold. Current time={}".format(sleeptime, datetime.now()))
-                    if(sleeptime > 0):
-                        time.sleep(sleeptime)
-                    start_time = datetime.now()
-                    print("Continuing after threshold reset")
-
+                self.__handle_twitter_ratelimit()
                 print("Fetching follower info for {} user".format(user))
                 followers_user = self.__process_follower_fetch(user)
             except TwitterUserNotFoundError as unf:
@@ -135,8 +141,8 @@ class FollowerFetcher():
             logger.info("Unable to fetch fetch status for {} users".format(len(users)-count))
 
     def __process_bucket(self, bucket):
+        #tested
         print("Processing bucket with ID={}".format(bucket['bucket_id']))
-        pdb.set_trace()
         bucket_id = bucket['bucket_id']
         users = bucket['users']
         self.__check_follower_user_detail(users)
