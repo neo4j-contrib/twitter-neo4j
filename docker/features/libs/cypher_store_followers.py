@@ -78,9 +78,8 @@ class FollowerCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         print("Follower Cypher Store init finished")
 
     def configure(self, client_id):
-        
+        #tested
         print("Configuring client with id={} for  service".format(client_id))
-        pdb.set_trace()
         user = [{'id':client_id}]
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime, "buckets_assigned":0, "buckets_processed":0, "buckets_fault":0, "buckets_dead":0}
