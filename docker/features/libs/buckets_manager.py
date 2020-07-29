@@ -57,7 +57,6 @@ class BucketManager(metaclass=ABCMeta):
 
     def handle_dead_buckets(self):
         ts = time.perf_counter()
-        pdb.set_trace()
         self.___release_dead_buckets()
         self.__detect_n_mark_dead_buckets()
         te = time.perf_counter()

@@ -40,9 +40,8 @@ class FollowerCheckCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
         return users
 
     def empty_bucket(self, bucket_id):
-        
+        #tested
         print("Releaseing users for {} bucket".format(bucket_id))
-        pdb.set_trace()
         state = {'uuid':bucket_id}
         query = """
             MATCH(u:User)-[r:INUSERFOLLOWERCHECKBUCKET]->(b:UserFollowerCheckBucket {uuid:$state.uuid})
