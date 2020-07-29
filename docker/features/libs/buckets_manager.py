@@ -64,12 +64,11 @@ class BucketManager(metaclass=ABCMeta):
         print('perfdata: func:%r took: %2.4f sec' % ('handle_dead_buckets', te-ts))
 
     def add_buckets(self):
-        
+        #tested
         #TODO: Fetch defaults from DB. It will allow user to customize parameters at runtime
         print("Processing add buckets instruction")
         ts = time.perf_counter()
         buckets= self.__get_buckets(bucketsize = self.service_defaults['default_bucket_size'])
-        pdb.set_trace()
         if len(buckets):
             db_buckets = self.__make_db_buckets(buckets)
             self.dataStoreIntf.add_buckets(buckets=db_buckets, priority=self.service_defaults["default_bucket_priority"])

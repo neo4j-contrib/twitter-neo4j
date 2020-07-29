@@ -235,9 +235,8 @@ class FollowerCheckCypherStoreIntf(BucketCypherStoreIntf):
         return users
 
     def add_buckets(self, buckets, priority):
-        
+        #tested
         print("Processing {} buckets addition to DB with priority {}".format(len(buckets), priority))
-        pdb.set_trace()
         db_buckets = self.make_db_buckets(buckets, priority)
         self.__add_buckets_to_db(db_buckets)
         print("Successfully processed {} buckets addition to DB with priority {}".format(len(buckets), priority))
@@ -282,7 +281,7 @@ class FollowerCheckCypherStoreIntf(BucketCypherStoreIntf):
         return buckets
 
     def __add_buckets_to_db(self, buckets):
-        
+        #tested
         print("Adding {} buckets to DB".format(len(buckets)))
         currtime = datetime.utcnow()
         state = {'edit_datetime':currtime, 'service_id': self.service_id}
