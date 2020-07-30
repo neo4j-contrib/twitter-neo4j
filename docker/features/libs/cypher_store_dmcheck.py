@@ -31,6 +31,7 @@ class DMCheckCypherStoreClientIntf(ServiceCypherStoreClientIntf):
     def store_processed_data_for_bucket(self, client_id, bucket):
     
         print("Store DM data for {} bucket".format(bucket['bucket_id']))
+        pdb.set_trace()
         bucket_id = bucket['bucket_id']
         #TODO: Try to merge to single call
         self.__store_dm_friends(client_id, bucket_id, bucket['candm_users'])
