@@ -29,7 +29,6 @@ class ServiceCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
         print("Getting users for {} bucket".format(bucket_id))
         #TODO: Check if it is fair assumption that entity is nothing but user
         currtime = datetime.utcnow()
-        pdb.set_trace()
         state = {'edit_datetime':currtime, 'uuid':bucket_id}
         query = """
             MATCH(u:User)-[:INUSERFOLLOWERCHECKBUCKET]->(b:UserFollowerCheckBucket {uuid:$state.uuid})
