@@ -39,7 +39,7 @@ class ServiceCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
         query = query.replace("UserFollowerCheck", self.service_db_name)
         response_json = execute_query_with_result(query, state=state)
         users = [ {'screen_name':user['u.screen_name'], 'id':user['u.id']} for user in response_json]
-        logger.debug("Got {} buckets".format(len(users)))
+        print("Got {} users in {} bucket".format(len(users), bucket_id))
         return users
 
     def empty_bucket(self, bucket_id):
@@ -57,9 +57,8 @@ class ServiceCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
         return True
 
     def remove_bucket(self, bucket_id):
-        
+        #tested
         print("Releaseing users for {} bucket".format(bucket_id))
-        pdb.set_trace()
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime}
         state = {'uuid':bucket_id, 'client_stats':client_stats, 'service_db_name':ServiceManagementIntf.ServiceIDs.FOLLOWER_SERVICE}
@@ -216,6 +215,7 @@ class ServiceCypherStoreIntf(BucketCypherStoreIntf):
     def __add_buckets_to_db(self, buckets):
         #tested
         print("Adding {} buckets to DB".format(len(buckets)))
+        pdb.set_trace()
         currtime = datetime.utcnow()
         state = {'edit_datetime':currtime, 'service_id': self.service_id}
         #TODO: Check if it is needed to replace MERGE with MATCH for user

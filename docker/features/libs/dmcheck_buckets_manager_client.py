@@ -80,8 +80,11 @@ class DMCheckBucketManagerClient:
         pass
 
     def __store_dmcheck_status_for_bucket(self, bucket_id, users):
-        
-        bucket_for_db = {'bucket_id': bucket_id, 'following_users':users}
+        #tested
+        candm_users = [user for user in users if user["candm"] == "DM"]
+        cantdm_users = [user  for user in users if user["candm"] == "NON_DM"]
+        unknown_users = [user for user in users if user["candm"] == "UNKNOWN"]
+        bucket_for_db = {'bucket_id': bucket_id, 'candm_users':candm_users, 'cantdm_users':cantdm_users, 'unknown_users':unknown_users}
         self.dataStoreIntf.store_processed_data_for_bucket(client_id=self.client_id, bucket=bucket_for_db)
 
     def __client_sanity_passed(self):
