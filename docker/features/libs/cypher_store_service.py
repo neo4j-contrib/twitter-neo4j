@@ -43,9 +43,8 @@ class ServiceCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
         return users
 
     def empty_bucket(self, bucket_id):
-        
+        #tested
         print("Releaseing users for {} bucket".format(bucket_id))
-        pdb.set_trace()
         state = {'uuid':bucket_id}
         query = """
             MATCH(u:User)-[r:INUSERFOLLOWERCHECKBUCKET]->(b:UserFollowerCheckBucket {uuid:$state.uuid})
@@ -76,7 +75,7 @@ class ServiceCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
 
 class ServiceCypherStoreClientIntf(BucketCypherStoreClientIntf):
     def __init__(self, service_db_name):
-        
+        #tested
         print("Initializing Follower Cypher Store")
         super().__init__()
         self.service_db_name = service_db_name
@@ -174,7 +173,7 @@ class ServiceCypherStoreIntf(BucketCypherStoreIntf):
         return
 
     def get_all_dead_buckets(self, threshold_mins_elapsed):
-        
+        #tested
         print("Getting list of dead buckets for more than {} minutes".format(threshold_mins_elapsed))
         currtime = datetime.utcnow()
         dead_datetime_threshold = currtime - timedelta(minutes=threshold_mins_elapsed)
@@ -191,7 +190,7 @@ class ServiceCypherStoreIntf(BucketCypherStoreIntf):
         return buckets
 
     def detect_n_mark_deadbuckets(self, threshold_hours_elapsed):
-        
+        #tested
         print("Marking buckets as dead if last access is more than {} hours".format(threshold_hours_elapsed))
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime}
