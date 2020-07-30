@@ -25,7 +25,7 @@ class ServiceCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
         print("Cypher Store init finished")
 
     def get_all_entities_for_bucket(self, bucket_id):
-        
+        #tested
         print("Getting users for {} bucket".format(bucket_id))
         #TODO: Check if it is fair assumption that entity is nothing but user
         currtime = datetime.utcnow()
@@ -46,6 +46,7 @@ class ServiceCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
     def empty_bucket(self, bucket_id):
         
         print("Releaseing users for {} bucket".format(bucket_id))
+        pdb.set_trace()
         state = {'uuid':bucket_id}
         query = """
             MATCH(u:User)-[r:INUSERFOLLOWERCHECKBUCKET]->(b:UserFollowerCheckBucket {uuid:$state.uuid})
@@ -59,6 +60,7 @@ class ServiceCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
     def remove_bucket(self, bucket_id):
         
         print("Releaseing users for {} bucket".format(bucket_id))
+        pdb.set_trace()
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime}
         state = {'uuid':bucket_id, 'client_stats':client_stats, 'service_db_name':ServiceManagementIntf.ServiceIDs.FOLLOWER_SERVICE}
@@ -82,29 +84,14 @@ class ServiceCypherStoreClientIntf(BucketCypherStoreClientIntf):
         self.service_db_name = service_db_name
         print("Follower Cypher Store init finished")
 
+    @abstractmethod
     def configure(self, client_id):
-        
-        print("Configuring client with id={} for  service".format(client_id))
-        user = [{'id':client_id}]
-        currtime = datetime.utcnow()
-        client_stats = {"last_access_time": currtime, "buckets_assigned":0, "buckets_processed":0, "buckets_fault":0, "buckets_dead":0}
-        state = {'state':BucketCypherStoreClientIntf.ClientState.CREATED, 'create_datetime': currtime, 'edit_datetime':currtime, 'client_stats':client_stats}
-        query = """
-            UNWIND $user AS u
-
-            MATCH (clientforservice:ClientForService {id:u.id}) 
-            MERGE (clientforservice)-[:USERFOLLOWERCHECKCLIENT]->(client:UserFollowerCheckClient)
-            MERGE(client)-[:STATS]->(stat:UserFollowerCheckClientStats)
-            ON CREATE SET stat += $state.client_stats
-        """
-        query = query.replace("USERFOLLOWERCHECK", self.service_db_name.upper())
-        query = query.replace("UserFollowerCheck", self.service_db_name)
-        execute_query(query, user=user, state=state)
-        return
+        #tested
+        pass
 
 
     def assign_buckets(self, client_id, bucket_cnt):
-        
+        #tested
         print("Assigning {} buckets".format(bucket_cnt))
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime, "buckets_assigned":1}
@@ -133,7 +120,7 @@ class ServiceCypherStoreClientIntf(BucketCypherStoreClientIntf):
 
 
     def is_dead_bucket(self, bucket_id):
-        
+        #tested
         print("Checking if {} bucket is dead".format(bucket_id))
         #TODO: Try to generalize it
         state = {"uuid":bucket_id}
