@@ -214,7 +214,6 @@ class ServiceCypherStoreIntf(BucketCypherStoreIntf):
     def __add_buckets_to_db(self, buckets):
         #tested
         print("Adding {} buckets to DB".format(len(buckets)))
-        pdb.set_trace()
         currtime = datetime.utcnow()
         state = {'edit_datetime':currtime, 'service_id': self.service_id}
         #TODO: Check if it is needed to replace MERGE with MATCH for user
