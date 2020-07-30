@@ -120,7 +120,7 @@ class BucketCypherStoreCommonIntf:
         pass
     '''
 
-class DMCheckCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
+class DMCheckCypherStoreCommonIntf_old(BucketCypherStoreCommonIntf):
     def __init__(self):
         print("Initializing DM Cypher Store")
         super().__init__()
@@ -168,7 +168,7 @@ class DMCheckCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
         execute_query(query, state=state)
         return True
 
-class DMCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
+class DMCheckCypherStoreClientIntf_old(BucketCypherStoreClientIntf):
 
     class ClientState:
         CREATED="CREATED"
@@ -642,7 +642,7 @@ class FollowingCypherStoreIntf(BucketCypherStoreIntf):
         print("Got {} buckets with UUIDs as {}".format(len(buckets), buckets))
         return buckets
 
-class DMCheckCypherStoreIntf(BucketCypherStoreIntf):
+class DMCheckCypherStoreIntf_old(BucketCypherStoreIntf):
     def __init__(self):
         #tested
         print("Initializing DM Check Cypher Store")

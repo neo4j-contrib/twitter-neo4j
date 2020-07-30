@@ -18,7 +18,7 @@ from libs.cypher_store import ServiceManagementIntf as ServiceIDIntf
 '''
 Constants
 '''
-DEFAULT_BUCKET_SIZE = 180
+DEFAULT_BUCKET_SIZE = 4
 BUCKET_DEFAULT_PRIORITY = 100
 MAX_BUCKETS_PER_CLIENT_REQ = 10
 THRESHOLD_HOURS_FOR_DEAD_BUCKET = 2

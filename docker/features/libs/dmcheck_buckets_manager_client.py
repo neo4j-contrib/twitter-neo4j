@@ -13,8 +13,8 @@ import time
 User defined modules
 '''
 from libs.twitter_logging import console_logger as logger
-from libs.cypher_store import DMCheckCypherStoreClientIntf as StoreIntf
-from libs.cypher_store import DMCheckCypherStoreCommonIntf as StoreCommonIntf
+from libs.cypher_store_dmcheck import DMCheckCypherStoreClientIntf as StoreIntf
+from libs.cypher_store_dmcheck import DMCheckCypherStoreCommonIntf as StoreCommonIntf
 from libs.cypher_store import ServiceManagementIntf as ServiceIDIntf
 from libs.service_manager_client import ServiceManagerClient as ServiceIntf
 
