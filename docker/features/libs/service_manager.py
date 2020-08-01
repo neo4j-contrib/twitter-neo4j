@@ -14,7 +14,7 @@ User defined modules
 '''
 from libs.twitter_logging import console_logger as logger
 from libs.cypher_store import ServiceManagementIntf as ServiceIntf
-from libs.cypher_store import ServiceManagementIntf as ServiceIDIntf
+from libs.cypher_store import ServiceManagemenDefines as ServiceIDIntf
 '''
 Constants
 '''

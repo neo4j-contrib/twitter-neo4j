@@ -16,6 +16,7 @@ from libs.cypher_store import BucketCypherStoreCommonIntf
 from libs.cypher_store import BucketCypherStoreIntf
 from libs.cypher_store import execute_query, execute_query_with_result
 from libs.cypher_store import ServiceManagementIntf
+from libs.cypher_store import ServiceManagemenDefines as ServiceDefines
 
 class ServiceCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
     def __init__(self, service_db_name):
@@ -60,9 +61,9 @@ class ServiceCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
         print("Releaseing users for {} bucket".format(bucket_id))
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime}
-        state = {'uuid':bucket_id, 'client_stats':client_stats, 'service_db_name':ServiceManagementIntf.ServiceIDs.FOLLOWER_SERVICE}
+        state = {'uuid':bucket_id, 'client_stats':client_stats, 'service_id':ServiceDefines.ServiceIDs.FOLLOWER_SERVICE}
         query = """
-            MATCH(b:UserFollowerCheckBucket {uuid:$state.uuid})-[rs:BUCKETFORSERVICE]->(service:ServiceForClient {id:$state.service_db_name})
+            MATCH(b:UserFollowerCheckBucket {uuid:$state.uuid})-[rs:BUCKETFORSERVICE]->(service:ServiceForClient {id:$state.service_id})
             MATCH(b)-[r:USERFOLLOWERCHECKCLIENT]->(client:UserFollowerCheckClient)-[:STATS]->(stat:UserFollowerCheckClientStats)
                 SET stat.buckets_processed = stat.buckets_processed + 1,
                     stat.last_access_time = $state.client_stats.last_access_time               
@@ -138,7 +139,7 @@ class ServiceCypherStoreIntf(BucketCypherStoreIntf):
         #tested
         print("Initializing Cypher Store")
         self.service_db_name = service_db_name
-        super().__init__(ServiceManagementIntf.ServiceIDs.FOLLOWER_SERVICE)
+        super().__init__(service_db_name)
         print("Cypher Store init finished")
 
     def configure(self, defaults):

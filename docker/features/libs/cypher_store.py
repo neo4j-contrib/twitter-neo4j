@@ -815,7 +815,7 @@ class ClientManagementCypherStoreIntf:
         execute_query(query, user=user, state=state)
         return
 
-class ServiceManagementIntf:
+class ServiceManagemenDefines:
     class ServiceIDs:
         FOLLOWER_SERVICE="UserFollowerCheck"
         FOLLOWING_SERVICE="UserFollowingCheck"
@@ -825,6 +825,8 @@ class ServiceManagementIntf:
         CREATED = "CREATED"
         ACTIVE = "ACTIVE"
         DEACTIVE = "DEACTIVE"
+
+class ServiceManagementIntf:
 
     def __init__(self):
         print("Initializing Cypher Store")
@@ -875,7 +877,7 @@ class ServiceManagementIntf:
     def service_ready(self, service_id):
         #tested
         print("Checking validity of  service with id={}".format(service_id))
-        svc = {'id':service_id, 'state':ServiceManagementIntf.ServiceState.ACTIVE}
+        svc = {'id':service_id, 'state':ServiceManagemenDefines.ServiceState.ACTIVE}
         query = """
             MATCH (service:ServiceForClient {id:$svc.id}) where service.state=$svc.state return $svc.id
         """

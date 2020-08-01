@@ -17,6 +17,7 @@ from libs.buckets_manager_client import BucketManagerClient
 from libs.cypher_store_followers import FollowerCheckCypherStoreClientIntf as StoreIntf
 from libs.cypher_store_followers import FollowerCheckCypherStoreCommonIntf as StoreCommonIntf
 from libs.cypher_store import ServiceManagementIntf as ServiceIDIntf
+from libs.cypher_store import ServiceManagemenDefines as ServiceDefines
 
 class FollowerCheckBucketManagerClient(BucketManagerClient):
     '''
@@ -27,7 +28,7 @@ class FollowerCheckBucketManagerClient(BucketManagerClient):
         #tested
         self.dataStoreIntf = StoreIntf()
         dataStoreCommonIntf = StoreCommonIntf()
-        service_id = ServiceIDIntf.ServiceIDs.FOLLOWER_SERVICE
+        service_id = ServiceDefines.ServiceIDs.FOLLOWER_SERVICE
         super().__init__(client_id=client_id, screen_name=screen_name, service_id=service_id, dataStoreIntfObj=self.dataStoreIntf, dataStoreCommonIntfObj=dataStoreCommonIntf)
     
     def configure(self):

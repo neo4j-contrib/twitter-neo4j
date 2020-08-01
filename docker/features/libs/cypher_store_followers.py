@@ -2,10 +2,10 @@ import pdb
 from datetime import datetime
 
 from libs.cypher_store_service import ServiceCypherStoreIntf, ServiceCypherStoreCommonIntf, ServiceCypherStoreClientIntf
-from libs.cypher_store import execute_query, execute_query_with_result
+from libs.cypher_store import execute_query, execute_query_with_result, ServiceManagemenDefines
 
 class FollowerCheckCypherStoreUtils:
-    service_db_name = "UserFollowerCheck"
+    service_db_name = ServiceManagemenDefines.ServiceIDs.FOLLOWER_SERVICE
 
 class FollowerCheckCypherStoreCommonIntf(ServiceCypherStoreCommonIntf):
     def __init__(self):
@@ -22,7 +22,7 @@ class FollowerCheckCypherStoreClientIntf(ServiceCypherStoreClientIntf):
         user = [{'id':client_id}]
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime, "buckets_assigned":0, "buckets_processed":0, "buckets_fault":0, "buckets_dead":0}
-        state = {'state':FollowerCheckCypherStoreClientIntf.ClientState.CREATED, 'create_datetime': currtime, 'edit_datetime':currtime, 'client_stats':client_stats}
+        state = {'state':ServiceManagemenDefines.ServiceState.CREATED, 'create_datetime': currtime, 'edit_datetime':currtime, 'client_stats':client_stats}
         query = """
             UNWIND $user AS u
 
