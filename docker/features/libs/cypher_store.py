@@ -817,9 +817,9 @@ class ClientManagementCypherStoreIntf:
 
 class ServiceManagementIntf:
     class ServiceIDs:
-        FOLLOWER_SERVICE="follower_service"
+        FOLLOWER_SERVICE="FollowerCheck"
         FOLLOWING_SERVICE="following_service"
-        DMCHECK_SERVICE="dmcheck_service"
+        DMCHECK_SERVICE="DMCheck"
 
     class ServiceState:
         CREATED = "CREATED"

@@ -1,77 +1,20 @@
 import pdb
-from py2neo import Graph
-import socket
-import os
-from retrying import retry
-from datetime import datetime, timedelta
-import time
-from abc import ABCMeta, abstractmethod
-import uuid
+from datetime import datetime
 
-from .twitter_logging import logger
-from . import common
-
-from libs.cypher_store import BucketCypherStoreClientIntf
-from libs.cypher_store import BucketCypherStoreCommonIntf
-from libs.cypher_store import BucketCypherStoreIntf
+from libs.cypher_store_service import ServiceCypherStoreIntf, ServiceCypherStoreCommonIntf, ServiceCypherStoreClientIntf
 from libs.cypher_store import execute_query, execute_query_with_result
-from libs.cypher_store import ServiceManagementIntf
 
+class FollowerCheckCypherStoreUtils:
+    service_db_name = "FollowerCheck"
 
-class FollowerCheckCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
+class FollowerCheckCypherStoreCommonIntf(ServiceCypherStoreCommonIntf):
     def __init__(self):
-        print("Initializing Cypher Store")
-        super().__init__()
-        print("Cypher Store init finished")
+        super().__init__(service_db_name = FollowerCheckCypherStoreUtils.service_db_name)
+    
 
-    def get_all_entities_for_bucket(self, bucket_id):
-        #tested
-        print("Getting users for {} bucket".format(bucket_id))
-        currtime = datetime.utcnow()
-        state = {'edit_datetime':currtime, 'uuid':bucket_id}
-        query = """
-            MATCH(u:User)-[:INUSERFOLLOWERCHECKBUCKET]->(b:UserFollowerCheckBucket {uuid:$state.uuid})
-            SET b.edit_datetime = datetime($state.edit_datetime)
-            return u.screen_name, u.id
-        """
-        response_json = execute_query_with_result(query, state=state)
-        users = [ {'screen_name':user['u.screen_name'], 'id':user['u.id']} for user in response_json]
-        logger.debug("Got {} buckets".format(len(users)))
-        return users
-
-    def empty_bucket(self, bucket_id):
-        #tested
-        print("Releaseing users for {} bucket".format(bucket_id))
-        state = {'uuid':bucket_id}
-        query = """
-            MATCH(u:User)-[r:INUSERFOLLOWERCHECKBUCKET]->(b:UserFollowerCheckBucket {uuid:$state.uuid})
-            DELETE r
-        """
-        execute_query(query, state=state)
-        return True
-
-    def remove_bucket(self, bucket_id):
-        #tested
-        print("Releaseing users for {} bucket".format(bucket_id))
-        currtime = datetime.utcnow()
-        client_stats = {"last_access_time": currtime}
-        state = {'uuid':bucket_id, 'client_stats':client_stats, 'service_id':ServiceManagementIntf.ServiceIDs.FOLLOWER_SERVICE}
-        query = """
-            MATCH(b:UserFollowerCheckBucket {uuid:$state.uuid})-[rs:BUCKETFORSERVICE]->(service:ServiceForClient {id:$state.service_id})
-            MATCH(b)-[r:USERFOLLOWERCHECKCLIENT]->(client:UserFollowerCheckClient)-[:STATS]->(stat:UserFollowerCheckClientStats)
-                SET stat.buckets_processed = stat.buckets_processed + 1,
-                    stat.last_access_time = $state.client_stats.last_access_time               
-            DELETE r,rs,b
-        """
-        execute_query(query, state=state)
-        return True
-
-class FollowerCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
+class FollowerCheckCypherStoreClientIntf(ServiceCypherStoreClientIntf):
     def __init__(self):
-        
-        print("Initializing Follower Cypher Store")
-        super().__init__()
-        print("Follower Cypher Store init finished")
+        super().__init__(service_db_name = FollowerCheckCypherStoreUtils.service_db_name)
 
     def configure(self, client_id):
         #tested
@@ -79,7 +22,7 @@ class FollowerCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         user = [{'id':client_id}]
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime, "buckets_assigned":0, "buckets_processed":0, "buckets_fault":0, "buckets_dead":0}
-        state = {'state':BucketCypherStoreClientIntf.ClientState.CREATED, 'create_datetime': currtime, 'edit_datetime':currtime, 'client_stats':client_stats}
+        state = {'state':FollowerCheckCypherStoreClientIntf.ClientState.CREATED, 'create_datetime': currtime, 'edit_datetime':currtime, 'client_stats':client_stats}
         query = """
             UNWIND $user AS u
 
@@ -91,53 +34,13 @@ class FollowerCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         execute_query(query, user=user, state=state)
         return
 
-
-    def assign_buckets(self, client_id, bucket_cnt):
-        #tested
-        print("Assigning {} buckets".format(bucket_cnt))
-        currtime = datetime.utcnow()
-        client_stats = {"last_access_time": currtime, "buckets_assigned":1}
-        state = {'assigned_datetime':currtime, 'bucket_cnt':bucket_cnt, 'client_id':client_id, 'client_stats':client_stats}
-        query = """
-            MATCH(bucket:UserFollowerCheckBucket) WHERE NOT (bucket)-[:USERFOLLOWERCHECKCLIENT]->()
-            WITH bucket, rand() as r ORDER BY r, bucket.priority ASC LIMIT $state.bucket_cnt
-            MATCH(:ClientForService {id:$state.client_id})-[:FOLLOWERCHECKCLIENT]->(client:UserFollowerCheckClient)
-            MATCH(client)-[:STATS]->(stat:UserFollowerCheckClientStats)
-                SET stat.buckets_assigned = stat.buckets_assigned + $state.client_stats.buckets_assigned,
-                    stat.last_access_time = $state.client_stats.last_access_time
-            MERGE(bucket)-[:USERFOLLOWERCHECKCLIENT]->(client)
-            WITH bucket SET bucket.assigned_datetime = datetime($state.assigned_datetime)
-            return bucket
-        """
-        response_json = execute_query_with_result(query, state=state)
-        buckets = [ bucket['bucket']['uuid'] for bucket in response_json]
-        print("Got {} buckets".format(len(buckets)))
-        return buckets
-
-
     def store_processed_data_for_bucket(self, client_id, bucket):
-        #tested
+        
         print("Store data for {} bucket".format(bucket['bucket_id']))
+        pdb.set_trace()
         bucket_id = bucket['bucket_id']
         self.__store_users(client_id, bucket_id, bucket['users'])
         return
-
-    def is_dead_bucket(self, bucket_id):
-        #tested
-        print("Checking if {} bucket is dead".format(bucket_id))
-        #TODO: Try to generalize it
-        state = {"uuid":bucket_id}
-        query = """
-            MATCH(b:UserFollowerCheckBucket {uuid:$state.bucket_id})
-                WHERE EXISTS(b.dead_datetime)
-                return b.uuid
-        """
-        response_json = execute_query_with_result(query, state=state)
-        if response_json:
-            return True
-        else:
-            return False
-
 
     def __store_users(self, client_id, bucket_id, users):
         #tested
@@ -180,31 +83,14 @@ class FollowerCheckCypherStoreClientIntf(BucketCypherStoreClientIntf):
         execute_query(query, users=users, state=state)
         return True
 
-class FollowerCheckCypherStoreIntf(BucketCypherStoreIntf):
+
+class FollowerCheckCypherStoreIntf(ServiceCypherStoreIntf):
     def __init__(self):
         #tested
-        print("Initializing Follower Cypher Store")
-        super().__init__(ServiceManagementIntf.ServiceIDs.FOLLOWER_SERVICE)
-        print("Follower Cypher Store init finished")
-
-    def configure(self, defaults):
-        #tested
-        print("Configuring Follower service metadata info")
-        currtime = datetime.utcnow()
-        state = {'create_datetime':currtime, 'service_id': self.service_id, 'defaults':defaults}
-        query = """
-            MATCH(service:ServiceForClient {id:$state.service_id})
-            MERGE(service)-[:FOLLOWERSERVICEMETA]->(followerservicemeta:FollowerServiceMeta)
-            ON CREATE SET followerservicemeta.create_datetime = datetime($state.create_datetime)
-
-            MERGE(followerservicemeta)-[:DEFAULTS]->(defaults:ServiceDefaults)
-            ON CREATE SET defaults += $state.defaults
-        """
-        execute_query(query, state=state)
-        print("Successfully configured Follower service metadata info")
-        return
+        super().__init__(service_db_name = FollowerCheckCypherStoreUtils.service_db_name)
 
     def get_nonprocessed_list(self, max_item_counts):
+        #tested
         #TODO: Check the configuration and decide
         check_user_followers_count_limit = 1000
         users = self.__get_nonprocessed_userlist_with_tweet_post_with_followers_limit(max_item_counts=max_item_counts, check_user_followers_count_limit=check_user_followers_count_limit)
@@ -224,68 +110,3 @@ class FollowerCheckCypherStoreIntf(BucketCypherStoreIntf):
         users = [ user['screen_name'] for user in response_json]
         print("Got {} users".format(len(users)))
         return users
-
-    def add_buckets(self, buckets, priority):
-        #tested
-        print("Processing {} buckets addition to DB with priority {}".format(len(buckets), priority))
-        db_buckets = self.make_db_buckets(buckets, priority)
-        self.__add_buckets_to_db(db_buckets)
-        print("Successfully processed {} buckets addition to DB with priority {}".format(len(buckets), priority))
-        return
-
-    def get_all_dead_buckets(self, threshold_mins_elapsed):
-        #tested
-        print("Getting list of dead buckets for more than {} minutes".format(threshold_mins_elapsed))
-        currtime = datetime.utcnow()
-        dead_datetime_threshold = currtime - timedelta(minutes=threshold_mins_elapsed)
-        state = {"dead_datetime_threshold": dead_datetime_threshold}
-        query = """
-            MATCH(b:UserFollowerCheckBucket)
-                WHERE datetime(b.dead_datetime) < datetime($state.dead_datetime_threshold)
-                return b.uuid
-        """
-        response_json = execute_query_with_result(query, state=state)
-        buckets = [ bucket['b.uuid'] for bucket in response_json]
-        print("Got {} buckets".format(len(buckets)))
-        return buckets
-
-    def detect_n_mark_deadbuckets(self, threshold_hours_elapsed):
-        #tested
-        print("Marking buckets as dead if last access is more than {} hours".format(threshold_hours_elapsed))
-        currtime = datetime.utcnow()
-        client_stats = {"last_access_time": currtime}
-        assigned_datetime_threshold = currtime - timedelta(hours=threshold_hours_elapsed)
-        state = {"dead_datetime": currtime, "assigned_datetime_threshold": assigned_datetime_threshold, 'client_stats':client_stats}
-        query = """
-            MATCH(b:UserFollowerCheckBucket)-[:USERFOLLOWERCHECKCLIENT]->(c:UserFollowerCheckClient)-[:STATS]->(stat:UserFollowerCheckClientStats)
-                WHERE datetime(b.assigned_datetime) < datetime($state.assigned_datetime_threshold)
-                SET b.dead_datetime = datetime($state.dead_datetime),
-                    stat.buckets_dead = stat.buckets_dead + 1,
-                    stat.last_access_time = $state.client_stats.last_access_time
-                return b.uuid
-        """
-        response_json = execute_query_with_result(query, state=state)
-        buckets = [ bucket['b.uuid'] for bucket in response_json]
-        print("Got {} buckets with UUIDs as {}".format(len(buckets), buckets))
-        return buckets
-
-    def __add_buckets_to_db(self, buckets):
-        #tested
-        print("Adding {} buckets to DB".format(len(buckets)))
-        currtime = datetime.utcnow()
-        state = {'edit_datetime':currtime, 'service_id': self.service_id}
-        #TODO: Check if it is needed to replace MERGE with MATCH for user
-        query = """
-            UNWIND $buckets AS bs
-            MATCH(service:ServiceForClient {id:$state.service_id})
-            MERGE(bucket:UserFollowerCheckBucket {uuid:bs.bucket_uuid})-[:BUCKETFORSERVICE]->(service)
-                SET bucket.edit_datetime = datetime($state.edit_datetime),
-                    bucket.priority = bs.bucket_priority
-
-            FOREACH (u IN bs.bucket |
-                MERGE(user:User {screen_name:u.name})
-                MERGE (user)-[:INUSERFOLLOWERCHECKBUCKET]->(bucket)
-            )
-        """
-        execute_query(query, buckets=buckets, state=state)
-        return
