@@ -5,7 +5,7 @@ from libs.cypher_store_service import ServiceCypherStoreIntf, ServiceCypherStore
 from libs.cypher_store import execute_query, execute_query_with_result
 
 class FollowerCheckCypherStoreUtils:
-    service_db_name = "FollowerCheck"
+    service_db_name = "UserFollowerCheck"
 
 class FollowerCheckCypherStoreCommonIntf(ServiceCypherStoreCommonIntf):
     def __init__(self):
@@ -27,7 +27,7 @@ class FollowerCheckCypherStoreClientIntf(ServiceCypherStoreClientIntf):
             UNWIND $user AS u
 
             MATCH (clientforservice:ClientForService {id:u.id}) 
-            MERGE (clientforservice)-[:FOLLOWERCHECKCLIENT]->(client:UserFollowerCheckClient)
+            MERGE (clientforservice)-[:USERFOLLOWERCHECKCLIENT]->(client:UserFollowerCheckClient)
             MERGE(client)-[:STATS]->(stat:UserFollowerCheckClientStats)
             ON CREATE SET stat += $state.client_stats
         """
