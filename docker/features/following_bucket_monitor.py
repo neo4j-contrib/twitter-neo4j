@@ -29,7 +29,7 @@ load_config()
 
 from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
 from libs.twitter_logging import logger
-from libs.following_buckets_manager import FollowingsBucketManager as BucketManager
+from libs.following_buckets_manager import FollowingCheckBucketManager as BucketManager
 
 class FollowingBucketMonitor():
     """
