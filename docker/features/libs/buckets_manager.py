@@ -43,7 +43,9 @@ class BucketManager(metaclass=ABCMeta):
         #Get service defaults
         self.service_config_mgr = ServiceConfigManager()
         self.service_defaults = self.service_config_mgr.get_defaults()
-        
+    
+    def set_bucket_default(self, key, value):
+        self.service_config_mgr.set_default(key,value)
     
     def register_service(self):
         #tested

@@ -15,6 +15,7 @@ User defined modules
 from libs.twitter_logging import console_logger as logger
 from libs.cypher_store import ServiceManagementIntf as ServiceIntf
 from libs.cypher_store import ServiceManagemenDefines as ServiceIDIntf
+from libs.service_client_errors import ServiceWrongDefaultKey
 '''
 Constants
 '''
@@ -36,6 +37,16 @@ class ServiceConfigManager:
     
     def get_defaults(self):
         return self.service_defaults
+    
+    def set_default(self, key, value):
+        #tested
+        if key not in self.service_defaults:
+            print("Found non-existant key {}".format(key))
+            raise ServiceWrongDefaultKey()
+        else:
+            self.service_defaults[key] = value
+        return 
+        
 
 class ServiceManager:
 

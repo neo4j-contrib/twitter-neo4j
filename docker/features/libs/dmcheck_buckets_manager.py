@@ -19,6 +19,8 @@ from libs.cypher_store_dmcheck import DMCheckCypherStoreCommonIntf as StoreCommo
 from libs.cypher_store import ServiceManagemenDefines as ServiceIDIntf
 from libs.buckets_manager import BucketManager
 
+DMCHECK_DEFAULT_BUCKET_SIZE=180
+
 class DMCheckBucketManager(BucketManager):
     '''
         It uses Facade design pattern
@@ -30,6 +32,7 @@ class DMCheckBucketManager(BucketManager):
         dataStoreCommonIntf = StoreCommonIntf()
         service_id = ServiceIDIntf.ServiceIDs.DMCHECK_SERVICE
         super().__init__(service_id=service_id, dataStoreIntfObj=self.dataStoreIntf, dataStoreCommonIntfObj=dataStoreCommonIntf)
+        self.set_bucket_default("default_bucket_size", DMCHECK_DEFAULT_BUCKET_SIZE)
     
     def configure(self):
         #tested
