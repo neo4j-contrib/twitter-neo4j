@@ -104,6 +104,7 @@ class FollowingFetcher():
             #print(type(response_json))
             cursor = response_json["next_cursor"]
             if 'users' in response_json.keys():
+                print("adding {} users to list".format(len(response_json['users'])))
                 friendship.extend(response_json['users'])
 
         print(" Found {} followings for {}".format(len(friendship), user['screen_name']))

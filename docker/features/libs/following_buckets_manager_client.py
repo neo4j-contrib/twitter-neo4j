@@ -14,9 +14,9 @@ User defined modules
 '''
 from libs.buckets_manager_client import BucketManagerClient
 
-from libs.cypher_store import FollowingCheckCypherStoreClientIntf as StoreIntf
-from libs.cypher_store import FollowingCheckCypherStoreCommonIntf as StoreCommonIntf
-from libs.cypher_store import ServiceManagementIntf as ServiceIDIntf
+from libs.cypher_store_followings import FollowingCheckCypherStoreClientIntf as StoreIntf
+from libs.cypher_store_followings import FollowingCheckCypherStoreCommonIntf as StoreCommonIntf
+from libs.cypher_store import ServiceManagemenDefines as ServiceIDIntf
 
 class FollowingCheckBucketManagerClient(BucketManagerClient):
     '''

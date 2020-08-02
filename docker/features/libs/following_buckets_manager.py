@@ -13,9 +13,9 @@ import time
 User defined modules
 '''
 from libs.twitter_logging import console_logger as logger
-from libs.cypher_store import FollowingCypherStoreIntf as StoreIntf
+from libs.cypher_store_followings import FollowingCheckCypherStoreIntf as StoreIntf
 
-from libs.cypher_store import ServiceManagementIntf
+from libs.cypher_store import ServiceManagemenDefines
 
 from libs.service_manager import ServiceManager, ServiceConfigManager
 
@@ -33,7 +33,7 @@ class FollowingsBucketManager:
     def __init__(self):
         #tested
         self.dataStoreIntf = StoreIntf()
-        self.service_manager = ServiceManager(service_id=ServiceManagementIntf.ServiceIDs.FOLLOWING_SERVICE)
+        self.service_manager = ServiceManager(service_id=ServiceManagemenDefines.ServiceIDs.FOLLOWING_SERVICE)
         #Get service defaults
         self.service_config_mgr = ServiceConfigManager()
         self.service_defaults = self.service_config_mgr.get_defaults()
