@@ -25,14 +25,14 @@ else:
 
 g_headers = None
 
-def get_reponse_header(header_name):
+def __get_reponse_header(header_name):
   if g_headers and header_name in g_headers:
     return g_headers[header_name]
   else:
     return None
 
 def handle_twitter_ratelimit(start_time, remaining_threshold = 0):
-    curr_limit = get_reponse_header('x-rate-limit-remaining')
+    curr_limit = __get_reponse_header('x-rate-limit-remaining')
     if(curr_limit and int(curr_limit) <= remaining_threshold):
         print("Sleeping as remaining x-rate-limit-remaining is {}".format(curr_limit))
         time_diff = (datetime.now()-start_time).seconds

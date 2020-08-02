@@ -35,7 +35,7 @@ if dep_check.lower() == "true":
 
 from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterUserAccountLocked
 
-from libs.twitter_access import fetch_tweet_info, get_reponse_header
+from libs.twitter_access import fetch_tweet_info, handle_twitter_ratelimit
 from libs.twitter_logging import logger
 
 from libs.follower_buckets_manager_client import FollowerCheckBucketManagerClient as BucketManager
@@ -74,9 +74,11 @@ class FollowerFetcher():
         count = 200
         cursor = -1
         friendship = []
+        if not self.twitter_query_start_time:
+            self.twitter_query_start_time = datetime.now()
         while cursor != 0 :
             try:
-                self.__handle_twitter_ratelimit()
+                handle_twitter_ratelimit(self.twitter_query_start_time)
                 if user['id']:
                     params = {
                         'user_id': user['id'],
@@ -103,22 +105,6 @@ class FollowerFetcher():
         print(" Found {} followers for {}".format(len(friendship), user['screen_name']))
         return friendship
 
-    def __handle_twitter_ratelimit(self):
-        start_time = self.twitter_query_start_time
-        remaining_threshold = 0
-        curr_limit = get_reponse_header('x-rate-limit-remaining')
-        if(curr_limit and int(curr_limit) <= remaining_threshold):
-            print("Sleeping as remaining x-rate-limit-remaining is {}".format(curr_limit))
-            time_diff = (datetime.now()-start_time).seconds
-            remaining_time = (15*60) - time_diff
-            sleeptime = remaining_time + 2
-            print("sleeping for {} seconds to avoid threshold. Current time={}".format(sleeptime, datetime.now()))
-            if(sleeptime > 0):
-                time.sleep(sleeptime)
-            start_time = datetime.now()
-            print("Continuing after threshold reset")
-            return
-
     def __check_follower_user_detail(self, users):
         #tested
         print("Finding follower users for {} users".format(len(users)))
@@ -126,7 +112,6 @@ class FollowerFetcher():
         self.twitter_query_start_time = datetime.now()
         for user in users:
             try:
-                self.__handle_twitter_ratelimit()
                 print("Fetching follower info for {} user".format(user))
                 followers_user = self.__process_follower_fetch(user)
             except TwitterUserNotFoundError as unf:
