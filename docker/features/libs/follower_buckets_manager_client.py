@@ -1,5 +1,5 @@
 """
-This file is responsible to manage DM Check clients
+This file is responsible to manage Follower Check clients
 """
 
 '''
