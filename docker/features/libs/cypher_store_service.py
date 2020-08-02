@@ -59,7 +59,6 @@ class ServiceCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
     def remove_bucket(self, bucket_id):
         #tested
         print("Releaseing users for {} bucket".format(bucket_id))
-        pdb.set_trace()
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime}
         #TODO: Fix it to use service ID variable
