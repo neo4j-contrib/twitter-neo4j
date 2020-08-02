@@ -21,7 +21,7 @@ constraint_list = [
     "CREATE CONSTRAINT ON (q:Query) ASSERT q.timestamp IS UNIQUE;",
     "CREATE CONSTRAINT ON (qu:QueryUser) ASSERT qu.id IS UNIQUE;",
     "CREATE CONSTRAINT ON (c:DMCheckClient) ASSERT c.id IS UNIQUE;",
-    "CREATE CONSTRAINT ON (b:DMCheckBucket) ASSERT b.uuid IS UNIQUE;"
+    "CREATE CONSTRAINT ON (b:DMCheckBucket) ASSERT b.uuid IS UNIQUE;",
     "CREATE CONSTRAINT ON (s:ServiceForClient) ASSERT s.id IS UNIQUE;"
 ]
 
