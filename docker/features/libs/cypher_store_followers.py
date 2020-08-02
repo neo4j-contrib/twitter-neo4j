@@ -35,9 +35,8 @@ class FollowerCheckCypherStoreClientIntf(ServiceCypherStoreClientIntf):
         return
 
     def store_processed_data_for_bucket(self, client_id, bucket):
-        
+        #tested
         print("Store data for {} bucket".format(bucket['bucket_id']))
-        pdb.set_trace()
         bucket_id = bucket['bucket_id']
         self.__store_users(client_id, bucket_id, bucket['users'])
         return
