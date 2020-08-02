@@ -34,6 +34,7 @@ if dep_check.lower() == "true":
 
 
 from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterUserAccountLocked
+from libs.service_client_errors import ServiceNotReady
 
 from libs.twitter_access import fetch_tweet_info, handle_twitter_ratelimit
 from libs.twitter_logging import logger
@@ -191,14 +192,23 @@ def main():
     print("Starting follower lookup with {}/{} client. \nConfig file should be [config/{}]\n".format(os.environ["TWITTER_ID"],os.environ["TWITTER_USER"],'.env'))
     stats_tracker = {'processed': 0}
     followerFetcher = FollowerFetcher(client_id=os.environ["CLIENT_ID"], client_screen_name=os.environ["CLIENT_SCREEN_NAME"], source_id=os.environ["TWITTER_ID"], source_screen_name=os.environ["TWITTER_USER"])
-    followerFetcher.register_as_followercheck_client()
-    try:
-        followerFetcher.findfollowerForUsersInStore()
-    except Exception as e:
-        pass
-    finally:
-        stats_tracker['processed'] = followerFetcher.grandtotal
-        logger.info("[follower stats] {}".format(stats_tracker))
-        print("Exiting program")
+    retry = True
+    sleepseconds = 30
+    while retry:
+        try:
+            followerFetcher.register_as_followercheck_client()
+            followerFetcher.findfollowerForUsersInStore()
+        except ServiceNotReady as e:
+            print("caught exception {}".format(e))
+            print("Retrying after {} seconds as service is not ready".format(sleepseconds))
+            time.sleep(sleepseconds)
+        except Exception as e:
+            print(e)
+            retry = False
+            pass
+
+    stats_tracker['processed'] = followerFetcher.grandtotal
+    logger.info("[follower stats] {}".format(stats_tracker))
+    print("Exiting program")
 
 if __name__ == "__main__": main()
