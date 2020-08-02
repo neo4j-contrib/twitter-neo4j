@@ -67,6 +67,14 @@ class FollowerFetcher():
         self.bucket_mgr.unregister_service()
         print("Successfully unregistered client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
 
+    def __handle_twitter_ratelimit(self):
+        if not self.twitter_query_start_time:
+            self.twitter_query_start_time = datetime.now()
+        start_time_reset_status = handle_twitter_ratelimit(self.twitter_query_start_time)
+        if start_time_reset_status:
+            self.twitter_query_start_time = datetime.now()
+        return
+
     def __process_follower_fetch(self, user):
         #tested
         #print("Processing friendship fetch for {}  user".format(user))
@@ -74,22 +82,20 @@ class FollowerFetcher():
         count = 200
         cursor = -1
         friendship = []
-        if not self.twitter_query_start_time:
-            self.twitter_query_start_time = datetime.now()
+        if user['id']:
+            params = {
+                'user_id': user['id'],
+                'count': count,
+                'cursor': cursor
+                }
+        else:
+            print("User Id is missing and so using {} screen name".format(user['screen_name']))
+            params = {
+                'screen_name': user['screen_name']
+                }
         while cursor != 0 :
             try:
-                handle_twitter_ratelimit(self.twitter_query_start_time)
-                if user['id']:
-                    params = {
-                        'user_id': user['id'],
-                        'count': count,
-                        'cursor': cursor
-                        }
-                else:
-                    print("User Id is missing and so using {} screen name".format(user['screen_name']))
-                    params = {
-                        'screen_name': user['screen_name']
-                        }
+                self.__handle_twitter_ratelimit()
                 url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
         
                 response_json = fetch_tweet_info(url)

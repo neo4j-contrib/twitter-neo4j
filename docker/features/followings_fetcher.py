@@ -51,7 +51,7 @@ class FollowingFetcher():
         self.client_id = client_id
         self.client_screen_name = client_screen_name
         self.bucket_mgr = BucketManager(client_id, client_screen_name)
-        self.query_start_time = None
+        self.twitter_query_start_time = None
         self.grandtotal = 0 #Tracks the count of total friendship stored in DB
         print("User friendship init finished")
     
@@ -67,6 +67,14 @@ class FollowingFetcher():
         self.bucket_mgr.unregister_service()
         print("Successfully unregistered client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
 
+    def __handle_twitter_ratelimit(self):
+        if not self.twitter_query_start_time:
+            self.twitter_query_start_time = datetime.now()
+        start_time_reset_status = handle_twitter_ratelimit(self.twitter_query_start_time)
+        if start_time_reset_status:
+            self.twitter_query_start_time = datetime.now()
+        return
+
     def __process_following_fetch(self, user):
         #print("Processing friendship fetch for {}  user".format(user))
         #TODO: Check if it is needed to fetch following with more than 200 count
@@ -74,21 +82,22 @@ class FollowingFetcher():
         count = 200
         cursor = -1
         friendship = []
-        if not self.query_start_time:
-            self.query_start_time = datetime.now()
+
+        #set query params
+        if user['id']:
+            params = {
+                'user_id': user['id'],
+                'count': count
+                }
+        else:
+            print("User Id is missing and so using {} screen name".format(user['screen_name']))
+            params = {
+                'screen_name': user['screen_name'],
+                'count': count
+                }
         while cursor != 0 :
-            handle_twitter_ratelimit(self.query_start_time)
-            if user['id']:
-                params = {
-                    'user_id': user['id'],
-                    'count': count
-                    }
-            else:
-                print("User Id is missing and so using {} screen name".format(user['screen_name']))
-                params = {
-                    'screen_name': user['screen_name'],
-                    'count': count
-                    }
+            #Check for ratelimit
+            self.__handle_twitter_ratelimit()
             url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
     
             response_json = fetch_tweet_info(url)
@@ -96,6 +105,7 @@ class FollowingFetcher():
             cursor = response_json["next_cursor"]
             if 'users' in response_json.keys():
                 friendship.extend(response_json['users'])
+
         print(" Found {} followings for {}".format(len(friendship), user['screen_name']))
         return friendship
 

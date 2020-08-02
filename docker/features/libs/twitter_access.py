@@ -33,7 +33,9 @@ def __get_reponse_header(header_name):
 
 def handle_twitter_ratelimit(start_time, remaining_threshold = 0):
     curr_limit = __get_reponse_header('x-rate-limit-remaining')
+    start_time_reset_status = False
     if(curr_limit and int(curr_limit) <= remaining_threshold):
+        start_time_reset_status = True
         print("Sleeping as remaining x-rate-limit-remaining is {}".format(curr_limit))
         time_diff = (datetime.now()-start_time).seconds
         remaining_time = (15*60) - time_diff
@@ -41,9 +43,9 @@ def handle_twitter_ratelimit(start_time, remaining_threshold = 0):
         print("sleeping for {} seconds to avoid threshold. Current time={}".format(sleeptime, datetime.now()))
         if(sleeptime > 0):
             time.sleep(sleeptime)
-        start_time = datetime.now()
+            start_time = None
         print("Continuing after threshold reset")
-        return
+    return start_time_reset_status
 
 def fetch_tweet_info(url, headers = {'accept': 'application/json'}):
     logger.debug("Fetching {} URL".format(url))
