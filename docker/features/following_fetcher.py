@@ -46,7 +46,7 @@ class FollowingFetcher():
     This class uses expert pattern. 
     It provides API to 
     """
-    def __init__(self, client_id, client_screen_name, source_id, source_screen_name):
+    def __init__(self, client_id, client_screen_name):
         #tested
         print("Initializing user following")
         self.client_id = client_id
@@ -188,9 +188,9 @@ class FollowingFetcher():
                 continue
 
 def main():
-    print("Starting Following lookup with {}/{} client. \nConfig file should be [config/{}]\n".format(os.environ["TWITTER_ID"],os.environ["TWITTER_USER"],'.env'))
+    print("Starting Following lookup with {}/{} client. \nConfig file should be [config/{}]\n".format(os.environ["CLIENT_ID"],os.environ["CLIENT_SCREEN_NAME"],'.env'))
     stats_tracker = {'processed': 0}
-    followingFetcher = FollowingFetcher(client_id=os.environ["CLIENT_ID"], client_screen_name=os.environ["CLIENT_SCREEN_NAME"], source_id=os.environ["TWITTER_ID"], source_screen_name=os.environ["TWITTER_USER"])
+    followingFetcher = FollowingFetcher(client_id=os.environ["CLIENT_ID"], client_screen_name=os.environ["CLIENT_SCREEN_NAME"])
     retry = True
     sleepseconds = 30
     while retry:
