@@ -13,7 +13,7 @@ from . import common
 
 from libs.cypher_store import BucketCypherStoreClientIntf
 from libs.cypher_store import BucketCypherStoreCommonIntf
-from libs.cypher_store import BucketCypherStoreIntf
+from libs.cypher_store import BucketCypherStoreServiceOwnerIntf
 from libs.cypher_store import execute_query, execute_query_with_result
 from libs.cypher_store import ServiceManagementIntf
 from libs.cypher_store import ServiceManagemenDefines as ServiceDefines
@@ -59,9 +59,11 @@ class ServiceCypherStoreCommonIntf(BucketCypherStoreCommonIntf):
     def remove_bucket(self, bucket_id):
         #tested
         print("Releaseing users for {} bucket".format(bucket_id))
+        pdb.set_trace()
         currtime = datetime.utcnow()
         client_stats = {"last_access_time": currtime}
-        state = {'uuid':bucket_id, 'client_stats':client_stats, 'service_id':ServiceDefines.ServiceIDs.FOLLOWER_SERVICE}
+        #TODO: Fix it to use service ID variable
+        state = {'uuid':bucket_id, 'client_stats':client_stats, 'service_id':self.service_db_name}
         query = """
             MATCH(b:UserFollowerCheckBucket {uuid:$state.uuid})-[rs:BUCKETFORSERVICE]->(service:ServiceForClient {id:$state.service_id})
             MATCH(b)-[r:USERFOLLOWERCHECKCLIENT]->(client:UserFollowerCheckClient)-[:STATS]->(stat:UserFollowerCheckClientStats)
@@ -134,7 +136,7 @@ class ServiceCypherStoreClientIntf(BucketCypherStoreClientIntf):
         else:
             return False
 
-class ServiceCypherStoreIntf(BucketCypherStoreIntf):
+class ServiceCypherStoreIntf(BucketCypherStoreServiceOwnerIntf):
     def __init__(self, service_db_name):
         #tested
         print("Initializing Cypher Store")
@@ -176,6 +178,7 @@ class ServiceCypherStoreIntf(BucketCypherStoreIntf):
     def get_all_dead_buckets(self, threshold_mins_elapsed):
         #tested
         print("Getting list of dead buckets for more than {} minutes".format(threshold_mins_elapsed))
+
         currtime = datetime.utcnow()
         dead_datetime_threshold = currtime - timedelta(minutes=threshold_mins_elapsed)
         state = {"dead_datetime_threshold": dead_datetime_threshold}
