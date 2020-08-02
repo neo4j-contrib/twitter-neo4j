@@ -50,7 +50,7 @@ class FollowerCheckCypherStoreClientIntf(ServiceCypherStoreClientIntf):
         query = """
             UNWIND $users AS user
 
-            MATCH(:ClientForService {id:$state.client_id})-[:FOLLOWERCHECKCLIENT]->(client:UserFollowerCheckClient)
+            MATCH(:ClientForService {id:$state.client_id})-[:USERFOLLOWERCHECKCLIENT]->(client:UserFollowerCheckClient)
             MATCH(b:UserFollowerCheckBucket {uuid:$state.bucket_id})
             MATCH(u:User {screen_name: user.screen_name})
             MATCH (u)-[r:INUSERFOLLOWERCHECKBUCKET]->()
