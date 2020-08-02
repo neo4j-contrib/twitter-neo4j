@@ -96,6 +96,7 @@ class FollowingFetcher():
                 'count': count
                 }
         while cursor != 0 :
+            params['cursor'] = cursor
             #Check for ratelimit
             self.__handle_twitter_ratelimit()
             url = '%s?%s' % (base_url, urllib.parse.urlencode(params))

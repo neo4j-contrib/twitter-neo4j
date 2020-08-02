@@ -85,16 +85,17 @@ class FollowerFetcher():
         if user['id']:
             params = {
                 'user_id': user['id'],
-                'count': count,
-                'cursor': cursor
+                'count': count
                 }
         else:
             print("User Id is missing and so using {} screen name".format(user['screen_name']))
             params = {
-                'screen_name': user['screen_name']
+                'screen_name': user['screen_name'],
+                'count': count
                 }
         while cursor != 0 :
             try:
+                params['cursor'] = cursor
                 self.__handle_twitter_ratelimit()
                 url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
         
