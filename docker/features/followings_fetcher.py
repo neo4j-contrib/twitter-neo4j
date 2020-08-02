@@ -35,7 +35,7 @@ if dep_check.lower() == "true":
 
 from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterUserAccountLocked
 
-from libs.twitter_access import fetch_tweet_info, get_reponse_header
+from libs.twitter_access import fetch_tweet_info, handle_twitter_ratelimit
 from libs.twitter_logging import logger
 
 from libs.following_buckets_manager_client import FollowingCheckBucketManagerClient as BucketManager
@@ -51,6 +51,7 @@ class FollowingFetcher():
         self.client_id = client_id
         self.client_screen_name = client_screen_name
         self.bucket_mgr = BucketManager(client_id, client_screen_name)
+        self.query_start_time = None
         self.grandtotal = 0 #Tracks the count of total friendship stored in DB
         print("User friendship init finished")
     
@@ -68,26 +69,34 @@ class FollowingFetcher():
 
     def __process_following_fetch(self, user):
         #print("Processing friendship fetch for {}  user".format(user))
+        #TODO: Check if it is needed to fetch following with more than 200 count
         base_url = 'https://api.twitter.com/1.1/friends/list.json'
-        if user['id']:
-            params = {
-                'user_id': user['id']
-                }
-        else:
-            print("User Id is missing and so using {} screen name".format(user['screen_name']))
-            params = {
-                'screen_name': user['screen_name']
-                }
-        url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
- 
-        response_json = fetch_tweet_info(url)
-        #print(type(response_json))
-
-        if 'users' in response_json.keys():
-            friendship = response_json['users']
-        else:
-            print("No following found for {}".format(user['screen_name']))
-            friendship = []
+        count = 200
+        cursor = -1
+        friendship = []
+        if not self.query_start_time:
+            self.query_start_time = datetime.now()
+        while cursor != 0 :
+            handle_twitter_ratelimit(self.query_start_time)
+            if user['id']:
+                params = {
+                    'user_id': user['id'],
+                    'count': count
+                    }
+            else:
+                print("User Id is missing and so using {} screen name".format(user['screen_name']))
+                params = {
+                    'screen_name': user['screen_name'],
+                    'count': count
+                    }
+            url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
+    
+            response_json = fetch_tweet_info(url)
+            #print(type(response_json))
+            cursor = response_json["next_cursor"]
+            if 'users' in response_json.keys():
+                friendship.extend(response_json['users'])
+        print(" Found {} followings for {}".format(len(friendship), user['screen_name']))
         return friendship
 
     def __check_following_user_detail(self, users):
@@ -98,18 +107,6 @@ class FollowingFetcher():
         remaining_threshold = 0
         for user in users:
             try:
-                curr_limit = get_reponse_header('x-rate-limit-remaining')
-                if(curr_limit and int(curr_limit) <= remaining_threshold):
-                    print("Sleeping as remaining x-rate-limit-remaining is {}".format(curr_limit))
-                    time_diff = (datetime.now()-start_time).seconds
-                    remaining_time = (15*60) - time_diff
-                    sleeptime = remaining_time + 2
-                    print("sleeping for {} seconds to avoid threshold. Current time={}".format(sleeptime, datetime.now()))
-                    if(sleeptime > 0):
-                        time.sleep(sleeptime)
-                    start_time = datetime.now()
-                    print("Continuing after threshold reset")
-
                 print("Fetching following info for {} user".format(user))
                 followings_user = self.__process_following_fetch(user)
             except TwitterUserNotFoundError as unf:

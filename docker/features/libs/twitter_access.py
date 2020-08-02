@@ -4,6 +4,8 @@ Built-in modules
 '''
 import pdb
 import os
+from datetime import datetime
+import time
 
 '''
 User defined modules
@@ -29,6 +31,19 @@ def get_reponse_header(header_name):
   else:
     return None
 
+def handle_twitter_ratelimit(start_time, remaining_threshold = 0):
+    curr_limit = get_reponse_header('x-rate-limit-remaining')
+    if(curr_limit and int(curr_limit) <= remaining_threshold):
+        print("Sleeping as remaining x-rate-limit-remaining is {}".format(curr_limit))
+        time_diff = (datetime.now()-start_time).seconds
+        remaining_time = (15*60) - time_diff
+        sleeptime = remaining_time + 2
+        print("sleeping for {} seconds to avoid threshold. Current time={}".format(sleeptime, datetime.now()))
+        if(sleeptime > 0):
+            time.sleep(sleeptime)
+        start_time = datetime.now()
+        print("Continuing after threshold reset")
+        return
 
 def fetch_tweet_info(url, headers = {'accept': 'application/json'}):
     logger.debug("Fetching {} URL".format(url))
