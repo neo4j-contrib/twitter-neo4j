@@ -8,21 +8,21 @@
 	* 3.1. [Architecture diagram](#Architecturediagram)
 	* 3.2. [Architecture principles](#Architectureprinciples)
 * 4. [Use cases walkthrough](#Usecaseswalkthrough)
-* 5. [Class Diagrams](#ClassDiagrams)
-* 6. [Sequence diagram](#Sequencediagram)
-	* 6.1. [Sequence diagram for service registration](#Sequencediagramforserviceregistration)
-	* 6.2. [Sequence diagram for Client registration](#SequencediagramforClientregistration)
-	* 6.3. [Sequence diagram for bucket creation](#Sequencediagramforbucketcreation)
-	* 6.4. [Sequence diagram for bucket assignment](#Sequencediagramforbucketassignment)
-	* 6.5. [Sequence diagram for storing processed data from client](#Sequencediagramforstoringprocesseddatafromclient)
-* 7. [Important scenerios](#Importantscenerios)
-* 8. [Component design](#Componentdesign)
-	* 8.1. [Client Management component](#ClientManagementcomponent)
-	* 8.2. [Service management component](#Servicemanagementcomponent)
-* 9. [Database design](#Databasedesign)
-	* 9.1. [Basic view of database](#Basicviewofdatabase)
-	* 9.2. [Full view of database](#Fullviewofdatabase)
-	* 9.3. [Customization of service info](#Customizationofserviceinfo)
+* 5. [Important scenerios](#Importantscenerios)
+* 6. [Component design](#Componentdesign)
+	* 6.1. [Client Management component](#ClientManagementcomponent)
+	* 6.2. [Service management component](#Servicemanagementcomponent)
+* 7. [Database design](#Databasedesign)
+	* 7.1. [Basic view of database](#Basicviewofdatabase)
+	* 7.2. [Full view of database](#Fullviewofdatabase)
+	* 7.3. [Customization of service info](#Customizationofserviceinfo)
+* 8. [Class Diagrams](#ClassDiagrams)
+* 9. [Sequence diagram](#Sequencediagram)
+	* 9.1. [Sequence diagram for service registration](#Sequencediagramforserviceregistration)
+	* 9.2. [Sequence diagram for Client registration](#SequencediagramforClientregistration)
+	* 9.3. [Sequence diagram for bucket creation](#Sequencediagramforbucketcreation)
+	* 9.4. [Sequence diagram for bucket assignment](#Sequencediagramforbucketassignment)
+	* 9.5. [Sequence diagram for storing processed data from client](#Sequencediagramforstoringprocesseddatafromclient)
 * 10. [Test cases](#Testcases)
 * 11. [Implementation](#Implementation)
 	* 11.1. [Database view](#Databaseview)
@@ -97,7 +97,28 @@ Concurrent processing of each service can be mapped to public distribution syste
 ![image info](./data/use-cases-service-manager.jpg)
 ![image info](./data/use-case-visibility.jpg)
 
-##  5. <a name='ClassDiagrams'></a>Class Diagrams
+
+##  5. <a name='Importantscenerios'></a>Important scenerios
+
+##  6. <a name='Componentdesign'></a>Component design
+###  6.1. <a name='ClientManagementcomponent'></a>Client Management component
+![image info](./data/sequence_Client_manager_register.jpg)
+![image info](./data/sequence_Client_manager_unregister.jpg)
+
+###  6.2. <a name='Servicemanagementcomponent'></a>Service management component
+
+![image info](./data/sequence_service_manager_register.jpg)
+![image info](./data/sequence_service_manager_unregister.jpg)
+
+##  7. <a name='Databasedesign'></a>Database design
+###  7.1. <a name='Basicviewofdatabase'></a>Basic view of database
+![image info](./data/database_diagrams/database_design_basic.jpg)
+###  7.2. <a name='Fullviewofdatabase'></a>Full view of database
+![image info](./data/database_diagrams/database_design_complete.jpg)
+###  7.3. <a name='Customizationofserviceinfo'></a>Customization of service info
+![image info](./data/database_diagrams/database_design_custom.jpg)
+
+##  8. <a name='ClassDiagrams'></a>Class Diagrams
 Class diagram for core classes
 ![image info](./data/class_diagrams/class_diagram_infra_classes.jpg)
 Class diagram for bucket manager (service owner specific)
@@ -109,37 +130,18 @@ Class diagram for DB Interfaces
 ![image info](./data/class_diagrams/class_diagram_cypher_store_serviceowner.jpg)
 ![image info](./data/class_diagrams/class_diagram_cypher_store_client.jpg)
 
-##  6. <a name='Sequencediagram'></a>Sequence diagram
-###  6.1. <a name='Sequencediagramforserviceregistration'></a>Sequence diagram for service registration
+##  9. <a name='Sequencediagram'></a>Sequence diagram
+###  9.1. <a name='Sequencediagramforserviceregistration'></a>Sequence diagram for service registration
 ![image info](./data/sequence_diagrams/Sequence_diagram_for_service_registration.jpg)
-###  6.2. <a name='SequencediagramforClientregistration'></a>Sequence diagram for Client registration
+###  9.2. <a name='SequencediagramforClientregistration'></a>Sequence diagram for Client registration
 ![image info](./data/sequence_diagrams/Sequence_diagram_for_client_registration.jpg)
-###  6.3. <a name='Sequencediagramforbucketcreation'></a>Sequence diagram for bucket creation
+###  9.3. <a name='Sequencediagramforbucketcreation'></a>Sequence diagram for bucket creation
 ![image info](./data/sequence_diagrams/sequence_diagram_add_buckets.jpg)
-###  6.4. <a name='Sequencediagramforbucketassignment'></a>Sequence diagram for bucket assignment
+###  9.4. <a name='Sequencediagramforbucketassignment'></a>Sequence diagram for bucket assignment
 ![image info](./data/sequence_diagrams/sequence_diagram_assign_buckets.jpg)
-###  6.5. <a name='Sequencediagramforstoringprocesseddatafromclient'></a>Sequence diagram for storing processed data from client
+###  9.5. <a name='Sequencediagramforstoringprocesseddatafromclient'></a>Sequence diagram for storing processed data from client
 ![image info](./data/sequence_diagrams/sequence_diagram_store_processed_buckets.jpg)
 
-##  7. <a name='Importantscenerios'></a>Important scenerios
-
-##  8. <a name='Componentdesign'></a>Component design
-###  8.1. <a name='ClientManagementcomponent'></a>Client Management component
-![image info](./data/sequence_Client_manager_register.jpg)
-![image info](./data/sequence_Client_manager_unregister.jpg)
-
-###  8.2. <a name='Servicemanagementcomponent'></a>Service management component
-
-![image info](./data/sequence_service_manager_register.jpg)
-![image info](./data/sequence_service_manager_unregister.jpg)
-
-##  9. <a name='Databasedesign'></a>Database design
-###  9.1. <a name='Basicviewofdatabase'></a>Basic view of database
-![image info](./data/database_diagrams/database_design_basic.jpg)
-###  9.2. <a name='Fullviewofdatabase'></a>Full view of database
-![image info](./data/database_diagrams/database_design_complete.jpg)
-###  9.3. <a name='Customizationofserviceinfo'></a>Customization of service info
-![image info](./data/database_diagrams/database_design_custom.jpg)
 
 ##  10. <a name='Testcases'></a>Test cases
 
