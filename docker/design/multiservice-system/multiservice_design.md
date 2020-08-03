@@ -134,7 +134,7 @@ Class diagram for DB Interfaces
 
 ####  10.1.2. <a name='DatabaserealviewsnapshotforClient'></a>Database real view snapshot for Client
 ![image info](./data/database_diagrams/database_service_view.png)
-####  10.1.3. <a name='DatabaserealviewsnapshotforClient-1'></a>Database real view snapshot for Client
+####  10.1.3. <a name='DatabaserealviewsnapshotforClient-1'></a>Database real view snapshot for bucket
 ![image info](./data/database_diagrams/database_bucket_view.png)
 
 
