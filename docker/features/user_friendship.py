@@ -108,7 +108,7 @@ class UserRelations():
                     start_time = datetime.now()
                     print("Continuing after threshold reset")
 
-                print("Fetching friendship info frm {} to {} user".format(self.source_screen_name, user))
+                print("Fetching friendship info from {} to {} user".format(self.source_screen_name, user))
                 friendship = self.__process_friendship_fetch(user)
             except TwitterUserNotFoundError as unf:
                 logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
