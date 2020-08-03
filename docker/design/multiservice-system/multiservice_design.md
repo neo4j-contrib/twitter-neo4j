@@ -122,10 +122,10 @@ Class diagram for DB Interfaces
 ![image info](./data/database_diagrams/database_design_custom.jpg)
 
 ###  8.4. <a name='Databaserealviewsnapshotforclient'></a>Database real view snapshot for client
-![image info](./data/database_diagrams/database_client_view.jpg)
+![image info](./data/database_diagrams/database_client_view.png)
 
 ###  8.5. <a name='DatabaserealviewsnapshotforService'></a>Database real view snapshot for Service
-![image info](./data/database_diagrams/database_service_view.jpg)
+![image info](./data/database_diagrams/database_service_view.png)
 ##  9. <a name='Testcases'></a>Test cases
 
 
