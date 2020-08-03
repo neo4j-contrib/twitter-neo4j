@@ -56,7 +56,7 @@ class FollowerBucketMonitor():
                 print("Trying to add more buckets at {}Z".format(datetime.utcnow()))
                 self.bucket_mgr.add_buckets()
                 print("Sleeping for 15 mins at {}Z".format(datetime.utcnow()))
-                time.sleep(10)
+                time.sleep(900)
 
             except Exception as e:
                 logger.exception(e)
