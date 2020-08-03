@@ -8,15 +8,16 @@
 	* 3.1. [Architecture diagram](#Architecturediagram)
 	* 3.2. [Architecture principles](#Architectureprinciples)
 * 4. [Use cases walkthrough](#Usecaseswalkthrough)
-* 5. [Important scenerios](#Importantscenerios)
-* 6. [Component design](#Componentdesign)
-	* 6.1. [Client Management component](#ClientManagementcomponent)
-	* 6.2. [Service management component](#Servicemanagementcomponent)
-* 7. [Database design](#Databasedesign)
-* 8. [Test cases](#Testcases)
-* 9. [Implementation](#Implementation)
-* 10. [System Troubleshoot and Visibility](#SystemTroubleshootandVisibility)
-* 11. [Bugs](#Bugs)
+* 5. [Class Diagrams](#ClassDiagrams)
+* 6. [Important scenerios](#Importantscenerios)
+* 7. [Component design](#Componentdesign)
+	* 7.1. [Client Management component](#ClientManagementcomponent)
+	* 7.2. [Service management component](#Servicemanagementcomponent)
+* 8. [Database design](#Databasedesign)
+* 9. [Test cases](#Testcases)
+* 10. [Implementation](#Implementation)
+* 11. [System Troubleshoot and Visibility](#SystemTroubleshootandVisibility)
+* 12. [Bugs](#Bugs)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -83,19 +84,27 @@ Concurrent processing of each service can be mapped to public distribution syste
 ![image info](./data/use-cases-service-manager.jpg)
 ![image info](./data/use-case-visibility.jpg)
 
-##  5. <a name='Importantscenerios'></a>Important scenerios
+##  5. <a name='ClassDiagrams'></a>Class Diagrams
+![image info](./data/class_diagrams/class_diagram_infra_classes.jpg)
+![image info](./data/class_diagrams/class_diagram_bucket_manger_service_owner.jpg)
+![image info](./data/class_diagrams/class_diagram_bucket_manager_client.jpg)
+![image info](./data/class_diagrams/class_diagram_cypher_store_common.jpg)
+![image info](./data/class_diagrams/class_diagram_cypher_store_serviceowner.jpg)
+![image info](./data/class_diagrams/class_diagram_cypher_store_client.jpg)
 
-##  6. <a name='Componentdesign'></a>Component design
-###  6.1. <a name='ClientManagementcomponent'></a>Client Management component
+##  6. <a name='Importantscenerios'></a>Important scenerios
+
+##  7. <a name='Componentdesign'></a>Component design
+###  7.1. <a name='ClientManagementcomponent'></a>Client Management component
 ![image info](./data/sequence_Client_manager_register.jpg)
 ![image info](./data/sequence_Client_manager_unregister.jpg)
 
-###  6.2. <a name='Servicemanagementcomponent'></a>Service management component
+###  7.2. <a name='Servicemanagementcomponent'></a>Service management component
 
 ![image info](./data/sequence_service_manager_register.jpg)
 ![image info](./data/sequence_service_manager_unregister.jpg)
 
-##  7. <a name='Databasedesign'></a>Database design
+##  8. <a name='Databasedesign'></a>Database design
 Basic view of database
 ![image info](./data/database_design_basic.jpg)
 Full view of database
@@ -103,12 +112,12 @@ Full view of database
 Customization of service info
 ![image info](./data/database_design_custom.jpg)
 
-##  8. <a name='Testcases'></a>Test cases
+##  9. <a name='Testcases'></a>Test cases
 
 
-##  9. <a name='Implementation'></a>Implementation
+##  10. <a name='Implementation'></a>Implementation
 
 
-##  10. <a name='SystemTroubleshootandVisibility'></a>System Troubleshoot and Visibility 
+##  11. <a name='SystemTroubleshootandVisibility'></a>System Troubleshoot and Visibility 
 
-##  11. <a name='Bugs'></a>Bugs
+##  12. <a name='Bugs'></a>Bugs
