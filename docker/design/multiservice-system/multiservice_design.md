@@ -17,11 +17,12 @@
 	* 8.1. [Basic view of database](#Basicviewofdatabase)
 	* 8.2. [Full view of database](#Fullviewofdatabase)
 	* 8.3. [Customization of service info](#Customizationofserviceinfo)
-	* 8.4. [Database real view snapshot for Service](#DatabaserealviewsnapshotforService)
-	* 8.5. [Database real view snapshot for Client](#DatabaserealviewsnapshotforClient)
-	* 8.6. [Database real view snapshot for Client](#DatabaserealviewsnapshotforClient-1)
 * 9. [Test cases](#Testcases)
 * 10. [Implementation](#Implementation)
+	* 10.1. [Database view](#Databaseview)
+		* 10.1.1. [Database real view snapshot for Service](#DatabaserealviewsnapshotforService)
+		* 10.1.2. [Database real view snapshot for Client](#DatabaserealviewsnapshotforClient)
+		* 10.1.3. [Database real view snapshot for Client](#DatabaserealviewsnapshotforClient-1)
 * 11. [System Troubleshoot and Visibility](#SystemTroubleshootandVisibility)
 * 12. [Bugs](#Bugs)
 
@@ -122,18 +123,20 @@ Class diagram for DB Interfaces
 ###  8.3. <a name='Customizationofserviceinfo'></a>Customization of service info
 ![image info](./data/database_diagrams/database_design_custom.jpg)
 
-###  8.4. <a name='DatabaserealviewsnapshotforService'></a>Database real view snapshot for Service
-![image info](./data/database_diagrams/database_client_view.png)
-
-###  8.5. <a name='DatabaserealviewsnapshotforClient'></a>Database real view snapshot for Client
-![image info](./data/database_diagrams/database_service_view.png)
-###  8.6. <a name='DatabaserealviewsnapshotforClient-1'></a>Database real view snapshot for Client
-![image info](./data/database_diagrams/database_bucket_view.png)
-
 ##  9. <a name='Testcases'></a>Test cases
 
 
 ##  10. <a name='Implementation'></a>Implementation
+
+###  10.1. <a name='Databaseview'></a>Database view
+####  10.1.1. <a name='DatabaserealviewsnapshotforService'></a>Database real view snapshot for Service
+![image info](./data/database_diagrams/database_client_view.png)
+
+####  10.1.2. <a name='DatabaserealviewsnapshotforClient'></a>Database real view snapshot for Client
+![image info](./data/database_diagrams/database_service_view.png)
+####  10.1.3. <a name='DatabaserealviewsnapshotforClient-1'></a>Database real view snapshot for Client
+![image info](./data/database_diagrams/database_bucket_view.png)
+
 
 
 ##  11. <a name='SystemTroubleshootandVisibility'></a>System Troubleshoot and Visibility 
