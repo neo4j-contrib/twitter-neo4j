@@ -17,8 +17,8 @@
 	* 8.1. [Basic view of database](#Basicviewofdatabase)
 	* 8.2. [Full view of database](#Fullviewofdatabase)
 	* 8.3. [Customization of service info](#Customizationofserviceinfo)
-	* 8.4. [Database real view snapshot for client](#Databaserealviewsnapshotforclient)
-	* 8.5. [Database real view snapshot for Service](#DatabaserealviewsnapshotforService)
+	* 8.4. [Database real view snapshot for Service](#DatabaserealviewsnapshotforService)
+	* 8.5. [Database real view snapshot for Client](#DatabaserealviewsnapshotforClient)
 * 9. [Test cases](#Testcases)
 * 10. [Implementation](#Implementation)
 * 11. [System Troubleshoot and Visibility](#SystemTroubleshootandVisibility)
@@ -121,10 +121,10 @@ Class diagram for DB Interfaces
 ###  8.3. <a name='Customizationofserviceinfo'></a>Customization of service info
 ![image info](./data/database_diagrams/database_design_custom.jpg)
 
-###  8.4. <a name='Databaserealviewsnapshotforclient'></a>Database real view snapshot for client
+###  8.4. <a name='DatabaserealviewsnapshotforService'></a>Database real view snapshot for Service
 ![image info](./data/database_diagrams/database_client_view.png)
 
-###  8.5. <a name='DatabaserealviewsnapshotforService'></a>Database real view snapshot for Service
+###  8.5. <a name='DatabaserealviewsnapshotforClient'></a>Database real view snapshot for Client
 ![image info](./data/database_diagrams/database_service_view.png)
 ##  9. <a name='Testcases'></a>Test cases
 
