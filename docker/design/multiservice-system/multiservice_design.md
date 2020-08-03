@@ -85,9 +85,13 @@ Concurrent processing of each service can be mapped to public distribution syste
 ![image info](./data/use-case-visibility.jpg)
 
 ##  5. <a name='ClassDiagrams'></a>Class Diagrams
+Class diagram for core classes
 ![image info](./data/class_diagrams/class_diagram_infra_classes.jpg)
+Class diagram for bucket manager (service owner specific)
 ![image info](./data/class_diagrams/class_diagram_bucket_manger_service_owner.jpg)
+Class diagram for bucket manager (Client specific)
 ![image info](./data/class_diagrams/class_diagram_bucket_manager_client.jpg)
+Class diagram for DB Interfaces
 ![image info](./data/class_diagrams/class_diagram_cypher_store_common.jpg)
 ![image info](./data/class_diagrams/class_diagram_cypher_store_serviceowner.jpg)
 ![image info](./data/class_diagrams/class_diagram_cypher_store_client.jpg)
