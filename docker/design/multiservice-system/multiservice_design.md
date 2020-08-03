@@ -17,6 +17,10 @@
 	* 7.2. [Full view of database](#Fullviewofdatabase)
 	* 7.3. [Customization of service info](#Customizationofserviceinfo)
 * 8. [Class Diagrams](#ClassDiagrams)
+	* 8.1. [Class diagram for core classes](#Classdiagramforcoreclasses)
+	* 8.2. [Class diagram for bucket manager (service owner specific)](#Classdiagramforbucketmanagerserviceownerspecific)
+	* 8.3. [Class diagram for bucket manager (Client specific)](#ClassdiagramforbucketmanagerClientspecific)
+	* 8.4. [Class diagram for DB Interfaces](#ClassdiagramforDBInterfaces)
 * 9. [Sequence diagram](#Sequencediagram)
 	* 9.1. [Sequence diagram for service registration](#Sequencediagramforserviceregistration)
 	* 9.2. [Sequence diagram for Client registration](#SequencediagramforClientregistration)
@@ -119,13 +123,13 @@ Concurrent processing of each service can be mapped to public distribution syste
 ![image info](./data/database_diagrams/database_design_custom.jpg)
 
 ##  8. <a name='ClassDiagrams'></a>Class Diagrams
-Class diagram for core classes
+###  8.1. <a name='Classdiagramforcoreclasses'></a>Class diagram for core classes
 ![image info](./data/class_diagrams/class_diagram_infra_classes.jpg)
-Class diagram for bucket manager (service owner specific)
+###  8.2. <a name='Classdiagramforbucketmanagerserviceownerspecific'></a>Class diagram for bucket manager (service owner specific)
 ![image info](./data/class_diagrams/class_diagram_bucket_manger_service_owner.jpg)
-Class diagram for bucket manager (Client specific)
+###  8.3. <a name='ClassdiagramforbucketmanagerClientspecific'></a>Class diagram for bucket manager (Client specific)
 ![image info](./data/class_diagrams/class_diagram_bucket_manager_client.jpg)
-Class diagram for DB Interfaces
+###  8.4. <a name='ClassdiagramforDBInterfaces'></a>Class diagram for DB Interfaces
 ![image info](./data/class_diagrams/class_diagram_cypher_store_common.jpg)
 ![image info](./data/class_diagrams/class_diagram_cypher_store_serviceowner.jpg)
 ![image info](./data/class_diagrams/class_diagram_cypher_store_client.jpg)
