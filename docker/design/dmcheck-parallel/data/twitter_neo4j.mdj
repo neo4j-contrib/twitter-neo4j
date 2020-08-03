@@ -35779,9 +35779,9 @@
 													"font": "Arial;13;1",
 													"left": 40,
 													"top": 85,
-													"width": 109.49169921875,
+													"width": 113.314453125,
 													"height": 13,
-													"text": "ServiceClient"
+													"text": "ClientForService"
 												},
 												{
 													"_type": "ERDColumnCompartmentView",
@@ -35805,7 +35805,7 @@
 															"font": "Arial;13;0",
 															"left": 45,
 															"top": 108,
-															"width": 99.49169921875,
+															"width": 103.314453125,
 															"height": 13
 														},
 														{
@@ -35820,7 +35820,7 @@
 															"font": "Arial;13;0",
 															"left": 45,
 															"top": 123,
-															"width": 99.49169921875,
+															"width": 103.314453125,
 															"height": 13
 														},
 														{
@@ -35835,7 +35835,7 @@
 															"font": "Arial;13;0",
 															"left": 45,
 															"top": 138,
-															"width": 99.49169921875,
+															"width": 103.314453125,
 															"height": 13
 														},
 														{
@@ -35850,21 +35850,21 @@
 															"font": "Arial;13;0",
 															"left": 45,
 															"top": 153,
-															"width": 99.49169921875,
+															"width": 103.314453125,
 															"height": 13
 														}
 													],
 													"font": "Arial;13;0",
 													"left": 40,
 													"top": 103,
-													"width": 109.49169921875,
+													"width": 113.314453125,
 													"height": 68
 												}
 											],
 											"font": "Arial;13;0",
 											"left": 40,
 											"top": 80,
-											"width": 109.49169921875,
+											"width": 113.314453125,
 											"height": 91,
 											"nameLabel": {
 												"$ref": "AAAAAAFzacVL60IZhBU="
@@ -36023,7 +36023,7 @@
 														"$ref": "AAAAAAFzaclXN0KsvTw="
 													},
 													"font": "Arial;13;0",
-													"left": 166,
+													"left": 168,
 													"top": 142,
 													"width": 49.84814453125,
 													"height": 13,
@@ -36042,7 +36042,7 @@
 														"$ref": "AAAAAAFzaclXN0KsvTw="
 													},
 													"font": "Arial;13;0",
-													"left": 173,
+													"left": 177,
 													"top": 142,
 													"height": 13,
 													"alpha": 0.5235987755982988,
@@ -36077,7 +36077,7 @@
 												"$ref": "AAAAAAFzacVL60IYzDY="
 											},
 											"lineStyle": 2,
-											"points": "148:163;232:163",
+											"points": "152:163;232:163",
 											"nameLabel": {
 												"$ref": "AAAAAAFzaclXN0KtzMg="
 											},
@@ -36785,7 +36785,7 @@
 									"_parent": {
 										"$ref": "AAAAAAFzacO7FEFAS3o="
 									},
-									"name": "ServiceClient",
+									"name": "ClientForService",
 									"ownedElements": [
 										{
 											"_type": "ERDRelationship",

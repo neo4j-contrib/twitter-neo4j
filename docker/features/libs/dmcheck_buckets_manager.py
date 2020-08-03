@@ -12,7 +12,6 @@ import time
 '''
 User defined modules
 '''
-from libs.buckets_manager_client import BucketManagerClient
 
 from libs.cypher_store_dmcheck import DMCheckCypherStoreIntf as StoreIntf
 from libs.cypher_store_dmcheck import DMCheckCypherStoreCommonIntf as StoreCommonIntf

@@ -17,7 +17,6 @@ from libs.buckets_manager_client import BucketManagerClient
 
 from libs.cypher_store_dmcheck import DMCheckCypherStoreClientIntf as StoreIntf
 from libs.cypher_store_dmcheck import DMCheckCypherStoreCommonIntf as StoreCommonIntf
-from libs.cypher_store import ServiceManagementIntf as ServiceIDIntf
 from libs.cypher_store import ServiceManagemenDefines as ServiceDefines
 
 class DMCheckBucketManagerClient(BucketManagerClient):
