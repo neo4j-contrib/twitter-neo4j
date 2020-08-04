@@ -73,7 +73,7 @@ class FollowerCheckCypherStoreClientIntf(ServiceCypherStoreClientIntf):
                     followeruser.lang = f.lang,
                     followeruser.contributors_enabled = f.contributors_enabled,
                     followeruser.profile_image_url = f.profile_image_url
-                MERGE (u)-[rf:FOLLOWS]->(followeruser)
+                MERGE (followeruser)-[rf:FOLLOWS]->(u)
                 ON CREATE SET rf.create_datetime = $state.edit_datetime
                 SET rf.edit_datetime = $state.edit_datetime
             )
