@@ -149,11 +149,10 @@ class DMCheckCypherStoreIntf(ServiceCypherStoreIntf):
         state = {'limit':max_item_counts}
         query = """
             match(u:User)
-            WITH u
-            where  NOT ()-[:DM|NonDM|DM_YES|DM_NO|DM_UNKNOWN]->(u) AND NOT (u)-[:INDMCHECKBUCKET]->(:DMCheckBucket)
-            return u.screen_name ORDER BY u.screen_name LIMIT $state.limit  
+            where  NOT ()-[:DM_YES|DM_NO|DM_UNKNOWN]->(u) AND NOT (u)-[:INDMCHECKBUCKET]->(:DMCheckBucket)
+            return u.screen_name as screen_name LIMIT $state.limit  
         """
         response_json = execute_query_with_result(query, state=state)
-        users = [ user['u.screen_name'] for user in response_json]
+        users = [ user['screen_name'] for user in response_json]
         print("Got {} users".format(len(users)))
         return users    
