@@ -101,9 +101,8 @@ class FollowingCheckCypherStoreIntf(ServiceCypherStoreIntf):
         state = {'limit':max_item_counts, 'check_user_followings_count_limit':check_user_followings_count_limit}
         query = """
             match(u:User)-[:POSTS]->(t:Tweet)
-            WITH u
-            where  u.following <= $state.check_user_followings_count_limit AND  NOT ()-[:CHECKEDUSERFOLLOWING]->(u) AND NOT (u)-[:INUSERFOLLOWINGCHECKBUCKET]->(:UserFollowerCheckBucket)
-            return distinct(u.screen_name) as screen_name ORDER BY u.screen_name LIMIT $state.limit  
+            match(u)  where  u.following <= $state.check_user_followings_count_limit AND  NOT ()-[:CHECKEDUSERFOLLOWING]->(u) AND NOT (u)-[:INUSERFOLLOWINGCHECKBUCKET]->(:UserFollowerCheckBucket)
+            return distinct(u.screen_name) as screen_name LIMIT $state.limit  
         """
         response_json = execute_query_with_result(query, state=state)
         users = [ user['screen_name'] for user in response_json]
