@@ -33,7 +33,7 @@ if dep_check.lower() == "true":
     from installer import dependency_check
 
 
-from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterUserAccountLocked
+from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterUserAccountLocked, TwitterPageDoesnotExist
 from libs.service_client_errors import ServiceNotReady
 
 from libs.twitter_access import fetch_tweet_info, handle_twitter_ratelimit
@@ -109,7 +109,9 @@ class FollowerFetcher():
                 logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
                 user['followers'] = []
                 self.grandtotal += 1
-                continue
+            except TwitterPageDoesnotExist as e:
+                print("Twitter couldn't found page < code: 34, page doesnot exist>")
+                print(e)
         print(" Found {} followers for {}".format(len(friendship), user['screen_name']))
         return friendship
 

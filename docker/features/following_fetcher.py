@@ -33,7 +33,7 @@ if dep_check.lower() == "true":
     from installer import dependency_check
 
 
-from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterUserAccountLocked
+from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterUserAccountLocked, TwitterPageDoesnotExist
 from libs.service_client_errors import ServiceNotReady
 
 from libs.twitter_access import fetch_tweet_info, handle_twitter_ratelimit
@@ -96,19 +96,28 @@ class FollowingFetcher():
                 'screen_name': user['screen_name'],
                 'count': count
                 }
-        while cursor != 0 :
-            params['cursor'] = cursor
-            #Check for ratelimit
-            self.__handle_twitter_ratelimit()
-            url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
-    
-            response_json = fetch_tweet_info(url)
-            #print(type(response_json))
-            cursor = response_json["next_cursor"]
-            if 'users' in response_json.keys():
-                print("adding {} users to list".format(len(response_json['users'])))
-                friendship.extend(response_json['users'])
-
+        try:
+            while cursor != 0 :
+                params['cursor'] = cursor
+                #Check for ratelimit
+                self.__handle_twitter_ratelimit()
+                url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
+        
+                response_json = fetch_tweet_info(url)
+                #print(type(response_json))
+                cursor = response_json["next_cursor"]
+                if 'users' in response_json.keys():
+                    print("adding {} users to list".format(len(response_json['users'])))
+                    friendship.extend(response_json['users'])
+            except TwitterUserNotFoundError as unf:
+                logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
+                friendship = []
+                self.grandtotal += 1
+            except TwitterPageDoesnotExist as e:
+                print("Twitter couldn't found page < code: 34, page doesnot exist>")
+                print(e)
+                friendship = []
+                self.grandtotal += 1                
         print(" Found {} followings for {}".format(len(friendship), user['screen_name']))
         return friendship
 
@@ -122,10 +131,6 @@ class FollowingFetcher():
             try:
                 print("Fetching following info for {} user".format(user))
                 followings_user = self.__process_following_fetch(user)
-            except TwitterUserNotFoundError as unf:
-                logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
-                user['followings'] = []
-                self.grandtotal += 1
                 continue
             count = count + 1
             user['followings'] = followings_user
