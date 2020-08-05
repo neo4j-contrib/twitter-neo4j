@@ -44,7 +44,7 @@ def handle_twitter_ratelimit(start_time, remaining_threshold = 0):
         if(sleeptime > 0):
             time.sleep(sleeptime)
             start_time = None
-        print("Continuing after threshold reset")
+        print("Continuing after threshold reset. Current time={}".format(sleeptime, datetime.now()))
     return start_time_reset_status
 
 def fetch_tweet_info(url, headers = {'accept': 'application/json'}):
