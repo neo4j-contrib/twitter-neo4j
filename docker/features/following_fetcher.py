@@ -111,29 +111,24 @@ class FollowingFetcher():
                 if 'users' in response_json.keys():
                     print("adding {} users to list".format(len(response_json['users'])))
                     friendship.extend(response_json['users'])
-            except TwitterUserNotFoundError as unf:
-                logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
-                friendship = []
-                self.grandtotal += 1
-            except TwitterPageDoesnotExist as e:
-                print("Twitter couldn't found page < code: 34, page doesnot exist>")
-                print(e)
-                friendship = []
-                self.grandtotal += 1                
+        except TwitterUserNotFoundError:
+            logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
+            friendship = []
+            self.grandtotal += 1
+        except TwitterPageDoesnotExist as e:
+            print("Twitter couldn't found page < code: 34, page doesnot exist>")
+            print(e)
+            friendship = []
+            self.grandtotal += 1                
         print(" Found {} followings for {}".format(len(friendship), user['screen_name']))
         return friendship
 
     def __check_following_user_detail(self, users):
         print("Finding following users for {} users".format(len(users)))
-        friendships = []
         count = 0
-        start_time = datetime.now()
-        remaining_threshold = 0
         for user in users:
-            try:
-                print("Fetching following info for {} user".format(user))
-                followings_user = self.__process_following_fetch(user)
-                continue
+            print("Fetching following info for {} user".format(user))
+            followings_user = self.__process_following_fetch(user)
             count = count + 1
             user['followings'] = followings_user
         print("Processed {} out of {} users for following Check".format(count, len(users)))

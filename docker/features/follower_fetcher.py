@@ -94,8 +94,8 @@ class FollowerFetcher():
                 'screen_name': user['screen_name'],
                 'count': count
                 }
-        while cursor != 0 :
-            try:
+        try:
+            while cursor != 0 :
                 params['cursor'] = cursor
                 self.__handle_twitter_ratelimit()
                 url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
@@ -107,13 +107,13 @@ class FollowerFetcher():
                 cursor = response_json["next_cursor"]
                 if 'users' in response_json.keys():
                     friendship.extend(response_json['users'])
-            except TwitterUserNotFoundError as unf:
-                logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
-                user['followers'] = []
-                self.grandtotal += 1
-            except TwitterPageDoesnotExist as e:
-                print("Twitter couldn't found page < code: 34, page doesnot exist>")
-                print(e)
+        except TwitterUserNotFoundError:
+            logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
+            user['followers'] = []
+            self.grandtotal += 1
+        except TwitterPageDoesnotExist as e:
+            print("Twitter couldn't found page < code: 34, page doesnot exist>")
+            print(e)
         print(" Found {} followers for {}".format(len(friendship), user['screen_name']))
         return friendship
 
@@ -123,14 +123,8 @@ class FollowerFetcher():
         count = 0
         self.twitter_query_start_time = datetime.now()
         for user in users:
-            try:
-                print("Fetching follower info for {} user".format(user))
-                followers_user = self.__process_follower_fetch(user)
-            except TwitterUserNotFoundError as unf:
-                logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
-                user['followers'] = []
-                self.grandtotal += 1
-                continue
+            print("Fetching follower info for {} user".format(user))
+            followers_user = self.__process_follower_fetch(user)
             count = count + 1
             user['followers'] = followers_user
         print("Processed {} out of {} users for follower Check".format(count, len(users)))
