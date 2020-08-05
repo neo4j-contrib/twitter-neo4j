@@ -106,7 +106,8 @@ class FollowingFetcher():
                 response_json = fetch_tweet_info(url)
                 #print(type(response_json))
                 if 'next_cursor' not in response_json:
-                    print("Warning: Cursor not found in response [{}]".format(response_json))
+                    print("Warning: Cursor not found in response [{}].".format(response_json))
+                    print("cursor value is {}".format(cursor))
                 cursor = response_json["next_cursor"]
                 if 'users' in response_json.keys():
                     print("adding {} users to list".format(len(response_json['users'])))
