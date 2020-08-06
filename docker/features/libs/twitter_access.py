@@ -54,7 +54,6 @@ def fetch_tweet_info(url, headers = {'accept': 'application/json'}):
     g_headers = headers
 
     if isinstance(response_json, dict) and ('errors' in response_json.keys() or 'error' in response_json.keys()):
-        pdb.set_trace()
         if 'errors' in response_json.keys():
             errors = response_json['errors']
         else:
