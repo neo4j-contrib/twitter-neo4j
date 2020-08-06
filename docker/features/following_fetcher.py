@@ -54,6 +54,7 @@ class FollowingFetcher():
         self.bucket_mgr = BucketManager(client_id, client_screen_name)
         self.twitter_query_start_time = None
         self.grandtotal = 0 #Tracks the count of total friendship stored in DB
+        self.stats_iteration_before_reset = 0
         print("User friendship init finished")
     
     def register_as_followingcheck_client(self):
@@ -71,9 +72,13 @@ class FollowingFetcher():
     def __handle_twitter_ratelimit(self):
         if not self.twitter_query_start_time:
             self.twitter_query_start_time = datetime.now()
+            self.stats_iteration_before_reset = 0
         start_time_reset_status = handle_twitter_ratelimit(self.twitter_query_start_time)
         if start_time_reset_status:
             self.twitter_query_start_time = datetime.now()
+            print("Rate limit occured after {}  Twitter API calls".format(self.stats_iteration_before_reset))
+            self.stats_iteration_before_reset = 0
+        self.stats_iteration_before_reset += 1
         return
 
     def __process_following_fetch(self, user):
