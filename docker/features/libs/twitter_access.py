@@ -11,7 +11,7 @@ import time
 User defined modules
 '''
 from libs.twitter_logging import logger
-from libs.twitter_errors import TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterPageDoesnotExist, TwitterUnknownError
+from libs.twitter_errors import TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterPageDoesnotExist, TwitterUnknownError, TwitterUserAccountLocked
 
 auth_type = os.getenv("TWITTER_AUTH_TYPE", "oauth")
 if auth_type.lower() == "appauth":
@@ -53,24 +53,30 @@ def fetch_tweet_info(url, headers = {'accept': 'application/json'}):
     global g_headers
     g_headers = headers
 
-    if isinstance(response_json, dict) and 'errors' in response_json.keys():
-      errors = response_json['errors']
-      logger.error("Encountered error {} while accessing {} URL".format(response_json, url))
-      for error in errors:
-        if 'code' in error.keys():
-            if error['code'] == 88:
-                raise TwitterRateLimitError(response_json)
-            elif error['code'] == 50:
-                raise TwitterUserNotFoundError(response_json)
-            elif error['code'] == 89:
-                raise TwitterUserInvalidOrExpiredToken(response_json)
-            elif error['code'] == 326:
-                raise TwitterUserAccountLocked(response_json)
-            elif error['code'] == 34:
-                raise TwitterPageDoesnotExist(response_json)
+    if isinstance(response_json, dict) and ('errors' in response_json.keys() or 'error' in response_json.keys()):
+        pdb.set_trace()
+        if 'errors' in response_json.keys():
+            errors = response_json['errors']
+        else:
+            errors = [{"message":response_json['error']}]
+        logger.error("Encountered error {} while accessing {} URL".format(response_json, url))
+        for error in errors:
+            if 'code' in error.keys():
+                if error['code'] == 88:
+                    raise TwitterRateLimitError(response_json)
+                elif error['code'] == 50:
+                    raise TwitterUserNotFoundError(response_json)
+                elif error['code'] == 89:
+                    raise TwitterUserInvalidOrExpiredToken(response_json)
+                elif error['code'] == 326:
+                    raise TwitterUserAccountLocked(response_json)
+                elif error['code'] == 34:
+                    raise TwitterPageDoesnotExist(response_json)
+                else:
+                    raise TwitterUnknownError(response_json)
             else:
                 raise TwitterUnknownError(response_json)
-      raise TwitterUnknownError(response_json)
+        raise TwitterUnknownError(response_json)
     return response_json
 
 
