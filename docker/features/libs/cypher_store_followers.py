@@ -42,7 +42,7 @@ class FollowerCheckCypherStoreClientIntf(ServiceCypherStoreClientIntf):
         valid_users_result = [ user for user in users if isinstance(user['followers'], list) is True]
         invalid_entries_count = len(users)-len(valid_users_result)
         if invalid_entries_count:
-            print("Found {} invalid results out of {}. Discarding them".format(invalid_entries_count, len(users)))
+            print("[Warning]Found {} invalid results out of {}. Discarding them".format(invalid_entries_count, len(users)))
         self.__store_users(client_id, bucket_id, valid_users_result)
         return
 
