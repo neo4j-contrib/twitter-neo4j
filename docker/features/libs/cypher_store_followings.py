@@ -38,7 +38,12 @@ class FollowingCheckCypherStoreClientIntf(ServiceCypherStoreClientIntf):
         #tested
         print("Store data for {} bucket".format(bucket['bucket_id']))
         bucket_id = bucket['bucket_id']
-        self.__store_users(client_id, bucket_id, bucket['users'])
+        users = bucket['users']
+        valid_users_result = [ user for user in users if isinstance(user['followings'], list) is True]
+        invalid_entries_count = len(users)-len(valid_users_result)
+        if invalid_entries_count:
+            print("Found {} invalid results out of {}. Discarding them".format(invalid_entries_count, len(users)))
+        self.__store_users(client_id, bucket_id, valid_users_result)
         return
 
     def __store_users(self, client_id, bucket_id, users):
