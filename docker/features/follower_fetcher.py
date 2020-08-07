@@ -197,6 +197,7 @@ class FollowerFetcher():
                 continue
 
 def main():
+    print("Starting service at {}".format(datetime.now()))
     print("Starting follower lookup with {}/{} client. \nConfig file should be [config/{}]\n".format(os.environ["CLIENT_ID"],os.environ["CLIENT_SCREEN_NAME"],'.env'))
     stats_tracker = {'processed': 0}
     followerFetcher = FollowerFetcher(client_id=os.environ["CLIENT_ID"], client_screen_name=os.environ["CLIENT_SCREEN_NAME"])
@@ -217,6 +218,6 @@ def main():
 
     stats_tracker['processed'] = followerFetcher.grandtotal
     logger.info("[follower stats] {}".format(stats_tracker))
-    print("Exiting program")
+    print("Exiting program at {}".format(datetime.now()))
 
 if __name__ == "__main__": main()
