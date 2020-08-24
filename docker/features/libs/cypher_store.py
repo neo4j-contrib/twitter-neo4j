@@ -49,7 +49,8 @@ def get_graph():
 
     # Connect to graph
     creds = NEO4J_AUTH.split('/')
-    graph = Graph(user=creds[0], password=creds[1], host=NEO4J_HOST, port=NEO4J_BOLT_PORT, secure=NEO4J_BOLT_SECURE)
+    #TODO: Enable cert verify after fix
+    graph = Graph(user=creds[0], password=creds[1], host=NEO4J_HOST, port=NEO4J_BOLT_PORT, secure=NEO4J_BOLT_SECURE, verify=False)
 
     graph.run('match (t:Tweet) return COUNT(t)')
     return graph
