@@ -27,7 +27,7 @@ class DMCheckCypherStoreMigrationIntf:
         while count:
             count = self.__handle_migrate_users("NonDM", "DM_NO")
             nondmlink_count += count
-            print("Migrated {} NonDM link till now".format(dmlink_count))
+            print("Migrated {} NonDM link till now".format(nondmlink_count))
         print("Migrated {} NonDM link".format(nondmlink_count))   
         return 
     
