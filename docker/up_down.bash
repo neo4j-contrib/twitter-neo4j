@@ -6,3 +6,7 @@ docker-compose -f docker-compose-dmcheck_batch2.yml  $*
 docker-compose -f docker-compose-dmcheck_batch3.yml  $*
 docker-compose -f docker-compose-dmcheck_batch4.yml  $*
 docker-compose -f docker-compose-dmcheck_batch5.yml  $*
+docker-compose -f docker-compose-followerbucket_monitor.yml  $*
+docker-compose -f docker-compose-followercheck_batch1.yml  $*
+docker-compose -f docker-compose-followingucket_monitor.yml  $*
+docker-compose -f docker-compose-followingcheck_batch1.yml  $*
