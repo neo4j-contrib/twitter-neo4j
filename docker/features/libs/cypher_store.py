@@ -3,10 +3,14 @@ from py2neo import Graph
 import socket
 import os
 from retrying import retry
-from datetime import datetime
+from datetime import datetime, timedelta
+import time
+from abc import ABCMeta, abstractmethod
+import uuid
 
 from .twitter_logging import logger
 from . import common
+
 
 #Global variables
 # Number of times to retry connecting to Neo4j upon failure
@@ -45,7 +49,8 @@ def get_graph():
 
     # Connect to graph
     creds = NEO4J_AUTH.split('/')
-    graph = Graph(user=creds[0], password=creds[1], host=NEO4J_HOST, port=NEO4J_BOLT_PORT, secure=NEO4J_BOLT_SECURE)
+    #TODO: Enable cert verify after fix
+    graph = Graph(user=creds[0], password=creds[1], host=NEO4J_HOST, port=NEO4J_BOLT_PORT, secure=NEO4J_BOLT_SECURE, verify=False)
 
     graph.run('match (t:Tweet) return COUNT(t)')
     return graph
@@ -73,104 +78,307 @@ class DMCypherDBInit:
             except Exception as e:
                 print(e)
 
-class DMCypherStoreIntf():
-    def __init__(self, source_screen_name=None):
+class BucketCypherStoreClientIntf(metaclass=ABCMeta):
+    class ClientState:
+        CREATED="CREATED"
+        ACTIVE="ACTIVE"
+        DEACTIVE="DEACTIVE"
+
+    def __init__(self):
+        print("Initializing Bucket Cypher Store")
+        try_connecting_neo4j()
+        print("Bucket Cypher Store init finished")
+
+    @abstractmethod
+    def assign_buckets(self, client_id, bucket_cnt):
+        pass
+
+    @abstractmethod
+    def configure(self, **kwargs):
+        pass
+
+class BucketCypherStoreCommonIntf:
+    def __init__(self):
+        print("Initializing Bucket Cypher Store")
+        try_connecting_neo4j()
+        print("Bucket Cypher Store init finished")
+
+    @abstractmethod
+    def get_all_entities_for_bucket(self, bucket_id):
+        pass
+
+    @abstractmethod
+    def empty_bucket(self, bucket_id):
+        pass
+
+    @abstractmethod
+    def remove_bucket(self, bucket_id):
+        pass
+
+    '''
+    @abstractmethod
+    def valid_bucket_owner(self, bucket_id, client_id):
+        pass
+    '''
+
+class BucketCypherStoreServiceOwnerIntf(metaclass=ABCMeta):
+    def __init__(self, service_id):
+        print("Initializing Bucket Cypher Store")
+        self.service_id = service_id
+        try_connecting_neo4j()
+        print("Bucket Cypher Store init finished")
+
+    def make_db_buckets(self, buckets, priority):
+        #tested
+        db_buckets = []
+        for db_bucket in buckets:
+            bucket_id = uuid.uuid4().hex
+            print("Generated {} UUID for bucket".format(bucket_id))
+            db_buckets.append({'bucket_uuid':bucket_id, 'bucket_priority': priority, 'bucket_state':"unassigned", 'bucket':db_bucket})
+        return db_buckets
+
+    @abstractmethod
+    def get_nonprocessed_list(self, max_item_counts):
+        pass
+
+    @abstractmethod
+    def add_buckets(self, buckets, priority):
+        pass
+
+    @abstractmethod
+    def get_all_dead_buckets(self, threshold_mins_elapsed):
+        pass
+
+    @abstractmethod
+    def detect_n_mark_deadbuckets(self, threshold_hours_elapsed):
+        pass
+
+
+class ClientManagementCypherStoreIntf:
+
+    class ClientState:
+        CREATED = "CREATED"
+        ACTIVE = "ACTIVE"
+        DEACTIVE = "DEACTIVE"
+
+    def __init__(self):
+        #tested
         print("Initializing Cypher Store")
-        self.source_screen_name = source_screen_name
         try_connecting_neo4j()
         print("Cypher Store init finished")
 
-    def set_source_screen_name(self, source_screen_name):
-        self.source_screen_name = source_screen_name
-
-    def get_all_users_list(self):
-        print("Finding users from DB")
-        query = """
-            MATCH (u:User) return u.screen_name ORDER BY u.screen_name
-        """
-        response_json = execute_query_with_result(query)
-        users = [ user['u.screen_name'] for user in response_json]
-        logger.debug("Got {} users".format(len(users)))
-        return users
-    
-    def get_dm_users_list(self):
-        print("Finding DM users from DB")
-        source = [{'screen_name':self.source_screen_name}]
-        query = """
-            UNWIND $source AS source
-            WITH source
-                match(s:User {screen_name: source.screen_name})-[:DM]->(u:User) 
-                return u.screen_name
-        """
-        response_json = execute_query_with_result(query, source=source)
-        users = [ user['u.screen_name'] for user in response_json]
-        return users
-
-    def get_nondm_users_list(self):
-        print("Finding NonDM users from DB")
-        source = [{'screen_name':self.source_screen_name}]
-        query = """
-            UNWIND $source AS source
-            WITH source
-                match(s:User {screen_name: source.screen_name})-[:NonDM]->(u:User) 
-                return u.screen_name
-        """
-        response_json = execute_query_with_result(query, source=source)
-        users = [ user['u.screen_name'] for user in response_json]
-        return users
-
-    def get_nonexists_users_list(self):
-        print("Finding users from DB")
-        query = """
-            MATCH (u:User) where  (u.exists=0) return u.screen_name
-        """
-        response_json = execute_query_with_result(query)
-        users = [ user['u.screen_name'] for user in response_json]
-        return users
-
-    def mark_nonexists_users(self, screen_name):
-        print("Marking non exists users in DB")
-        user = [{'screen_name':screen_name, 'exists':0}]
+    def client_exists(self, client_id):
+        #tested
+        print("Checking existing of  client with id={}".format(client_id))
+        user = [{'id':client_id}]
         query = """
             UNWIND $user AS u
 
-            MERGE (user:User {screen_name:u.screen_name})
-            SET user.exists = u.exists
+            MATCH (client:ClientForService {id:u.id}) return u.id
         """
-        execute_query(query, user=user)
-        return True
+        response_json = execute_query_with_result(query, user=user)
+        if response_json:
+            return True
+        else:
+            return False
 
-    def store_dm_friends(self, friendship):
-        print("storing {} count of friendship to DB".format(len(friendship)))
+    def client_valid(self, client_id):
+        print("Checking validity of  client with id={}".format(client_id))
+        pdb.set_trace()
+        user = [{'id':client_id}]
         query = """
-        UNWIND $friendship AS dm
+            UNWIND $user AS u
 
-
-        MERGE (suser:User {screen_name:dm.source})
-        MERGE (tuser:User {screen_name:dm.target})
-
-        MERGE (suser)-[:DM]->(tuser)
+            MATCH (client:ClientForService {id:u.id}) where client.state="ACTIVE" return u.id
         """
+        response_json = execute_query_with_result(query, user=user)
+        if response_json:
+            return True
+        else:
+            return False
 
-        # Send Cypher query.
-        execute_query(query, friendship=friendship)
-        print("DM info added to graph!")
 
-    def store_nondm_friends(self, friendship):
-        print("storing {} count of non-DM friendship to DB".format(len(friendship)))
+    def add_client(self, client_id, screen_name):
+        #tested
+        print("Adding client with id={}, screen name={}".format(client_id, screen_name))
+        currtime = datetime.utcnow()
+        client_stats = {"last_access_time": currtime}
+        state = {'state':"CREATED", 'create_datetime': currtime, 'edit_datetime':currtime, 'client_stats':client_stats}
+        user = [{'screen_name':screen_name, 'id':client_id}]
         query = """
-        UNWIND $friendship AS nondm
-
-
-        MERGE (suser:User {screen_name:nondm.source})
-        MERGE (tuser:User {screen_name:nondm.target})
-
-        MERGE (suser)-[:NonDM]->(tuser)
+            UNWIND $user AS u
+    
+            MERGE (client:ClientForService {id:u.id})
+                SET client.screen_name = u.screen_name,
+                    client.state = $state.state,
+                    client.create_datetime = datetime($state.create_datetime),
+                    client.edit_datetime = datetime($state.edit_datetime)
+            MERGE(client)-[:STATS]->(stat:StatsClientForService)
+            ON CREATE SET stat += $state.client_stats
         """
+        execute_query(query, user=user, state=state)
+        return
 
-        # Send Cypher query.
-        execute_query(query, friendship=friendship)
-        print("DM info added to graph!")
+    def change_state_client(self, client_id, client_state):
+        #tested
+        print("Changing state to {} for client with id={}".format(client_state, client_id))
+        currtime = datetime.utcnow()
+        client_stats = {"last_access_time": currtime}
+        state = {'state':client_state, 'edit_datetime':currtime, 'client_stats':client_stats}
+        user = [{'id':client_id}]
+        query = """
+            UNWIND $user AS u
+
+            MATCH (client:ClientForService {id:u.id})
+                SET client.state = $state.state,
+                    client.edit_datetime = datetime($state.edit_datetime)
+            WITH client
+                MATCH(client)-[:STATS]->(stat:StatsClientForService)
+                    SET stat += $state.client_stats
+        """
+        execute_query(query, user=user, state=state)
+        return
+
+class ServiceManagemenDefines:
+    class ServiceIDs:
+        FOLLOWER_SERVICE="UserFollowerCheck"
+        FOLLOWING_SERVICE="UserFollowingCheck"
+        DMCHECK_SERVICE="DMCheck"
+
+    class ServiceState:
+        CREATED = "CREATED"
+        ACTIVE = "ACTIVE"
+        DEACTIVE = "DEACTIVE"
+
+class ServiceManagementIntf:
+
+    def __init__(self):
+        print("Initializing Cypher Store")
+        try_connecting_neo4j()
+        print("Cypher Store init finished")
+
+    #TODO: Change ACTIVE string to the class variable
+    def get_count_clients_for_service(self, service_id, client_state="ACTIVE"):
+        #tested
+        print("Listing all clients for {} service which are {}".format(service_id, client_state))
+        state = {'client_state':client_state, 'service_id':service_id}
+        query = """
+            match(c:ClientForService {state:toupper($state.client_state)})-[:INSERVICE]->(:ServiceForClient {id:$state.service_id}) return count(c) AS count
+        """
+        response_json = execute_query_with_result(query,state=state)
+        count = response_json[0]['count']
+        logger.debug("Got {} clients".format(count))
+        return count 
+
+    def client_service_registered(self, client_id, service_id):
+        #tested
+        print("Checking existance of  client with id={}".format(client_id))
+        user = [{'id':client_id, 'service_id':service_id}]
+        query = """
+            UNWIND $user AS u
+
+            MATCH (client:ClientForService {id:u.id})-[:INSERVICE]->(:ServiceForClient {id:u.service_id}) return u.id
+        """
+        response_json = execute_query_with_result(query, user=user)
+        if response_json:
+            return True
+        else:
+            return False
+
+    def service_exists(self, service_id):
+        #tested
+        print("Checking validity of  service with id={}".format(service_id))
+        svc = {'id':service_id}
+        query = """
+            MATCH (service:ServiceForClient {id:$svc.id}) return $svc.id
+        """
+        response_json = execute_query_with_result(query, svc=svc)
+        if response_json:
+            return True
+        else:
+            return False
+
+    def service_ready(self, service_id):
+        #tested
+        print("Checking validity of  service with id={}".format(service_id))
+        svc = {'id':service_id, 'state':ServiceManagemenDefines.ServiceState.ACTIVE}
+        query = """
+            MATCH (service:ServiceForClient {id:$svc.id}) where service.state=$svc.state return $svc.id
+        """
+        response_json = execute_query_with_result(query, svc=svc)
+        if response_json:
+            return True
+        else:
+            return False
+
+    def get_service_state(self, service_id):
+        #tested
+        print("Checking validity of  service with id={}".format(service_id))
+        svc = {'id':service_id}
+        query = """
+            MATCH (service:ServiceForClient {id:$svc.id}) return service.state AS service_state
+        """
+        response_json = execute_query_with_result(query, svc=svc)
+        svc_state = response_json[0]['service_state']
+        print("Found state {} for service with id={}".format(svc_state, service_id))
+        return svc_state
+
+    def register_service(self, service_id, defaults):
+        #tested
+        # It assumes that client is already registered
+        print("Adding service with id={}".format(service_id))
+        currtime = datetime.utcnow()
+        service_stats = {"last_access_time": currtime}
+        state = {'state':"CREATED", 'create_datetime': currtime, 'edit_datetime':currtime, 'defaults':defaults, 'stats':service_stats}
+        svc = {'service_id':service_id}
+        query = """   
+            MERGE(service:ServiceForClient {id:$svc.service_id})
+                SET service.create_datetime = datetime($state.create_datetime),
+                    service.state = $state.state,
+                    service.edit_datetime = datetime($state.edit_datetime)
+            MERGE(service)-[:STATS]->(stat:ServiceStats)
+            ON CREATE SET stat += $state.stats
+            MERGE(service)-[:DEFAULTS]->(defaults:ServiceDefaults)
+            ON CREATE SET defaults += $state.defaults
+        """
+        execute_query(query, svc=svc, state=state)
+        return
+
+    def register_service_for_client(self, client_id, service_id):
+        #tested
+        # It assumes that client is already registered
+        print("Adding client with id={} to service with id={}".format(client_id, service_id))
+        currtime = datetime.utcnow()
+        state = {'state':"CREATED", 'create_datetime': currtime, 'edit_datetime':currtime}
+        user = [{'id':client_id, 'service_id':service_id}]
+        query = """
+            UNWIND $user AS u
+    
+            MATCH (client:ClientForService {id:u.id})
+            MATCH (service:ServiceForClient {id:u.service_id})
+            MERGE (client)-[:INSERVICE]->(service)
+        """
+        execute_query(query, user=user, state=state)
+        return
+
+    def change_service_state(self, service_id, service_state):
+        #tested
+        print("Changing state to {} for client with id={}".format(service_state, service_id))
+        currtime = datetime.utcnow()
+        stats = {"last_access_time": currtime}
+        state = {'state':service_state, 'edit_datetime':currtime, 'stats':stats}
+        svc = {'id':service_id}
+        query = """
+            MATCH(service:ServiceForClient {id:$svc.id})
+                SET service.state = $state.state,
+                    service.edit_datetime = datetime($state.edit_datetime)
+            MERGE(service)-[:STATS]->(stat:ServiceStats)
+                SET stat += $state.stats
+        """
+        execute_query(query, svc=svc, state=state)
+        return
+
+
 
 class TweetCypherStoreIntf:
     """
@@ -213,9 +421,10 @@ class TweetCypherStoreIntf:
           except AttributeError:
             pass
         return result
-
+    
     def store_tweets_info(self, tweets, categories=[]):
         print("storing {} count of tweets to DB".format(len(tweets)))
+        ts = time.perf_counter()
         if len(tweets) < 1:
             print("Skipping as no tweet to store in DB")
             return
@@ -297,8 +506,8 @@ class TweetCypherStoreIntf:
         # Send Cypher query.
         execute_query(query, tweets=tweets, categories=categories)
         print("Tweets added to graph!")
-    
-
+        te = time.perf_counter()
+        print('perfdata: func:%r took: %2.4f sec' % ('store_tweets_info', te-ts))
 
 class TweetFetchQueryDBStore:
     """

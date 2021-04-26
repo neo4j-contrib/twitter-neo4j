@@ -26,69 +26,78 @@ User defined modules
 '''
 
 from config.load_config import load_config
-config_file_name = 'dm_env.py'
-load_config(config_file_name)
+load_config()
 
-dep_check = os.getenv("DEPENDENCY_CHECK", "True")
+dep_check = os.getenv("DEPENDENCY_CHECK", "False")
 if dep_check.lower() == "true":
     from installer import dependency_check
 
-store_type = os.getenv("DB_STORE_TYPE", "file_store")
-if store_type.lower() == "file_store":
-    from libs.file_store import DMFileStoreIntf as DMStoreIntf
-else:
-    from libs.cypher_store import DMCypherStoreIntf as DMStoreIntf
-from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError
+
+from libs.twitter_errors import  TwitterRateLimitError, TwitterUserNotFoundError, TwitterUserInvalidOrExpiredToken, TwitterUserAccountLocked
+from libs.service_client_errors import ServiceNotReady
 
 from libs.twitter_access import fetch_tweet_info, get_reponse_header
 from libs.twitter_logging import logger
 
-
-
+from libs.dmcheck_buckets_manager_client import DMCheckBucketManagerClient as DMCheckBucketManager
 
 class UserRelations():
     """
     This class uses expert pattern. 
     It provides API to 
     """
-    def __init__(self, source_screen_name, outfile=None):
+    def __init__(self, client_id, client_screen_name, source_id, source_screen_name):
         print("Initializing user friendship")
+        self.source_id = source_id
         self.source_screen_name = source_screen_name
-        self.dataStoreIntf = DMStoreIntf(source_screen_name)
+        self.client_id = client_id
+        self.client_screen_name = client_screen_name
+        self.dmcheck_bucket_mgr = DMCheckBucketManager(client_id, client_screen_name, source_id, source_screen_name)
         self.grandtotal = 0 #Tracks the count of total friendship stored in DB
         print("User friendship init finished")
     
+    def register_as_dmcheck_client(self):
+        print("Registering DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
+        self.dmcheck_bucket_mgr.register_service()
+        print("Successfully registered DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
+
+    def unregister_client(self):
+        print("Unregistering DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
+        self.dmcheck_client_manager.unregister_service()
+        print("Successfully unregistered DM check client as {} Id and {} screen.name".format(self.client_id, self.client_screen_name))
+
     def __process_friendship_fetch(self, user):
-        print("Processing friendship fetch for {}  user".format(user))
+        #print("Processing friendship fetch for {}  user".format(user))
         base_url = 'https://api.twitter.com/1.1/friendships/show.json'
-    
-        params = {
-              'source_screen_name': self.source_screen_name,
-              'target_screen_name': user
-            }
+        if user['id']:
+            params = {
+                'source_id': self.source_id,
+                'target_id': user['id']
+                }
+        else:
+            print("User Id is missing and so using {} screen name".format(user['screen_name']))
+            params = {
+                'source_screen_name': self.source_screen_name,
+                'target_screen_name': user['screen_name']
+                }
         url = '%s?%s' % (base_url, urllib.parse.urlencode(params))
  
         response_json = fetch_tweet_info(url)
-        print(type(response_json))
+        #print(type(response_json))
 
         friendship = response_json
         return friendship
 
-    def __process_dm(self, users, batch=100):
+    def __check_dm_status(self, users):
         print("Finding relations between {} and {} users".format(self.source_screen_name, len(users)))
         friendships = []
-        can_dm_user = []
-        cant_dm_user = []
         count = 0
         start_time = datetime.now()
-        frequency = 1
+        remaining_threshold = 0
         for user in users:
-            if(user == self.source_screen_name):
-                print("skipping as user is same")
-                continue
             try:
                 curr_limit = get_reponse_header('x-rate-limit-remaining')
-                if(curr_limit and int(curr_limit) <= frequency+1):
+                if(curr_limit and int(curr_limit) <= remaining_threshold):
                     print("Sleeping as remaining x-rate-limit-remaining is {}".format(curr_limit))
                     time_diff = (datetime.now()-start_time).seconds
                     remaining_time = (15*60) - time_diff
@@ -99,64 +108,49 @@ class UserRelations():
                     start_time = datetime.now()
                     print("Continuing after threshold reset")
 
-                print("Fetching friendship info for {} user".format(user))
+                print("Fetching friendship info from {} to {} user".format(self.source_screen_name, user))
                 friendship = self.__process_friendship_fetch(user)
             except TwitterUserNotFoundError as unf:
-                logger.warning("Twitter couldn't found user {} and so ignoring and setting in DB".format(user))
-                self.dataStoreIntf.mark_nonexists_users(user)
+                logger.warning("Twitter couldn't found user {} and so ignoring".format(user))
+                user['candm'] = "UNKNOWN"
                 self.grandtotal += 1
                 continue
             count = count + 1
-            if friendship['relationship']['source']['can_dm'] == True:
-                can_dm_user.append({'source':self.source_screen_name, 'target':user})
+            status = friendship['relationship']['source']['can_dm']
+            if status:
+                user['candm'] = "DM"
             else:
-                cant_dm_user.append({'source':self.source_screen_name, 'target':user})
-            if(count%batch == 0):
-                print("Storing batch upto {}".format(count))
-                print("Linking {} DM users".format(len(can_dm_user)))
-                self.dataStoreIntf.store_dm_friends(can_dm_user)
-                self.grandtotal += len(can_dm_user)
-                can_dm_user = []
-                print("Linking {} Non-DM users".format(len(cant_dm_user)))
-                self.dataStoreIntf.store_nondm_friends(cant_dm_user)
-                self.grandtotal += len(cant_dm_user)
-                cant_dm_user = []
-        print("Storing batch upto {}".format(count))
-        if(len(can_dm_user)):
-            print("Linking {} DM users".format(len(can_dm_user)))
-            self.dataStoreIntf.store_dm_friends(can_dm_user)
-            self.grandtotal += len(can_dm_user)
+                user['candm'] = "NON_DM"
+        print("Processed {} out of {} users for DM Check".format(count, len(users)))
+        if count != len(users):
+            logger.info("Unable to fetch DM status for {} users".format(len(users)-count))
 
-        if(len(cant_dm_user)):
-            print("Linking {} Non-DM users".format(len(cant_dm_user)))
-            self.dataStoreIntf.store_nondm_friends(cant_dm_user)
-            self.grandtotal += len(cant_dm_user)
-            cant_dm_user = []
-
-
+    def __process_bucket(self, bucket):
+        print("Processing bucket with ID={}".format(bucket['bucket_id']))
+        bucket_id = bucket['bucket_id']
+        users = bucket['users']
+        self.__check_dm_status(users)
+        return
 
     def findDMForUsersInStore(self):
         print("Finding DM between the users")
         find_dm = True
         try_count = 0
+        buckets_batch_cnt = 2
         while find_dm:
             try:
                 try_count = try_count + 1
                 print("Retry count is {}".format(try_count))
-                users = self.dataStoreIntf.get_all_users_list()
-                print("Total number of users are {}".format(len(users)))
-                nonexists_users = self.dataStoreIntf.get_nonexists_users_list()
-                print("Total number of invalid users are {} and they are {}".format(len(nonexists_users), nonexists_users))
-                dmusers = self.dataStoreIntf.get_dm_users_list()
-                print("Total number of DM users are {}".format(len(dmusers)))
-                nondmusers = self.dataStoreIntf.get_nondm_users_list()
-                print("Total number of Non DM users are {}".format(len(nondmusers)))
-                users_wkg = sorted(set(users) - set(nonexists_users) - set(dmusers) - set(nondmusers))
-                print('Processing with unchecked {} users'.format(len(users_wkg)))
-                if(len(users_wkg)):
-                    self.__process_dm(users_wkg, 10)
-                else:
-                    find_dm = False
+                buckets = self.dmcheck_bucket_mgr.assignBuckets(bucketscount=buckets_batch_cnt)
+                while buckets:
+                    for bucket in buckets:
+                        print("Processing {} bucket at  {}Z".format(bucket['bucket_id'], datetime.utcnow()))
+                        self.__process_bucket(bucket)
+                        print("Storing {} bucket user info at  {}Z".format(bucket['bucket_id'], datetime.utcnow()))
+                        self.dmcheck_bucket_mgr.store_processed_data_for_bucket(bucket)
+                    buckets = self.dmcheck_bucket_mgr.assignBuckets(bucketscount=buckets_batch_cnt)
+                print("Not Found any bucket for processing. So waiting for more buckets to be added")
+                time.sleep(60)
             except TwitterRateLimitError as e:
                 logger.exception(e)
                 print(traceback.format_exc())
@@ -165,25 +159,46 @@ class UserRelations():
                 print('Sleeping for 15 minutes due to quota. Current time={}'.format(datetime.now()))
                 time.sleep(900)
                 continue
+            except TwitterUserInvalidOrExpiredToken as e:
+                logger.exception(e)
+                print(traceback.format_exc())
+                print(e)
+                print('Exiting since user credential is invalid')
+                return         
+
+            except TwitterUserAccountLocked as e:
+                logger.exception(e)
+                print(traceback.format_exc())
+                print(e)
+                print('Exiting since Account is locked')
+                return       
 
             except Exception as e:
                 logger.exception(e)
                 print(traceback.format_exc())
                 print(e)
-                time.sleep(30)
+                time.sleep(900)
                 continue
 
 def main():
-    print("Starting DM lookup. \nConfig file should be [config/{}]\n".format(config_file_name))
+    print("Starting service at {}".format(datetime.now()))
+    print("Starting DM lookup with {}/{} client. \nConfig file should be [config/{}]\n".format(os.environ["TWITTER_ID"],os.environ["TWITTER_USER"],'.env'))
     stats_tracker = {'processed': 0}
-    userRelations = UserRelations(os.environ["TWITTER_USER"])
-    try:
-        userRelations.findDMForUsersInStore()
-    except Exception as e:
-        pass
-    finally:
-        stats_tracker['processed'] = userRelations.grandtotal
-        logger.info("[DM stats] {}".format(stats_tracker))
-        print("Exiting program")
+    userRelations = UserRelations(client_id=os.environ["CLIENT_ID"], client_screen_name=os.environ["CLIENT_SCREEN_NAME"], source_id=os.environ["TWITTER_ID"], source_screen_name=os.environ["TWITTER_USER"])
+    retry = True
+    sleepseconds = 30
+    while retry:    
+        try:
+            userRelations.register_as_dmcheck_client()
+            userRelations.findDMForUsersInStore()
+        except ServiceNotReady as e:
+            print("caught exception {}".format(e))
+            print("Retrying after {} seconds as service is not ready".format(sleepseconds))
+            time.sleep(sleepseconds)
+        except Exception as e:
+            retry = False
+    stats_tracker['processed'] = userRelations.grandtotal
+    logger.info("[DM stats] {}".format(stats_tracker))
+    print("Exiting program at {}".format(datetime.now()))
 
 if __name__ == "__main__": main()

@@ -13,7 +13,7 @@ import os
 import traceback
 import urllib.parse
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import time
 import argparse
@@ -37,14 +37,17 @@ class ArgsHandler:
         self.env = None
 
     def get_args(self):
-        parser = argparse.ArgumentParser(description='Process some integers.')
+        parser = argparse.ArgumentParser(description='Process Tweet fetch')
         parser.add_argument('--filepath', metavar='N', type=str,
                             help='search query file path', default=None)
         parser.add_argument('--env', metavar='N', type=str,
-                           help='env file path', default='tweet_env.py')
+                           help='env file path', default=None)
+        parser.add_argument('--daemon', metavar='N', type=str,
+                           help='daemon mode', default='yes')
         results = parser.parse_args()
         self.filepath = results.filepath
         self.env = results.env
+        self.daemon = common.isTrue(results.daemon)
 
 argsHandler = ArgsHandler()
 argsHandler.get_args()
@@ -108,8 +111,8 @@ class TweetsFetcher:
         catgories_list = []
         sync_with_store = False
         tweet_filter = {}
-        if 'categories_list' in cmd_args:
-            catgories_list = cmd_args['categories_list']
+        if 'categories' in cmd_args:
+            catgories_list = cmd_args['categories']
         if 'sync_with_store' in cmd_args and cmd_args['sync_with_store'].lower() == "true":
             sync_with_store = True
 
@@ -358,6 +361,7 @@ class TweetsFetcher:
         tweets_to_import = True
         max_id = None
         total_count = 0
+        total_db_count = 0
         start_time = datetime.now()
         search_term_query = self.tweetStoreIntf.util_get_search_term_query(search_term)
         if sync_with_store:
@@ -403,9 +407,11 @@ class TweetsFetcher:
                     print("{} Tweets to be stored out of {} tweets".format(len(filtered_tweets), len(tweets)))
                     if(len(filtered_tweets)):
                         self.tweetStoreIntf.store_tweets_info(filtered_tweets, categories_list)
-                        print("{} Search tweets added to graph for {}!".format(len(filtered_tweets), search_term))
+                        total_db_count += len(filtered_tweets)
+                        print("{} Search tweets added to graph for [{}]!".format(len(filtered_tweets), search_term))
+                        print(" total {} tweets added to database for [{}] search\n".format(total_db_count, search_term))
                     else:
-                        print("skipping as none found from {} total tweets".format(len(tweets)))
+                        print("skipping adding to database as none found from {} total tweets".format(len(tweets)))
                 else:
                     print("No search tweets found for %s." % (search_term))
                     if(not total_count):
@@ -433,13 +439,34 @@ class TweetsFetcher:
 
 def main():
     print("Starting Tweet fetcher. \nConfig file should be [{}]\n".format(argsHandler.env))
+    logger.info("[tweets_fetcher] started at {}".format(datetime.now()))
     tweets_fetch_stats = {'processed': 0}
     tweetsFetcher = TweetsFetcher()
+    i = 0
+    sleeptime = 300
     try:
-        tweetsFetcher.handle_tweets_command()
-        #tweetsFetcher.import_tweets_search('RT @actormanojjoshi: काग़ज़ मिले की')
+        while  True:
+            i = i + 1
+            #logger.info("[tweets_fetcher] I-{} at {}".format(i, datetime.now()))
+            #print("[tweets_fetcher] I-{} at {}".format(i, datetime.now()))
+            start_time= time.time()
+            tweetsFetcher.handle_tweets_command()
+            if not argsHandler.daemon:
+                logger.info("[tweets_fetcher]Exiting the program gracefuly")
+                print("[tweets_fetcher]Exiting the program gracefuly")
+                break
+            elapsed_time = time.time() - start_time
+            if(elapsed_time < sleeptime):
+                remaining_time = sleeptime - elapsed_time
+                logger.info("[tweets_fetcher] next iterat {} seconds from {}".format(remaining_time, datetime.now()))
+                print("[tweets_fetcher] next iterat {} seconds from {}".format(remaining_time, datetime.now()))
+                time.sleep(remaining_time)
+    except Exception as e:
+        logger.exception("[tweets_fetcher]Caught exception {}".format(e))
+        print("[tweets_fetcher]Caught exception {}".format(e))
     finally:
         tweets_fetch_stats['processed'] = tweetsFetcher.grandtotal
         logger.info("[tweets_fetcher stats] {}".format(tweets_fetch_stats))
+        logger.info("[tweets_fetcher] Ends at {}".format(datetime.now()))
 
 if __name__ == "__main__": main()

@@ -1,18 +1,20 @@
 import pdb
 import os
 import time
+import sys
 
 '''
 Initialization code
 '''
-# def __init_program():
-#     print("CWD is {}".format(os.getcwd()))
-#     abspath = os.path.abspath(__file__)
-#     dname = os.path.dirname(abspath)
-#     os.chdir(dname)
-#     print("After change, CWD is {}".format(os.getcwd()))
+def __init_program():
+    print("CWD is {}".format(os.getcwd()))
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    print("adding {} to sys.path".format(dname))
+    sys.path.append(dname)
+    print("After change, sys path is {}".format(sys.path))
 
-# __init_program()
+__init_program()
 
 '''
 User defined modules
@@ -48,8 +50,18 @@ class fetcher_query_store:
 	def mark_queries_as_started(queries):
 		return tweetFetchQueryIntf.mark_queries_as_started(queries)
 
+def test_query_insert():
+	try:
+		user = {'username':'dkreal', 'email':'dpkumar@gmail.com'}
+		queries= [{"tweet_search":{"search_term":"@invalidquerytest", "categories_list": ["Testing"], "filter":"off", "tweet_filter":{"retweets_of":["invalidquerytest"]}}}]
+		fetcher_query_store.add_new_query(queries=queries, user=user)
+		print("Test is successful")
+		return True	
+	except Exception as e:
+		print("Test failed with error {}".format(e))
+		return False
+
 def main():
-	pdb.set_trace()
 	user = {'username':'dkreal', 'email':'dpkumar@gmail.com'}
 	# queries= [{"tweet_search":{"search_term":"@vyasnitesh19", "categories_list": ["Testing"], "filter":"on", "tweet_filter":{"retweets_of":["vyasnitesh19"]}}}]
 	# fetcher_query_store.add_new_query(queries=queries, user=user)

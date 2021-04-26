@@ -10,7 +10,7 @@ import os
 '''
 User defined modules
 '''
-import common
+from . import common
 from libs.twitter_logging import logger
 class DMFileStoreIntf():
     """
