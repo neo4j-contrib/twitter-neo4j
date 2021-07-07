@@ -1,14 +1,6 @@
-FROM debian:latest
-MAINTAINER Ryan Boyd, <ryan.boyd@neotechnology.com>
-
-RUN apt-get update
-RUN apt-get install -y python python-pip
-RUN pip install py2neo
-RUN pip install oauth2
-RUN pip install futures
-RUN pip install retrying
-
-ADD import_user.py /
-RUN chmod +x /import_user.py
-
-ENTRYPOINT ["python", "-u", "/import_user.py"]
+FROM python:3
+ENV PYTHONUNBUFFERED 1
+WORKDIR /features
+ENV DJANGO_ALLOWED_HOSTS='127.0.0.1'
+COPY ./features/. /features/
+RUN pip install -r requirements.txt

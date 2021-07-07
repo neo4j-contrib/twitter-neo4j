@@ -1,0 +1,14 @@
+version: '3'
+  
+services:
+    followingcheck_bucket_monitor:
+        build: .
+        image: neo4j-twittertools
+        command: bash -c "python followingcheck_bucket_monitor.py"
+        logging:
+         driver: "json-file"
+         options:
+          max-size: "2m"
+          max-file: "2"
+        volumes:
+            - .env_followingcheck_monitor:/features/config/.env

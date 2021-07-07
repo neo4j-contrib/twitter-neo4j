@@ -1,0 +1,36 @@
+version: '3'
+  
+services:
+    dmcheck_client_batch2_1:
+        build: .
+        image: neo4j-twittertools
+        command: bash -c "python user_friendship.py"
+        logging:
+         driver: "json-file"
+         options:
+          max-size: "2m"
+          max-file: "2"
+        volumes:
+            - .env_dmcheck_client_b2_1:/features/config/.env
+    dmcheck_client_batch2_2:
+        build: .
+        image: neo4j-twittertools
+        command: bash -c "python user_friendship.py"
+        logging:
+         driver: "json-file"
+         options:
+          max-size: "2m"
+          max-file: "2"
+        volumes:
+            - .env_dmcheck_client_b2_2:/features/config/.env
+    dmcheck_client_batch2_3:
+        build: .
+        image: neo4j-twittertools
+        command: bash -c "python user_friendship.py"
+        logging:
+         driver: "json-file"
+         options:
+          max-size: "2m"
+          max-file: "2"
+        volumes:
+            - .env_dmcheck_client_b2_3:/features/config/.env

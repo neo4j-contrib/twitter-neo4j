@@ -1,0 +1,16 @@
+#Twitter config
+TWITTER_USER=<Twitter screen name>
+TWITTER_CONSUMER_KEY=<Consumer key>
+TWITTER_CONSUMER_SECRET=<Consumer Secret>
+TWITTER_USER_KEY=<User key>
+TWITTER_USER_SECRET=<User Secret>
+
+#Database config
+NEO4J_HOST=localhost
+NEO4J_PORT=7474
+NEO4J_BOLT_PORT=7687
+NEO4J_BOLT_SECURE=FALSE
+NEO4J_AUTH=neo4j/test
+
+TWITTER_AUTH_TYPE=oauth
+DB_STORE_TYPE=file_store

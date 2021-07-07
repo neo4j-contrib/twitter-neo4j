@@ -1,0 +1,69 @@
+version: '3'
+  
+services:
+    dmcheck_client_batch5_1:
+        build: .
+        image: neo4j-twittertools
+        command: bash -c "python user_friendship.py"
+        logging:
+         driver: "json-file"
+         options:
+          max-size: "2m"
+          max-file: "2"
+        volumes:
+            - .env_dmcheck_client_b5_1:/features/config/.env
+    dmcheck_client_batch5_2:
+        build: .
+        image: neo4j-twittertools
+        command: bash -c "python user_friendship.py"
+        logging:
+         driver: "json-file"
+         options:
+          max-size: "2m"
+          max-file: "2"
+        volumes:
+            - .env_dmcheck_client_b5_2:/features/config/.env
+    dmcheck_client_batch5_3:
+        build: .
+        image: neo4j-twittertools
+        command: bash -c "python user_friendship.py"
+        logging:
+         driver: "json-file"
+         options:
+          max-size: "2m"
+          max-file: "2"
+        volumes:
+            - .env_dmcheck_client_b5_3:/features/config/.env
+    dmcheck_client_batch5_4:
+        build: .
+        image: neo4j-twittertools
+        command: bash -c "python user_friendship.py"
+        logging:
+         driver: "json-file"
+         options:
+          max-size: "2m"
+          max-file: "2"
+        volumes:
+            - .env_dmcheck_client_b5_4:/features/config/.env
+    dmcheck_client_batch5_5:
+        build: .
+        image: neo4j-twittertools
+        command: bash -c "python user_friendship.py"
+        logging:
+         driver: "json-file"
+         options:
+          max-size: "2m"
+          max-file: "2"
+        volumes:
+            - .env_dmcheck_client_b5_5:/features/config/.env
+    dmcheck_client_batch5_6:
+        build: .
+        image: neo4j-twittertools
+        command: bash -c "python user_friendship.py"
+        logging:
+         driver: "json-file"
+         options:
+          max-size: "2m"
+          max-file: "2"
+        volumes:
+            - .env_dmcheck_client_b5_6:/features/config/.env
